@@ -4,8 +4,151 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 import { geminiFlash } from '@/utils/gemini'
-import { sanitizeAIInput, validateAIResponse, FastModeSchema, sanitizeAIOutput } from '@/utils/ai-security'
+import { sanitizeAIOutput, validateAIResponse, FastModeSchema } from '@/utils/ai-security'
 import { Database } from '@/types/supabase'
+
+const AI_PROMPT = `
+Przeanalizuj to zdjęcie rekwizytu teatralnego.
+Zidentyfikuj główny obiekt. Zignoruj tło, jeśli to możliwe.
+
+Zwróć obiekt JSON z następującymi polami:
+- name: Krótka, opisowa nazwa po polsku (np. "Stara brązowa walizka")
+- description: Szczegółowy opis po polsku uwzględniający materiał, kolor, styl, epokę, stan i cechy charakterystyczne. Pełne zdania, język naturalny.
+- ai_description: Zbiór słów kluczowych i atrybutów oddzielonych przecinkami. Tylko konkretne cechy fizyczne, materiały, style, kolory. Bez zbędnych słów łączących. (np. "walizka, skóra, brązowy, metalowe klamry, vintage, lata 70, zniszczona")
+- tags: Tablica stringów po polsku (np. ["walizka", "vintage", "skóra", "lata 70."])
+- category: Sugerowana nazwa kategorii.
+- attributes: Obiekt JSON z konkretnymi cechami, np. { "era": "lata 70", "material": "skóra", "color": "brązowy", "condition": "dobry" }.
+- confidence: Liczba od 0.0 do 1.0 oznaczająca pewność identyfikacji.
+
+Output ONLY the JSON object.
+`
+
+async function uploadFileToStorage(supabase: any, file: File, path: string): Promise<boolean> {
+    const { error } = await supabase.storage.from('items').upload(path, file)
+    if (error) {
+        console.error('Upload error:', error)
+        return false
+    }
+    return true
+}
+
+function getPublicUrl(supabase: any, filePath: string): string {
+    const { data: { publicUrl } } = supabase.storage.from('items').getPublicUrl(filePath)
+    return publicUrl
+}
+
+async function logAIUsage(supabase: any, usage: any, fileName: string): Promise<void> {
+    if (!usage) return
+    await supabase.from('ai_usage_logs').insert({
+        operation_type: 'fast_add',
+        tokens_input: usage.promptTokenCount,
+        tokens_output: usage.candidatesTokenCount,
+        total_tokens: usage.totalTokenCount,
+        model_name: 'gemini-2.0-flash',
+        details: { fileName }
+    })
+}
+
+async function analyzeImageWithAI(image: File): Promise<{ name: string } | null> {
+    if (!geminiFlash) {
+        throw new Error('Gemini AI not available - GEMINI_API_KEY may be missing')
+    }
+
+    const arrayBuffer = await image.arrayBuffer()
+    const base64Data = Buffer.from(arrayBuffer).toString('base64')
+
+    const result = await geminiFlash.generateContent([
+        AI_PROMPT,
+        { inlineData: { data: base64Data, mimeType: image.type } }
+    ])
+
+    return { _result: result } as any
+}
+
+async function createPropInDB(supabase: any, performanceId: string, name: string, imageUrl: string): Promise<any | null> {
+    const { data: newProp, error: dbError } = await supabase
+        .from('performance_props')
+        .insert({
+            performance_id: performanceId,
+            item_name: name,
+            image_url: imageUrl,
+            is_checked: false,
+        })
+        .select()
+        .single()
+
+    if (dbError) {
+        console.error('Database error:', dbError)
+        return null
+    }
+    return newProp
+}
+
+async function processImageWithAI(
+    supabase: any,
+    image: File,
+    publicUrl: string,
+    fileName: string,
+    performanceId: string
+): Promise<any | null> {
+    try {
+        const arrayBuffer = await image.arrayBuffer()
+        const base64Data = Buffer.from(arrayBuffer).toString('base64')
+
+        if (!geminiFlash) {
+            throw new Error('Gemini AI not available - GEMINI_API_KEY may be missing')
+        }
+
+        const result = await geminiFlash.generateContent([
+            AI_PROMPT,
+            { inlineData: { data: base64Data, mimeType: image.type } }
+        ])
+
+        await logAIUsage(supabase, result.response.usageMetadata, fileName)
+
+        const responseText = result.response.text()
+        const jsonString = responseText.replace(/```json\n?|\n?```/g, '').trim()
+        const rawAnalysis = JSON.parse(jsonString)
+
+        const validatedAnalysis = validateAIResponse(rawAnalysis, FastModeSchema)
+        const analysis = {
+            ...validatedAnalysis,
+            name: sanitizeAIOutput(validatedAnalysis.name),
+        }
+
+        return await createPropInDB(supabase, performanceId, analysis.name, publicUrl)
+    } catch (error) {
+        console.error('AI Processing error:', error)
+        // Fallback: Create prop without AI data
+        return await createPropInDB(
+            supabase,
+            performanceId,
+            `Nowy rekwizyt (${new Date().toLocaleTimeString()})`,
+            publicUrl
+        )
+    }
+}
+
+async function processSingleImage(
+    supabase: any,
+    image: File,
+    thumbnail: File,
+    performanceId: string
+): Promise<any | null> {
+    const fileExt = image.name.split('.').pop()
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+    const filePath = `fast-mode/${fileName}`
+    const thumbPath = `fast-mode/thumb_${fileName}`
+
+    const uploaded = await uploadFileToStorage(supabase, image, filePath)
+    if (!uploaded) return null
+
+    await uploadFileToStorage(supabase, thumbnail, thumbPath)
+
+    const publicUrl = getPublicUrl(supabase, filePath)
+
+    return processImageWithAI(supabase, image, publicUrl, fileName, performanceId)
+}
 
 export async function uploadAndAnalyzeImages(formData: FormData) {
     const supabase = await createClient()
@@ -17,133 +160,12 @@ export async function uploadAndAnalyzeImages(formData: FormData) {
         throw new Error('Missing required fields: performanceId and images are required now.')
     }
 
-    const results = []
+    const results: any[] = []
 
     for (let i = 0; i < images.length; i++) {
-        const image = images[i]
-        const thumbnail = thumbnails[i]
-
-        // 1. Upload to Supabase Storage
-        const fileExt = image.name.split('.').pop()
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-        const filePath = `fast-mode/${fileName}`
-        const thumbPath = `fast-mode/thumb_${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-            .from('items') // Keeping the bucket name 'items' as it likely still exists
-            .upload(filePath, image)
-
-        if (uploadError) {
-            console.error('Upload error:', uploadError)
-            continue
-        }
-
-        const { error: thumbUploadError } = await supabase.storage
-            .from('items')
-            .upload(thumbPath, thumbnail)
-
-        if (thumbUploadError) {
-            console.error('Thumbnail upload error:', thumbUploadError)
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('items')
-            .getPublicUrl(filePath)
-
-        // 2. AI Analysis with Gemini Vision
-        try {
-            const arrayBuffer = await image.arrayBuffer()
-            const base64Data = Buffer.from(arrayBuffer).toString('base64')
-
-            const prompt = `
-            Przeanalizuj to zdjęcie rekwizytu teatralnego.
-            Zidentyfikuj główny obiekt. Zignoruj tło, jeśli to możliwe.
-            
-            Zwróć obiekt JSON z następującymi polami:
-            - name: Krótka, opisowa nazwa po polsku (np. "Stara brązowa walizka")
-            - description: Szczegółowy opis po polsku uwzględniający materiał, kolor, styl, epokę, stan i cechy charakterystyczne. Pełne zdania, język naturalny.
-            - ai_description: Zbiór słów kluczowych i atrybutów oddzielonych przecinkami. Tylko konkretne cechy fizyczne, materiały, style, kolory. Bez zbędnych słów łączących. (np. "walizka, skóra, brązowy, metalowe klamry, vintage, lata 70, zniszczona")
-            - tags: Tablica stringów po polsku (np. ["walizka", "vintage", "skóra", "lata 70."])
-            - category: Sugerowana nazwa kategorii.
-            - attributes: Obiekt JSON z konkretnymi cechami, np. { "era": "lata 70", "material": "skóra", "color": "brązowy", "condition": "dobry" }.
-            - confidence: Liczba od 0.0 do 1.0 oznaczająca pewność identyfikacji.
-
-            Output ONLY the JSON object.
-            `
-
-            if (!geminiFlash) {
-                throw new Error('Gemini AI not available - GEMINI_API_KEY may be missing')
-            }
-
-            const result = await geminiFlash.generateContent([
-                prompt,
-                {
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: image.type
-                    }
-                }
-            ])
-
-            // Log Token Usage
-            const usage = result.response.usageMetadata
-            if (usage) {
-                await supabase.from('ai_usage_logs').insert({
-                    operation_type: 'fast_add',
-                    tokens_input: usage.promptTokenCount,
-                    tokens_output: usage.candidatesTokenCount,
-                    total_tokens: usage.totalTokenCount,
-                    model_name: 'gemini-2.0-flash',
-                    details: { fileName }
-                })
-            }
-
-            const responseText = result.response.text()
-            const jsonString = responseText.replace(/```json\n?|\n?```/g, '').trim()
-            const rawAnalysis = JSON.parse(jsonString)
-
-            const validatedAnalysis = validateAIResponse(rawAnalysis, FastModeSchema)
-            const analysis = {
-                ...validatedAnalysis,
-                name: sanitizeAIOutput(validatedAnalysis.name),
-            }
-
-            // 4. Create Prop in Performance
-            const { data: newProp, error: dbError } = await supabase
-                .from('performance_props')
-                .insert({
-                    performance_id: performanceId,
-                    item_name: analysis.name,
-                    image_url: publicUrl,
-                    is_checked: false,
-                    // Note: attributes and description are lost for now unless we add more columns
-                })
-                .select()
-                .single()
-
-            if (dbError) {
-                console.error('Database error:', dbError)
-            } else {
-                results.push(newProp)
-            }
-
-        } catch (error) {
-            console.error('AI Processing error:', error)
-            // Fallback: Create prop without AI data
-            const { data: newProp } = await supabase
-                .from('performance_props')
-                .insert({
-                    performance_id: performanceId,
-                    item_name: `Nowy rekwizyt (${new Date().toLocaleTimeString()})`,
-                    image_url: publicUrl,
-                    is_checked: false
-                })
-                .select()
-                .single()
-
-            if (newProp) {
-                results.push(newProp)
-            }
+        const newProp = await processSingleImage(supabase, images[i], thumbnails[i], performanceId)
+        if (newProp) {
+            results.push(newProp)
         }
     }
 

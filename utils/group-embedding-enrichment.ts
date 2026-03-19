@@ -249,45 +249,54 @@ Wygeneruj JSON dla: "${name}"
     }
 }
 
-// Helper: Parse and validate enrichment response
-function parseEnrichmentResponse(responseText: string, name: string): GroupEnrichmentResult {
-    // Extract JSON from markdown code blocks if present
-    let cleanText = responseText.trim()
 
-    console.log(`🔍 [ENRICH] Raw response length: ${cleanText.length}`)
-
-    // Try to extract from markdown code block first
+function extractJsonFromText(text: string): string {
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/i
-    const codeBlockMatch = codeBlockRegex.exec(cleanText)
+    const codeBlockMatch = codeBlockRegex.exec(text)
     if (codeBlockMatch) {
-        cleanText = codeBlockMatch[1].trim()
         console.log(`📝 [ENRICH] Extracted from markdown block`)
+        return codeBlockMatch[1].trim()
     }
+    return text
+}
 
-    // Remove any text before the first { or [
-    const jsonStart = cleanText.search(/[{[]/)
-
+function trimToJsonBounds(text: string): string {
+    const jsonStart = text.search(/[{[]/)
     if (jsonStart === -1) {
-        console.error(`❌ [ENRICH] No JSON start ({ or [) found. Response: ${cleanText.substring(0, 100)}`)
+        console.error(`❌ [ENRICH] No JSON start ({ or [) found. Response: ${text.substring(0, 100)}`)
         throw new Error('No JSON object found in response')
     }
 
-    if (jsonStart > 0) {
-        cleanText = cleanText.substring(jsonStart)
-        console.log(`✂️ [ENRICH] Trimmed ${jsonStart} chars before JSON`)
-    }
+    let result = jsonStart > 0 ? text.substring(jsonStart) : text
 
-    // Remove any text after the last } or ]
-    const jsonEnd = cleanText.lastIndexOf('}')
-    const jsonEndArray = cleanText.lastIndexOf(']')
+    const jsonEnd = result.lastIndexOf('}')
+    const jsonEndArray = result.lastIndexOf(']')
     const actualEnd = Math.max(jsonEnd, jsonEndArray)
 
-    if (actualEnd > -1 && actualEnd < cleanText.length - 1) {
-        cleanText = cleanText.substring(0, actualEnd + 1)
-        console.log(`✂️ [ENRICH] Trimmed ${cleanText.length - actualEnd - 1} chars after JSON`)
+    if (actualEnd > -1 && actualEnd < result.length - 1) {
+        result = result.substring(0, actualEnd + 1)
     }
 
-    // console.log(`📦 [ENRICH] Clean JSON preview: ${cleanText.substring(0, 100)}...`)
+    return result
+}
+
+function validateEnrichmentStructure(parsed: any, name: string): GroupEnrichmentResult {
+    if (!parsed.identity && !parsed.physical && !parsed.context) {
+        throw new Error('Missing required fields in response')
+    }
+    return {
+        identity: parsed.identity || name,
+        physical: parsed.physical || '',
+        context: parsed.context || ''
+    }
+}
+
+// Helper: Parse and validate enrichment response
+function parseEnrichmentResponse(responseText: string, name: string): GroupEnrichmentResult {
+    console.log(`🔍 [ENRICH] Raw response length: ${responseText.length}`)
+
+    const extracted = extractJsonFromText(responseText.trim())
+    const cleanText = trimToJsonBounds(extracted)
 
     let parsed
     try {
@@ -303,14 +312,5 @@ function parseEnrichmentResponse(responseText: string, name: string): GroupEnric
         console.log(`📦 [ENRICH] Unwrapped array response`)
     }
 
-    // Validate structure
-    if (parsed.identity || parsed.physical || parsed.context) {
-        return {
-            identity: parsed.identity || name,
-            physical: parsed.physical || '',
-            context: parsed.context || ''
-        }
-    } else {
-        throw new Error('Missing required fields in response')
-    }
+    return validateEnrichmentStructure(parsed, name)
 }
