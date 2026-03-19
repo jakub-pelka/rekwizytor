@@ -1,10 +1,10 @@
 # Rekwizytor 🎭
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=kubi-4327_rekwizytor&metric=alert_status)](https://sonarcloud.io/dashboard?id=kubi-4327_rekwizytor)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=kubi-4327_rekwizytor&metric=security_rating)](https://sonarcloud.io/dashboard?id=kubi-4327_rekwizytor)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=kubi-4327_rekwizytor&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=kubi-4327_rekwizytor)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=kubi-4327_rekwizytor&metric=code_smells)](https://sonarcloud.io/dashboard?id=kubi-4327_rekwizytor)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=kubi-4327_rekwizytor&metric=ncloc)](https://sonarcloud.io/dashboard?id=kubi-4327_rekwizytor)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jakub-pelka_rekwizytor&metric=alert_status)](https://sonarcloud.io/summary/overall?id=jakub-pelka_rekwizytor)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=jakub-pelka_rekwizytor&metric=security_rating)](https://sonarcloud.io/summary/overall?id=jakub-pelka_rekwizytor)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jakub-pelka_rekwizytor&metric=sqale_rating)](https://sonarcloud.io/summary/overall?id=jakub-pelka_rekwizytor)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=jakub-pelka_rekwizytor&metric=code_smells)](https://sonarcloud.io/summary/overall?id=jakub-pelka_rekwizytor)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=jakub-pelka_rekwizytor&metric=ncloc)](https://sonarcloud.io/summary/overall?id=jakub-pelka_rekwizytor)
 
 Aplikacja do zarządzania rekwizytami teatralnymi z AI-powered search.
 
@@ -30,7 +30,7 @@ Aplikacja do zarządzania rekwizytami teatralnymi z AI-powered search.
 
 ```bash
 # Clone repository
-git clone https://github.com/kubi-4327/rekwizytor.git
+git clone https://github.com/jakub-pelka/rekwizytor.git
 cd rekwizytor
 
 # Install dependencies
