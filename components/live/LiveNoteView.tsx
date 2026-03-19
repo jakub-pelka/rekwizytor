@@ -224,7 +224,7 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
                                 )}
                             >
                                 <div className={clsx(
-                                    "mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                                    "mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
                                     checkedItems[item.id]
                                         ? "bg-green-600 border-green-600"
                                         : "border-neutral-600 group-hover:border-neutral-400"
@@ -262,8 +262,8 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
         return (
             <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
                 {/* Background Decoration */}
-                <div className="absolute inset-0 bg-gradient-to-b from-neutral-900/50 to-black pointer-events-none" />
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-burgundy-main to-transparent opacity-50" />
+                <div className="absolute inset-0 bg-linear-to-b from-neutral-900/50 to-black pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-burgundy-main to-transparent opacity-50" />
 
                 <div className="relative z-10 max-w-lg w-full space-y-12">
 
@@ -357,7 +357,7 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
                                 )}
                             >
                                 <div className={clsx(
-                                    "mt-0.5 w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors",
+                                    "mt-0.5 w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
                                     checkedItems[item.id]
                                         ? "bg-green-500 border-green-500"
                                         : "border-neutral-600"
@@ -381,7 +381,7 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
             </main>
 
             {/* Bottom Navigation Control - Big Buttons */}
-            <nav className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent z-30 pb- safe-pb">
+            <nav className="fixed bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black to-transparent z-30 pb- safe-pb">
                 <div className="max-w-3xl mx-auto grid grid-cols-2 gap-4">
                     <button
                         onClick={handlePrevScene}

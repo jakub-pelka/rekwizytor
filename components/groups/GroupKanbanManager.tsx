@@ -67,7 +67,7 @@ const GroupKanbanCard = ({
     if (isOverlay) {
         return (
             <div className="p-4 bg-neutral-800 border border-neutral-600 rounded-lg shadow-2xl opacity-90 text-white font-medium w-[300px] flex items-center gap-3">
-                <div className="w-8 h-8 flex-shrink-0 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center text-white">
+                <div className="w-8 h-8 shrink-0 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center text-white">
                     <Icon className="w-4 h-4" />
                 </div>
                 <span>{group.name}</span>
@@ -91,7 +91,7 @@ const GroupKanbanCard = ({
                     e.stopPropagation()
                     onEdit(group)
                 }}
-                className="w-8 h-8 flex-shrink-0 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-all group/icon shadow-inner"
+                className="w-8 h-8 shrink-0 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center text-neutral-400 hover:text-white hover:border-neutral-600 transition-all group/icon shadow-inner"
                 title="Zmień ikonę"
             >
                 <Icon className="w-4 h-4" />
@@ -551,7 +551,7 @@ export function GroupKanbanManager({ initialGroups, locations: initialLocations 
             />
 
             {deleteLocationId && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="w-full max-w-md bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                         <div className="p-6">
                             <h3 className="text-xl font-bold text-white mb-2">Usuwanie miejsca</h3>

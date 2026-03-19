@@ -37,7 +37,7 @@ export default function AboutPage() {
 
                 {/* Test Version Warning */}
                 <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                     <p className="text-sm text-yellow-200/80">
                         {t('testVersionWarning')}
                     </p>
