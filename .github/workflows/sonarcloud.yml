@@ -4,30 +4,31 @@ on:
   push:
     branches:
       - main
-      - develop
   pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   sonarcloud:
-    name: SonarCloud Scan
+    name: SonarCloud
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          # Shallow clones should be disabled for better analysis
-          fetch-depth: 0
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --prefer-offline --no-audit
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: npm test -- --coverage --passWithNoTests
+        env:
+          CI: true
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
