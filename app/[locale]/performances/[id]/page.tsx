@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { format } from 'date-fns'
-import { Calendar, Box, ArrowLeft, Settings } from 'lucide-react'
+import { Calendar, Box, ArrowLeft, Settings, Grid } from 'lucide-react'
 import { ScheduledShowsList } from '@/components/performances/ScheduledShowsList'
 import { PerformanceContent } from '@/components/performances/PerformanceContent'
 import Link from 'next/link'
@@ -17,7 +17,6 @@ import { PerformanceNotesPreview } from '@/components/performances/PerformanceNo
 import { PerformanceDetailActions } from '@/components/performances/PerformanceDetailActions'
 import { PerformanceGroups } from '@/components/performances/PerformanceGroups'
 import { PropsChecklist } from '@/components/props/PropsChecklist'
-import { Grid } from 'lucide-react'
 
 type Props = {
     params: Promise<{ id: string }>
@@ -67,8 +66,7 @@ export default async function ProductionDetailsPage({ params }: Props) {
         supabase
             .from('scenes')
             .select('*')
-            .eq('performance_id', id)
-            .returns<Scene[]>(),
+            .eq('performance_id', id),
 
         // Notes for this performance - all fields needed for export
         supabase
@@ -92,7 +90,6 @@ export default async function ProductionDetailsPage({ params }: Props) {
             .select('*, locations(name)')
             .eq('performance_id', id)
             .order('created_at', { ascending: true })
-            .returns<any[]>() // Temporary loose typing to avoid deep type mismatch with GroupCard requirements
     ])
 
     const production = productionResult.data
@@ -103,13 +100,12 @@ export default async function ProductionDetailsPage({ params }: Props) {
     const linkedGroups = linkedGroupsResult.data
 
     // Fetch tasks separately after we have scenes
-    const tasksResult = scenes && scenes.length > 0 
+    const tasksResult = scenes && scenes.length > 0
         ? await supabase
             .from('scene_tasks')
             .select('*')
             .in('scene_id', scenes.map(s => s.id))
             .order('order_index', { ascending: true })
-            .returns<SceneTask[]>()
         : { data: [] as SceneTask[] }
 
     const tasks = tasksResult.data

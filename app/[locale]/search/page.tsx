@@ -82,7 +82,6 @@ export default function SearchPage() {
         }
 
         setLoading(true)
-        const searchStartTime = Date.now()
 
         // Keep previous results visible (stale-while-revalidate)
         if (currentResults && currentResults.length > 0) {

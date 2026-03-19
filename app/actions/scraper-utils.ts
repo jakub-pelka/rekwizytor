@@ -19,7 +19,7 @@ function parsePolishDate(text: string): Date | null {
     const monthNames = Object.keys(PL_MONTHS).join('|')
     const plDateRegex = new RegExp(`(\\d{1,2})\\s+(${monthNames})\\s+(\\d{4})`)
 
-    const plMatch = textLower.match(plDateRegex)
+    const plMatch = plDateRegex.exec(textLower)
     if (plMatch) {
         const day = plMatch[1].padStart(2, '0')
         const month = PL_MONTHS[plMatch[2]]
@@ -27,7 +27,7 @@ function parsePolishDate(text: string): Date | null {
         return new Date(`${year}-${month}-${day}`)
     }
 
-    const numericMatch = text.match(/(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4})/)
+    const numericMatch = /(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})/.exec(text)
     if (numericMatch) {
         const day = numericMatch[1].padStart(2, '0')
         const month = numericMatch[2].padStart(2, '0')
@@ -39,26 +39,26 @@ function parsePolishDate(text: string): Date | null {
 }
 
 export function cleanHtmlContent(html: string): string {
-    return html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gmi, "")
-        .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gmi, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
+    return html.replaceAll(/<script\b[^>]*>[\s\S]*?<\/script>/gmi, "")
+        .replaceAll(/<style\b[^>]*>[\s\S]*?<\/style>/gmi, "")
+        .replaceAll(/<[^>]+>/g, " ")
+        .replaceAll(/\s+/g, " ")
 }
 
 // --- Title Helpers ---
 
 function getOgTitle(html: string): string | null {
-    const match = html.match(/<meta\s+property=["']og:title["']\s+content=["'](.*?)["']\s*\/?>/i)
+    const match = /<meta\s+property=["']og:title["']\s+content=["'](.*?)["']\s*\/?>/i.exec(html)
     return match && match[1] ? match[1].trim() : null
 }
 
 function getH1Title(html: string): string | null {
-    const match = html.match(/<h1[^>]*>(.*?)<\/h1>/i)
-    return match && match[1] ? match[1].replace(/<[^>]+>/g, '').trim() : null
+    const match = /<h1[^>]*>(.*?)<\/h1>/i.exec(html)
+    return match && match[1] ? match[1].replaceAll(/<[^>]+>/g, '').trim() : null
 }
 
 function getTitleTag(html: string): string | null {
-    const match = html.match(/<title>(.*?)<\/title>/i)
+    const match = /<title>(.*?)<\/title>/i.exec(html)
     return match && match[1] ? match[1].trim() : null
 }
 
@@ -81,8 +81,8 @@ export function extractTitle(html: string, cleanHtml: string): string {
 
 export function extractPremiereDate(cleanHtml: string): string {
     let premiereDate: string = new Date().toISOString()
-    const premiereRegex = /(?:premiera|prapremiera)\s*[:\-]?\s*(\d{1,2}(?:\s*i\s*\d{1,2})?[^\d]{0,10}?(?:\d{4}|[a-zęóąśłżźćń]+)\s*(?:\d{4})?)/i
-    let premiereMatch = cleanHtml.match(premiereRegex)
+    const premiereRegex = /(?:premiera|prapremiera)\s*[:=-]?\s*(\d{1,2}(?:\s*i\s*\d{1,2})?[^\d]{0,10}?(?:\d{4}|[a-zęóąśłżźćń]+)\s*(?:\d{4})?)/i
+    let premiereMatch = premiereRegex.exec(cleanHtml)
 
     if (premiereMatch) {
         const dateStr = premiereMatch[1]
@@ -90,7 +90,7 @@ export function extractPremiereDate(cleanHtml: string): string {
         if (pDate) {
             premiereDate = pDate.toISOString()
         } else {
-            const doubleDateMatch = dateStr.match(/(\d{1,2})\s+i\s+\d{1,2}\s+([a-zęóąśłżźćń]+)\s+(\d{4})/i)
+            const doubleDateMatch = /(\d{1,2})\s+i\s+\d{1,2}\s+([a-zęóąśłżźćń]+)\s+(\d{4})/i.exec(dateStr)
             if (doubleDateMatch) {
                 const day = doubleDateMatch[1]
                 const monthName = doubleDateMatch[2]
@@ -111,7 +111,7 @@ export function extractShowDates(html: string): string[] {
     if (termIndex !== -1) {
         const textAfterTerms = html.slice(termIndex, termIndex + 10000)
         // Match date DD.MM.YYYY followed optionally by time HH:MM (with optional "godz." prefix)
-        const dateRegex = /\b(\d{1,2})[\.\-\/](\d{1,2})[\.\-\/](\d{4})(?:\s+(?:godz\.?|o godz\.?)?\s*(\d{1,2})[:\.](\d{2}))?/gi
+        const dateRegex = /\b(\d{1,2})[.-/](\d{1,2})[.-/](\d{4})(?:\s+(?:godz\.?|o godz\.?)?\s*(\d{1,2})[:.](\d{2}))?/gi
 
         let match
         const uniqueDates = new Set<string>()
@@ -142,31 +142,36 @@ export function extractShowDates(html: string): string[] {
 // --- Description Helpers ---
 
 function getOgDescription(html: string): string | null {
-    const match = html.match(/<meta\s+property=["']og:description["']\s+content=["'](.*?)["']\s*\/?>/i)
+    const match = /<meta\s+property=["']og:description["']\s+content=["'](.*?)["']\s*\/?>/i.exec(html)
     return match && match[1] ? match[1].trim() : null
 }
 
 function getMetaDescription(html: string): string | null {
-    const match = html.match(/<meta\s+name=["']description["']\s+content=["'](.*?)["']\s*\/?>/i)
+    const match = /<meta\s+name=["']description["']\s+content=["'](.*?)["']\s*\/?>/i.exec(html)
     return match && match[1] ? match[1].trim() : null
 }
 
 function findTextContentDescription(html: string): string | null {
     // Look for the specific content section used by this CMS
-    const sectionMatch = html.match(/<section[^>]*class=["'][^"']*text-content[^"']*["'][^>]*>([\s\S]*?)<\/section>/i)
+    const sectionMatch = /<section[^>]*class=["'][^"']*text-content[^"']*["'][^>]*>([\s\S]*?)<\/section>/i.exec(html)
     if (!sectionMatch) return null
 
     const content = sectionMatch[1]
 
     // Extract text from divs and paragraphs within this section
     // We look for tags that likely contain text blocks
-    const matches = content.match(/<(?:div|p)[^>]*>(.*?)<\/(?:div|p)>/gi)
-    if (!matches) return null
+    const matches: string[] = []
+    const regex = /<(?:div|p)[^>]*>(.*?)<\/(?:div|p)>/gi
+    let match: RegExpExecArray | null
+    while ((match = regex.exec(content)) !== null) {
+        matches.push(match[0])
+    }
+    if (matches.length === 0) return null
 
     let bestDescription = ''
 
     for (const tag of matches) {
-        const cleanText = tag.replace(/<[^>]+>/g, '').trim()
+        const cleanText = tag.replaceAll(/<[^>]+>/g, '').trim()
         // Filter out short lines, headers pretending to be divs, or metadata
         if (cleanText.length > 50 &&
             !cleanText.toUpperCase().includes('NA AFISZU') &&
@@ -191,11 +196,16 @@ function findTextContentDescription(html: string): string | null {
 
 function findBodyDescription(html: string): string | null {
     // Fallback: look for any paragraph in the whole body
-    const pMatches = html.match(/<p[^>]*>(.*?)<\/p>/gi)
-    if (!pMatches) return null
+    const pMatches: string[] = []
+    const pRegex = /<p[^>]*>(.*?)<\/p>/gi
+    let pMatch: RegExpExecArray | null
+    while ((pMatch = pRegex.exec(html)) !== null) {
+        pMatches.push(pMatch[0])
+    }
+    if (pMatches.length === 0) return null
 
     for (const p of pMatches) {
-        const cleanP = p.replace(/<[^>]+>/g, '').trim()
+        const cleanP = p.replaceAll(/<[^>]+>/g, '').trim()
         if (cleanP.length > 50 &&
             !cleanP.toUpperCase().includes('NA AFISZU') &&
             !cleanP.toUpperCase().includes('BILETY') &&
@@ -209,23 +219,28 @@ function findBodyDescription(html: string): string | null {
 
 function cleanDescriptionText(desc: string): string {
     let d = desc
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
+        .replaceAll(/&nbsp;/g, ' ')
+        .replaceAll(/&amp;/g, '&')
+        .replaceAll(/&quot;/g, '"')
+        .replaceAll(/&#39;/g, "'")
         .trim()
 
-    const cleanupRegex = /^(?:.*?)(?:w wieku|od lat|dla widzów powyżej|dla widzów od|lat)\s*\d+(?:\s*lat|\+)?(?:[\.]|[\s]*musical w \d+ aktach[\.]?)?\s*/i
-    const match = d.match(cleanupRegex)
+    const cleanupRegex = /^(?:.*?)(?:w wieku|od lat|dla widzów powyżej|dla widzów od|lat)\s*\d+(?:\s*lat|\+)?(?:[.]|[\s]*musical w \d+ aktach[.]?)?\s*/i
+    const match = cleanupRegex.exec(d)
     if (match && match[0].length < 250) {
         d = d.replace(cleanupRegex, '')
     }
 
     // Remove "Nominacja..." lines if they are at the start
-    d = d.replace(/^(?:Nominacja|Nagroda|Trzecie miejsce)[^.]+\.\s*/gi, '')
+    d = d.replaceAll(/^(?:Nominacja|Nagroda|Trzecie miejsce)[^.]+\.\s*/gi, '')
 
-    const sentenceMatches = d.match(/[^\.!\?]+[\.!\?]+/g)
-    if (sentenceMatches) {
+    const sentenceMatches: string[] = []
+    const sentenceRegex = /[^.!?]+[.!?]+/g
+    let sentenceMatch: RegExpExecArray | null
+    while ((sentenceMatch = sentenceRegex.exec(d)) !== null) {
+        sentenceMatches.push(sentenceMatch[0])
+    }
+    if (sentenceMatches.length > 0) {
         // Return up to 5 sentences to get a fuller description if utilizing the section scraper
         const limit = d.length > 500 ? 5 : 3
         return sentenceMatches.slice(0, limit).join(' ').trim()
@@ -257,19 +272,21 @@ export function extractDescription(html: string): string {
 // --- Image Helpers ---
 
 function getOgImage(html: string): string | null {
-    const match = html.match(/<meta\s+property=["']og:image["']\s+content=["'](.*?)["']\s*\/?>/i)
+    const match = /<meta\s+property=["']og:image["']\s+content=["'](.*?)["']\s*\/?>/i.exec(html)
     return match && match[1] ? match[1].trim() : null
 }
 
 function getJsonLdImage(html: string): string | null {
-    const match = html.match(/<script\s+type=["']application\/ld\+json["']>(.*?)<\/script>/i)
+    const match = /<script\s+type=["']application\/ld\+json["']>(.*?)<\/script>/i.exec(html)
     if (match && match[1]) {
         try {
             const json = JSON.parse(match[1])
             if (json.image) {
                 return Array.isArray(json.image) ? json.image[0] : json.image
             }
-        } catch (e) { }
+        } catch (error) {
+            console.error('Failed to parse JSON-LD for image extraction:', error)
+        }
     }
     return null
 }
@@ -282,15 +299,20 @@ function isValidImageSrc(src: string): boolean {
 }
 
 function getBodyImages(html: string): string[] {
-    const imgMatches = html.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)
-    if (!imgMatches) return []
+    const imgMatches: string[] = []
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
+    let imgMatch: RegExpExecArray | null
+    while ((imgMatch = imgRegex.exec(html)) !== null) {
+        imgMatches.push(imgMatch[0])
+    }
+    if (imgMatches.length === 0) return []
 
     const candidates: string[] = []
     let count = 0
 
     for (const tag of imgMatches) {
         if (count >= 3) break
-        const srcMatch = tag.match(/src=["']([^"']+)["']/i)
+        const srcMatch = /src=["']([^"']+)["']/i.exec(tag)
         const src = srcMatch ? srcMatch[1] : ''
 
         if (src && isValidImageSrc(src)) {
@@ -306,7 +328,10 @@ function resolveUrl(candidate: string, baseUrl: string): string | null {
         try {
             const urlObj = new URL(baseUrl)
             return `${urlObj.origin}${candidate}`
-        } catch (e) { return null }
+        } catch (error) {
+            console.error('Failed to parse base URL:', baseUrl, error)
+            return null
+        }
     }
 
     if (candidate.startsWith('http')) return candidate

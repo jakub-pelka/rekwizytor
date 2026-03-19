@@ -14,8 +14,8 @@ type Scene = Database['public']['Tables']['scenes']['Row']
 type SceneTask = Database['public']['Tables']['scene_tasks']['Row']
 
 type Props = {
-    performanceId: string
-    scenes: Scene[]
+    readonly performanceId: string
+    readonly scenes: Scene[]
 }
 
 export function SceneTaskEditor({ performanceId, scenes }: Props) {

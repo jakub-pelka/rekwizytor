@@ -8,7 +8,7 @@ import { notify } from '@/utils/notify'
 import { useTranslations } from 'next-intl'
 
 interface MapUploaderProps {
-    locationId: string
+    readonly locationId: string
 }
 
 export function MapUploader({ locationId }: MapUploaderProps) {

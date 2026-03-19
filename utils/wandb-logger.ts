@@ -50,7 +50,6 @@ export async function initWandBRun(
         currentRunId = runId
         currentRunConfig = config
 
-        const project = process.env.WANDB_PROJECT || 'rekwizytor-embedding-tests'
         const runName = `${config.embedding_model}_${config.enrichment_model}`
 
         console.log(`✅ [W&B] Run initialized: ${runName}`)

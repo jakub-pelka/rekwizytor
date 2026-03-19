@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Database } from '@/types/supabase'
-import { Folder, ChevronRight, ChevronDown, Edit2, Trash2, CheckSquare, Square, X, MapPin, MoreVertical } from 'lucide-react'
+import { Folder, ChevronRight, ChevronDown, Edit2, Trash2, CheckSquare, Square } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/utils/supabase/client'
@@ -18,8 +18,8 @@ type Group = Pick<Database['public']['Tables']['groups']['Row'],
 type Location = { id: string; name: string }
 
 interface GroupManagerProps {
-    initialGroups: Group[]
-    locations: Location[]
+    readonly initialGroups: Group[]
+    readonly locations: Location[]
 }
 
 export function GroupManager({ initialGroups, locations }: GroupManagerProps) {

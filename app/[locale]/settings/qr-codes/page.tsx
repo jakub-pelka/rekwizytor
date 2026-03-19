@@ -38,7 +38,8 @@ export default async function QrCodesPage() {
                 </div>
             </div>
         )
-    } catch (e) {
+    } catch (error) {
+        console.error('Failed to fetch QR codes:', error)
         // Fallback if table doesn't exist yet
         return (
             <div className="p-4 md:p-10 space-y-6 max-w-7xl mx-auto text-white">

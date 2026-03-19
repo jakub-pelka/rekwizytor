@@ -2,8 +2,8 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 
 interface PageProps {
-    params: Promise<{
-        code: string
+    readonly params: Promise<{
+        readonly code: string
     }>
 }
 

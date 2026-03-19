@@ -19,13 +19,13 @@ type User = {
 }
 
 interface ExportPerformanceButtonProps {
-    production: Performance
-    items: PerformanceProp[]
-    scenes?: Scene[]
-    notes?: Note[]
-    tasks?: SceneTask[]
-    user: User | null
-    variant?: 'default' | 'menu'
+    readonly production: Performance
+    readonly items: PerformanceProp[]
+    readonly scenes?: Scene[]
+    readonly notes?: Note[]
+    readonly tasks?: SceneTask[]
+    readonly user: User | null
+    readonly variant?: 'default' | 'menu'
 }
 
 export function ExportPerformanceButton({ production, items, scenes = [], notes = [], tasks = [], user, variant = 'default' }: ExportPerformanceButtonProps) {

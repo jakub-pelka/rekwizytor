@@ -19,12 +19,12 @@ type ChecklistItem = {
 }
 
 type Props = {
-    item: ChecklistItem
-    profiles: { id: string, full_name: string | null, avatar_url: string | null }[]
-    forceStageAll: boolean
-    onTogglePrepared: (id: string, current: boolean | null) => void
-    onAssign: (itemId: string, userId: string) => void
-    onSafeVibrate: () => void
+    readonly item: ChecklistItem
+    readonly profiles: readonly { readonly id: string, readonly full_name: string | null, readonly avatar_url: string | null }[]
+    readonly forceStageAll: boolean
+    readonly onTogglePrepared: (id: string, current: boolean | null) => void
+    readonly onAssign: (itemId: string, userId: string) => void
+    readonly onSafeVibrate: () => void
 }
 
 function ChecklistAvatar({
@@ -33,10 +33,10 @@ function ChecklistAvatar({
     onAssign,
     t
 }: {
-    assignedTo: string | null
-    profiles: Props['profiles']
-    onAssign: Props['onAssign']
-    t: any
+    readonly assignedTo: string | null
+    readonly profiles: Props['profiles']
+    readonly onAssign: Props['onAssign']
+    readonly t: any
 }) {
     const profile = profiles.find(p => p.id === assignedTo)
 
@@ -56,13 +56,15 @@ function ChecklistAvatar({
                 "h-8 w-8 rounded-full flex items-center justify-center border transition-colors overflow-hidden",
                 assignedTo ? "border-neutral-600 bg-neutral-800" : "border-dashed border-neutral-700 bg-transparent text-neutral-600"
             )}>
-                {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-full w-full object-cover" />
-                ) : assignedTo ? (
-                    <span className="text-xs font-bold text-white">{profile?.full_name?.[0] || '?'}</span>
-                ) : (
-                    <User className="h-4 w-4" />
-                )}
+                {(() => {
+                    if (profile?.avatar_url) {
+                        return <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-full w-full object-cover" />
+                    }
+                    if (assignedTo) {
+                        return <span className="text-xs font-bold text-white">{profile?.full_name?.[0] || '?'}</span>
+                    }
+                    return <User className="h-4 w-4" />
+                })()}
             </div>
         </div>
     )
@@ -74,10 +76,10 @@ function ChecklistActionButtons({
     onSafeVibrate,
     t
 }: {
-    item: ChecklistItem
-    onTogglePrepared: Props['onTogglePrepared']
-    onSafeVibrate: Props['onSafeVibrate']
-    t: any
+    readonly item: ChecklistItem
+    readonly onTogglePrepared: Props['onTogglePrepared']
+    readonly onSafeVibrate: Props['onSafeVibrate']
+    readonly t: any
 }) {
     return (
         <div className="flex items-center gap-2 shrink-0">

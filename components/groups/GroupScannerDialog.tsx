@@ -286,6 +286,14 @@ export function GroupScannerDialog({ isOpen, onClose, parentId }: GroupScannerDi
                                             <>
                                                 <span
                                                     onClick={() => handleStartEdit(index)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault()
+                                                            handleStartEdit(index)
+                                                        }
+                                                    }}
+                                                    role="button"
+                                                    tabIndex={0}
                                                     className="flex-1 text-white text-sm cursor-pointer hover:text-accent-main"
                                                 >
                                                     {group.name}

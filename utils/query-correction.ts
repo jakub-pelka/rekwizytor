@@ -54,7 +54,7 @@ Odpowiedź (tylko poprawiony tekst):`
 
                 const result = await model.generateContent(prompt)
                 const usage = result.response.usageMetadata
-                const corrected = result.response.text().trim().replace(/['"]/g, '')
+                const corrected = result.response.text().trim().replaceAll(/['"]/g, '')
 
                 // Log token usage
                 if (usage) {

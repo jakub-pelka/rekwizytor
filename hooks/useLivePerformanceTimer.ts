@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 
 type Checklist = {
     id: string
@@ -29,19 +29,19 @@ export function useLivePerformanceTimer(
     // Load state from localStorage
     useEffect(() => {
         const storedStart = localStorage.getItem(`live_view_start_${performanceId}`)
-        if (storedStart) setStartTime(parseInt(storedStart))
+        if (storedStart) setStartTime(Number.parseInt(storedStart))
 
         const storedIsBreak = localStorage.getItem(`live_view_is_break_${performanceId}`)
         if (storedIsBreak === 'true') setIsBreak(true)
 
         const storedBreakStart = localStorage.getItem(`live_view_break_start_${performanceId}`)
-        if (storedBreakStart) setBreakStartTime(parseInt(storedBreakStart))
+        if (storedBreakStart) setBreakStartTime(Number.parseInt(storedBreakStart))
 
         const storedTotalBreak = localStorage.getItem(`live_view_total_break_${performanceId}`)
-        if (storedTotalBreak) setTotalBreakTime(parseInt(storedTotalBreak))
+        if (storedTotalBreak) setTotalBreakTime(Number.parseInt(storedTotalBreak))
 
         const storedEnd = localStorage.getItem(`live_view_end_${performanceId}`)
-        if (storedEnd) setEndTime(parseInt(storedEnd))
+        if (storedEnd) setEndTime(Number.parseInt(storedEnd))
     }, [performanceId])
 
     // Global timer tick
@@ -59,7 +59,7 @@ export function useLivePerformanceTimer(
         const actKey = `live_view_act_start_${performanceId}_${currentChecklist.act_number}`
         const storedActStart = localStorage.getItem(actKey)
         if (storedActStart) {
-            setActStartTime(parseInt(storedActStart))
+            setActStartTime(Number.parseInt(storedActStart))
         } else {
             const newActStart = Date.now()
             setActStartTime(newActStart)

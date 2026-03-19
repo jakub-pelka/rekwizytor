@@ -4,9 +4,9 @@ import React from 'react'
 import { Clock } from 'lucide-react'
 
 type Props = {
-    onConfirm: () => void
-    onBack: () => void
-    t: (key: string, params?: any) => string
+    readonly onConfirm: () => void
+    readonly onBack: () => void
+    readonly t: (key: string, params?: any) => string
 }
 
 export function LiveConfirmOverlay({ onConfirm, onBack, t }: Props) {

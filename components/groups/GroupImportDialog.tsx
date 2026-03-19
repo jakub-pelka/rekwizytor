@@ -4,27 +4,25 @@ import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { KanbanBoard, KanbanColumn } from '@/components/ui/KanbanBoard'
-import { useRef } from 'react'
-import { Folder, Trash2, X, ArrowRight, Save, Plus, GripVertical } from 'lucide-react'
+import { Folder, Trash2, ArrowRight, Save, Plus, GripVertical, icons } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { notify } from '@/utils/notify'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { getSuggestedIcon } from '@/utils/icon-matcher'
-import { icons } from 'lucide-react'
 import { Textarea } from '@/components/ui/Textarea'
 import { Stepper } from '@/components/ui/Stepper'
 
 interface GroupImportDialogProps {
-    isOpen: boolean
-    onClose: () => void
-    parentId?: string | null
-    locations?: { id: string, name: string }[]
+    readonly isOpen: boolean
+    readonly onClose: () => void
+    readonly parentId?: string | null
+    readonly locations?: readonly { readonly id: string, readonly name: string }[]
 }
 
 // Dynamic icon component
-const DynamicIcon = ({ name, className }: { name: string, className?: string }) => {
+const DynamicIcon = ({ name, className }: { readonly name: string, readonly className?: string }) => {
     const Icon = (icons as any)[name] || Folder
     return <Icon className={className} />
 }
@@ -43,11 +41,11 @@ const SortableImportItem = ({
     onUpdate,
     locations
 }: {
-    item: ImportItem,
-    isOverlay?: boolean,
-    onDelete: (id: string) => void,
-    onUpdate: (id: string, data: Partial<ImportItem>) => void,
-    locations: { id: string, name: string }[]
+    readonly item: ImportItem,
+    readonly isOverlay?: boolean,
+    readonly onDelete: (id: string) => void,
+    readonly onUpdate: (id: string, data: Partial<ImportItem>) => void,
+    readonly locations: readonly { readonly id: string, readonly name: string }[]
 }) => {
     const {
         attributes,
@@ -121,6 +119,15 @@ const SortableImportItem = ({
                             setEditName(item.name)
                             setIsEditing(true)
                         }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                setEditName(item.name)
+                                setIsEditing(true)
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
                         className="truncate text-neutral-200 font-medium cursor-text hover:text-white"
                     >
                         {item.name}

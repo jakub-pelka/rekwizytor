@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { LogOut, User, Globe, Shield, LayoutGrid, BarChart, Settings as SettingsIcon, Clock, Info, Check, MessageSquare } from 'lucide-react'
+import { LogOut, User, Globe, Shield, LayoutGrid, BarChart, Clock, Info, Check, MessageSquare } from 'lucide-react'
 import { notify } from '@/utils/notify'
 import { useTimeFormat } from '@/hooks/useTimeFormat'
 import { useTranslations } from 'next-intl'

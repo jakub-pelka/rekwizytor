@@ -20,21 +20,21 @@ import { rasterizeIcon } from '@/utils/icon-rasterizer'
 import { DEFAULT_GROUP_COLOR } from '@/utils/constants/colors'
 
 interface GroupDetailsDialogProps {
-    group: {
-        id: string
-        name: string
-        icon: string | null
-        color: string | null
-        created_at: string | null
-        description?: string | null
-        performance_id?: string | null
-        locations?: { name: string } | null
-        performances?: { title: string; color?: string | null } | null
+    readonly group: {
+        readonly id: string
+        readonly name: string
+        readonly icon: string | null
+        readonly color: string | null
+        readonly created_at: string | null
+        readonly description?: string | null
+        readonly performance_id?: string | null
+        readonly locations?: { readonly name: string } | null
+        readonly performances?: { readonly title: string; readonly color?: string | null } | null
     } | null
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    onEdit: (group: any) => void
-    onDelete: (group: any) => void
+    readonly open: boolean
+    readonly onOpenChange: (open: boolean) => void
+    readonly onEdit: (group: any) => void
+    readonly onDelete: (group: any) => void
 }
 
 const qrCache = new Map<string, string>()
@@ -62,7 +62,7 @@ export function GroupDetailsDialog({
             import('@/app/actions/qr-codes').then(({ getOrCreateGroupQrCode }) => {
                 getOrCreateGroupQrCode(group.id, group.name).then(qrData => {
                     if (qrData?.code) {
-                        const qrLink = `${window.location.origin}/qr/${qrData.code}`
+                        const qrLink = `${globalThis.location.origin}/qr/${qrData.code}`
                         import('qrcode').then(QRCode => {
                             QRCode.toDataURL(qrLink, {
                                 width: 200,
@@ -119,14 +119,14 @@ export function GroupDetailsDialog({
             if (!response.ok) throw new Error('Label generation failed')
 
             const blob = await response.blob()
-            const url = window.URL.createObjectURL(blob)
+            const url = globalThis.URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = `label_${group.name.replace(/[^a-z0-9]/gi, '_')}.pdf`
+            a.download = `label_${group.name.replaceAll(/[^a-z0-9]/gi, '_')}.pdf`
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)
-            window.URL.revokeObjectURL(url)
+            globalThis.URL.revokeObjectURL(url)
         })()
 
         setIsGeneratingLabel(true)

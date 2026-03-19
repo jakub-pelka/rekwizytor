@@ -66,7 +66,7 @@ export class RuleBasedClassifier {
     private tokenize(query: string): string[] {
         return query
             .toLowerCase()
-            .replace(/[^\w\sąćęłńóśźż]/gi, ' ') // Remove punctuation, keep Polish chars
+            .replaceAll(/[^\w\sąćęłńóśźż]/gi, ' ') // Remove punctuation, keep Polish chars
             .split(/\s+/)
             .filter(token => token.length > 1) // Ignore single chars
     }

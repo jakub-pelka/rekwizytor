@@ -1,7 +1,7 @@
 'use client'
 
 import { Database } from '@/types/supabase'
-import { Folder, ChevronRight, Edit2 } from 'lucide-react'
+import { Folder, ChevronRight } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 
 
@@ -11,10 +11,10 @@ type Group = Pick<Database['public']['Tables']['groups']['Row'],
     }
 
 interface GroupListItemProps {
-    group: Group
-    subgroupCount?: number
-    onClick?: () => void
-    onEdit?: (group: Group) => void
+    readonly group: Group
+    readonly subgroupCount?: number
+    readonly onClick?: () => void
+    readonly onEdit?: (group: Group) => void
 }
 
 export function GroupListItem({ group, subgroupCount = 0, onClick, onEdit }: GroupListItemProps) {
@@ -29,6 +29,14 @@ export function GroupListItem({ group, subgroupCount = 0, onClick, onEdit }: Gro
         <>
             <div
                 onClick={onClick}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onClick?.()
+                    }
+                }}
+                role="button"
+                tabIndex={0}
                 className="group relative flex items-center gap-4 px-4 py-3 bg-neutral-900/20 hover:bg-neutral-800/50 border-b border-neutral-800 last:border-b-0 transition-colors cursor-pointer"
             >
                 {/* Icon */}

@@ -243,7 +243,8 @@ export function CreatePerformanceForm() {
             } else {
                 setError(result.error || 'Failed to scrape')
             }
-        } catch (err) {
+        } catch (error) {
+            console.error('Failed to scrape performance data:', error)
             setError('Error scraping data')
         } finally {
             setIsScraping(false)

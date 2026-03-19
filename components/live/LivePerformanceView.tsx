@@ -5,7 +5,6 @@ import { createClient } from '@/utils/supabase/client'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { X, AlertTriangle } from 'lucide-react'
-import { useLocale } from 'next-intl'
 import { Database } from '@/types/supabase'
 import { LiveChecklistItem } from './LiveChecklistItem'
 import { useLivePerformanceTimer } from '../../hooks/useLivePerformanceTimer'
@@ -224,7 +223,9 @@ export function LivePerformanceView({ performanceId, initialChecklists, initialI
     }, [supabase, performanceId, t])
 
     const safeVibrate = () => {
-        try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50) } catch (e) { }
+        try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(50) } catch (error) {
+            console.error('Vibration API error:', error)
+        }
     }
 
     const cancelLiveView = async () => {

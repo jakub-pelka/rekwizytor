@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { clsx } from 'clsx'
-import { CheckCircle2, X } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 
 type Checklist = {
     id: string
@@ -19,11 +19,11 @@ type ChecklistItem = {
 }
 
 type Props = {
-    sortedChecklists: Checklist[]
-    items: ChecklistItem[]
-    localActiveSceneId: string
-    setLocalActiveSceneId: (id: string) => void
-    t: (key: string, params?: any) => string
+    readonly sortedChecklists: Checklist[]
+    readonly items: ChecklistItem[]
+    readonly localActiveSceneId: string
+    readonly setLocalActiveSceneId: (id: string) => void
+    readonly t: (key: string, params?: any) => string
 }
 
 export function LivePerformanceSidebar({

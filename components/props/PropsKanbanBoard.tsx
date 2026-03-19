@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import {
     DndContext,
     closestCenter,
@@ -23,10 +23,9 @@ import {
     useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Trash2, Check, X, Edit2 } from 'lucide-react'
-import { updatePropPosition, updatePropName, updatePropStatus, deleteProp } from '@/app/actions/performance-props'
+import { GripVertical, Trash2, Check } from 'lucide-react'
+import { updatePropPosition, updatePropName, updatePropStatus } from '@/app/actions/performance-props'
 import { notify } from '@/utils/notify'
-import { createClient } from '@/utils/supabase/client'
 import { useTranslations } from 'next-intl'
 
 
@@ -41,10 +40,10 @@ type Prop = {
 }
 
 type Props = {
-    performanceId: string
-    initialProps: Prop[]
-    variant?: 'manage' | 'checklist'
-    onDelete?: (id: string) => void
+    readonly performanceId: string
+    readonly initialProps: Prop[]
+    readonly variant?: 'manage' | 'checklist'
+    readonly onDelete?: (id: string) => void
 }
 
 const dropAnimation: DropAnimation = {
@@ -65,12 +64,12 @@ function SortablePropItem({
     onDelete,
     onUpdateName
 }: {
-    prop: Prop
-    isOverlay?: boolean
-    variant: 'manage' | 'checklist'
-    onToggleCheck?: (id: string, current: boolean) => void
-    onDelete?: (id: string) => void
-    onUpdateName?: (id: string, name: string) => void
+    readonly prop: Prop
+    readonly isOverlay?: boolean
+    readonly variant: 'manage' | 'checklist'
+    readonly onToggleCheck?: (id: string, current: boolean) => void
+    readonly onDelete?: (id: string) => void
+    readonly onUpdateName?: (id: string, name: string) => void
 }) {
     const [isEditing, setIsEditing] = useState(false)
     const [tempName, setTempName] = useState(prop.item_name)
@@ -158,6 +157,15 @@ function SortablePropItem({
                                 setIsEditing(true)
                             }
                         }}
+                        onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && variant === 'manage') {
+                                e.preventDefault()
+                                setTempName(prop.item_name)
+                                setIsEditing(true)
+                            }
+                        }}
+                        role={variant === 'manage' ? "button" : undefined}
+                        tabIndex={variant === 'manage' ? 0 : undefined}
                         className={`block w-full text-sm font-medium truncate ${variant === 'manage' ? 'cursor-text hover:text-amber-400 transition-colors' : ''} ${variant === 'checklist' && prop.is_checked ? 'text-neutral-500 line-through' : 'text-white'
                             }`}
                     >
@@ -310,7 +318,8 @@ export function PropsKanbanBoard({ performanceId, initialProps, variant = 'check
         try {
             await updatePropName(id, name, performanceId)
             notify.success(t('nameUpdated'))
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to update prop name:', error)
             notify.error(t('updateError'))
         }
     }
@@ -320,7 +329,8 @@ export function PropsKanbanBoard({ performanceId, initialProps, variant = 'check
 
         try {
             await updatePropStatus(id, !current)
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to toggle prop status:', error)
             notify.error(t('checkboxUpdateError'))
             // Revert
             setProps(prev => prev.map(p => p.id === id ? { ...p, is_checked: current } : p))

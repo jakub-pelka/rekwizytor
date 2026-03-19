@@ -2,9 +2,9 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface BadgeProps {
-    children: React.ReactNode
-    variant?: 'default' | 'secondary' | 'destructive' | 'outline'
-    className?: string
+    readonly children: React.ReactNode
+    readonly variant?: 'default' | 'secondary' | 'destructive' | 'outline'
+    readonly className?: string
 }
 
 export function Badge({ children, variant = 'default', className }: BadgeProps) {

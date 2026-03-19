@@ -3,17 +3,17 @@
 import React from 'react'
 
 type Props = {
-    currentChecklist?: {
-        scene_number: number
-        scene_name: string | null
+    readonly currentChecklist?: {
+        readonly scene_number: number
+        readonly scene_name: string | null
     }
-    now: number
-    startTime: number | null
-    totalBreakTime: number
-    isBreak: boolean
-    breakStartTime: number | null
-    formatDuration: (ms: number) => string
-    t: (key: string, params?: any) => string
+    readonly now: number
+    readonly startTime: number | null
+    readonly totalBreakTime: number
+    readonly isBreak: boolean
+    readonly breakStartTime: number | null
+    readonly formatDuration: (ms: number) => string
+    readonly t: (key: string, params?: any) => string
 }
 
 export function LivePerformanceHeader({

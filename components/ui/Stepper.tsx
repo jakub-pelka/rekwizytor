@@ -9,11 +9,11 @@ type Step = {
 }
 
 interface StepperProps {
-    steps: Step[]
-    currentStep: number
-    onStepClick?: (step: number) => void
-    className?: string
-    color?: string | null
+    readonly steps: Step[]
+    readonly currentStep: number
+    readonly onStepClick?: (step: number) => void
+    readonly className?: string
+    readonly color?: string | null
 }
 
 export function Stepper({ steps, currentStep, onStepClick, className, color }: StepperProps) {
@@ -32,20 +32,36 @@ export function Stepper({ steps, currentStep, onStepClick, className, color }: S
                             onStepClick && "cursor-pointer group"
                         )}
                         onClick={() => onStepClick?.(stepNum)}
+                        onKeyDown={(e) => {
+                            if ((e.key === 'Enter' || e.key === ' ') && onStepClick) {
+                                e.preventDefault()
+                                onStepClick(stepNum)
+                            }
+                        }}
+                        role={onStepClick ? "button" : undefined}
+                        tabIndex={onStepClick ? 0 : undefined}
                     >
                         <div
                             className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border transition-colors",
-                                isActive && !color ? "bg-white text-black border-white" :
-                                    isCompleted && !color ? "bg-green-500 text-white border-green-500" :
-                                        !isActive && !isCompleted ? "bg-transparent text-neutral-500 border-neutral-700 group-hover:border-neutral-500" :
-                                            ""
+                                (() => {
+                                    if (isActive && !color) return "bg-white text-black border-white"
+                                    if (isCompleted && !color) return "bg-green-500 text-white border-green-500"
+                                    if (!isActive && !isCompleted) return "bg-transparent text-neutral-500 border-neutral-700 group-hover:border-neutral-500"
+                                    return ""
+                                })()
                             )}
-                            style={color ? (isActive || isCompleted ? {
-                                backgroundColor: color,
-                                borderColor: color,
-                                color: 'white'
-                            } : undefined) : undefined}
+                            style={(() => {
+                                if (!color) return undefined
+                                if (isActive || isCompleted) {
+                                    return {
+                                        backgroundColor: color,
+                                        borderColor: color,
+                                        color: 'white'
+                                    }
+                                }
+                                return undefined
+                            })()}
                         >
                             {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
                         </div>

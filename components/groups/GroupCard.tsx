@@ -2,7 +2,7 @@
 // Force refresh
 
 import { Database } from '@/types/supabase'
-import { Folder, Edit2, Tag } from 'lucide-react'
+import { Folder } from 'lucide-react'
 import * as LucideIcons from 'lucide-react'
 import { DEFAULT_GROUP_COLOR } from '@/utils/constants/colors'
 
@@ -52,6 +52,14 @@ export function GroupCard({
     return (
         <div
             onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onClick?.()
+                }
+            }}
+            role="button"
+            tabIndex={0}
             className={`group relative flex items-center gap-3 bg-neutral-900/40 backdrop-blur-sm border border-neutral-800 rounded-lg hover:bg-neutral-900/60 transition-all duration-200 cursor-pointer h-full ${isCompact ? 'p-2' : 'p-3'
                 }`}
             style={{

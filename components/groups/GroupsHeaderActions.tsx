@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Settings, QrCode, MoreVertical, FolderPlus, Wand2 } from 'lucide-react'
+import { Plus, QrCode, MoreVertical, FolderPlus, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { DropdownAction } from '@/components/ui/DropdownAction'
 import { GroupScannerDialog } from '@/components/groups/GroupScannerDialog'
@@ -17,8 +17,8 @@ type Group = Pick<Database['public']['Tables']['groups']['Row'],
     }
 
 interface GroupsHeaderActionsProps {
-    groups: Group[]
-    currentParentId: string | null
+    readonly groups: Group[]
+    readonly currentParentId: string | null
 }
 
 export function GroupsHeaderActions({ groups, currentParentId }: GroupsHeaderActionsProps) {
@@ -64,7 +64,7 @@ export function GroupsHeaderActions({ groups, currentParentId }: GroupsHeaderAct
             })))
 
             // Call backend API
-            const apiUrl = `${window.location.origin}/api/generate-labels`
+            const apiUrl = `${globalThis.location.origin}/api/generate-labels`
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {

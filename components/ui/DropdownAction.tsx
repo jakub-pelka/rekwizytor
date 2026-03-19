@@ -1,5 +1,5 @@
 import { Fragment, ReactNode } from 'react'
-import { Menu, MenuButton, MenuItem, MenuItems, Transition } from '@headlessui/react'
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { ChevronDown } from 'lucide-react'
 import { Button, ButtonProps } from '@/components/ui/Button'
 import { cn } from '@/utils/cn'

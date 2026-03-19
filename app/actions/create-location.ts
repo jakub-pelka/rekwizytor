@@ -25,7 +25,8 @@ export async function createLocation(formData: FormData) {
 
         revalidatePath('/mapping')
         return { success: true }
-    } catch (e) {
+    } catch (error) {
+        console.error('Failed to create location:', error)
         return { error: 'Błąd tworzenia lokalizacji' }
     }
 }

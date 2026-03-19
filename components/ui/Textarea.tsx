@@ -5,7 +5,7 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
     className?: string
 }
 
-export function Textarea({ className, ...props }: TextareaProps) {
+export function Textarea({ className, ...props }: Readonly<TextareaProps>) {
     return (
         <textarea
             className={cn(

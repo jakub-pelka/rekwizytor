@@ -4,12 +4,12 @@ import React from 'react'
 import { CheckCircle2 } from 'lucide-react'
 
 type Props = {
-    startTime: number | null
-    endTime: number | null
-    totalBreakTime: number
-    formatDuration: (ms: number) => string
-    onExit: () => void
-    t: (key: string, params?: any) => string
+    readonly startTime: number | null
+    readonly endTime: number | null
+    readonly totalBreakTime: number
+    readonly formatDuration: (ms: number) => string
+    readonly onExit: () => void
+    readonly t: (key: string, params?: any) => string
 }
 
 export function LiveStatsOverlay({

@@ -89,35 +89,45 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
     // actually, let's unify.
     // If editData, "Next" at step 2 goes to "Review" (Step 3) where we show the single item to be updated.
 
+    const createScheduledItem = (finalDate: Date): ScheduledItem => {
+        if (editData) {
+            return {
+                id: 'edit-item',
+                date: finalDate,
+                cast: selectedCast
+            }
+        }
+
+        return {
+            id: crypto.randomUUID(),
+            date: finalDate,
+            cast: selectedCast
+        }
+    }
+
+    const combineDateAndTime = (): Date => {
+        const finalDate = new Date(selectedDate!)
+        finalDate.setHours(selectedTime!.getHours())
+        finalDate.setMinutes(selectedTime!.getMinutes())
+        return finalDate
+    }
+
     const handleNext = () => {
         if (step === 1 && selectedDate) {
             setStep(2)
-        } else if (step === 2 && selectedTime && selectedDate) {
-            // Combine date and time
-            const finalDate = new Date(selectedDate)
-            finalDate.setHours(selectedTime.getHours())
-            finalDate.setMinutes(selectedTime.getMinutes())
+            return
+        }
+
+        if (step === 2 && selectedTime && selectedDate) {
+            const finalDate = combineDateAndTime()
+            const newItem = createScheduledItem(finalDate)
 
             if (editData) {
-                // In edit mode, we just stage this single update
-                // We can use queue with 1 item representing the "to-be-saved" state
-                const newItem: ScheduledItem = {
-                    id: 'edit-item',
-                    date: finalDate,
-                    cast: selectedCast
-                }
                 setQueue([newItem])
             } else {
-                // Add to queue
-                const newItem: ScheduledItem = {
-                    id: crypto.randomUUID(),
-                    date: finalDate,
-                    cast: selectedCast
-                }
                 setQueue(prev => [...prev, newItem])
             }
 
-            // Go to review step
             setStep(3)
         }
     }

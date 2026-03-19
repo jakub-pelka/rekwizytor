@@ -13,7 +13,7 @@ import NextImage from 'next/image'
 import { Database } from '@/types/supabase'
 
 interface TrashListProps {
-    initialPerformances: Database['public']['Tables']['performances']['Row'][]
+    readonly initialPerformances: Database['public']['Tables']['performances']['Row'][]
 }
 
 export function TrashList({ initialPerformances }: TrashListProps) {

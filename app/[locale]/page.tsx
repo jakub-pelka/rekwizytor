@@ -36,6 +36,104 @@ interface UpcomingPerformance {
   color?: string | null
 }
 
+function getDisplayName(user: any, profile: Pick<ProfileRow, 'full_name'> | null): string {
+  if (!user) return 'User'
+
+  return profile?.full_name
+    || user.user_metadata?.full_name
+    || user.user_metadata?.name
+    || user.email?.split('@')[0]
+    || 'User'
+}
+
+function extractSettledData<T>(result: PromiseSettledResult<{ data: T | null }>): T | null {
+  return result.status === 'fulfilled' ? result.value.data : null
+}
+
+function extractSettledCount(result: PromiseSettledResult<{ count: number | null }>): number {
+  return result.status === 'fulfilled' ? result.value.count || 0 : 0
+}
+
+async function fetchTodayProgress(supabase: any, nearestChecklist: ChecklistRow | null) {
+  if (!nearestChecklist || !isToday(new Date(nearestChecklist.show_date))) {
+    return undefined
+  }
+
+  const { data: items } = await supabase
+    .from('scene_checklist_items')
+    .select('is_prepared')
+    .eq('scene_checklist_id', nearestChecklist.id)
+
+  if (!items?.length) return undefined
+
+  return {
+    completed: items.filter(i => i.is_prepared).length,
+    total: items.length
+  }
+}
+
+function buildNearestPerformance(
+  nearestChecklist: ChecklistRow | null,
+  todayProgress: { completed: number; total: number } | undefined
+): DashboardPerformance | null {
+  if (!nearestChecklist?.performance || Array.isArray(nearestChecklist.performance)) {
+    return null
+  }
+
+  return {
+    id: nearestChecklist.performance.id,
+    title: nearestChecklist.performance.title,
+    premiere_date: nearestChecklist.performance.premiere_date,
+    image_url: nearestChecklist.performance.image_url,
+    status: nearestChecklist.performance.status,
+    next_show_date: nearestChecklist.show_date,
+    progress: todayProgress
+  }
+}
+
+function buildUpcomingPerformances(
+  scheduledShows: ChecklistRow[],
+  futurePremieres: PerformanceRow[]
+): UpcomingPerformance[] {
+  const combinedPerformances: UpcomingPerformance[] = [
+    ...scheduledShows
+      .filter(item => item.performance)
+      .map(item => {
+        const perf = item.performance as PerformanceRow
+        return {
+          id: perf.id,
+          title: perf.title,
+          date: item.show_date,
+          status: perf.status,
+          color: perf.color
+        }
+      }),
+    ...futurePremieres.map(perf => ({
+      id: perf.id,
+      title: perf.title,
+      date: perf.premiere_date!,
+      status: perf.status,
+      color: perf.color
+    }))
+  ]
+
+  const uniquePerformancesMap = new Map()
+  const today = new Date(new Date().setHours(0, 0, 0, 0))
+
+  combinedPerformances.forEach(p => {
+    if (new Date(p.date) >= today) {
+      const key = `${p.id}-${p.date.split('T')[0]}`
+      if (!uniquePerformancesMap.has(key)) {
+        uniquePerformancesMap.set(key, p)
+      }
+    }
+  })
+
+  return Array.from(uniquePerformancesMap.values())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 3)
+}
+
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -49,8 +147,7 @@ export default async function Home() {
       .single()
 
     const profile = result.data as Pick<ProfileRow, 'full_name'> | null
-
-    displayName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User'
+    displayName = getDisplayName(user, profile)
   }
 
   const t = await getTranslations('Dashboard')
@@ -187,95 +284,26 @@ export default async function Home() {
       .gte('created_at', lastWeekDate),
   ])
 
-  // Extract nearest checklist
-  const nearestChecklist = nearestPerformanceResult.status === 'fulfilled'
-    ? nearestPerformanceResult.value.data
-    : null
+  const nearestChecklist = extractSettledData<ChecklistRow>(nearestPerformanceResult)
 
-  // Fetch progress if today
-  let todayProgress = undefined
-  if (nearestChecklist && isToday(new Date(nearestChecklist.show_date))) {
-    const { data: items } = await supabase
-      .from('scene_checklist_items')
-      .select('is_prepared')
-      .eq('scene_checklist_id', nearestChecklist.id)
+  const todayProgress = await fetchTodayProgress(supabase, nearestChecklist)
+  const nearestPerformance = buildNearestPerformance(nearestChecklist, todayProgress)
 
-    if (items && items.length > 0) {
-      todayProgress = {
-        completed: items.filter(i => i.is_prepared).length,
-        total: items.length
-      }
-    }
-  }
+  const scheduledShows = extractSettledData<ChecklistRow[]>(upcomingChecklistsResult) || []
+  const futurePremieres = extractSettledData<PerformanceRow[]>(upcomingPremieresResult) || []
 
-  const nearestPerformance: DashboardPerformance | null = nearestChecklist?.performance && !Array.isArray(nearestChecklist.performance) ? {
-    id: nearestChecklist.performance.id,
-    title: nearestChecklist.performance.title,
-    premiere_date: nearestChecklist.performance.premiere_date,
-    image_url: nearestChecklist.performance.image_url,
-    status: nearestChecklist.performance.status,
-    next_show_date: nearestChecklist.show_date,
-    progress: todayProgress
-  } : null
+  const upcomingPerformances = buildUpcomingPerformances(scheduledShows, futurePremieres)
 
-  // Process Upcoming Performances
-  const scheduledShows = upcomingChecklistsResult.status === 'fulfilled'
-    ? upcomingChecklistsResult.value.data || []
-    : []
+  const groupsCount = extractSettledCount(groupsCountResult)
+  const performancesCount = extractSettledCount(performancesCountResult)
+  const notesCount = extractSettledCount(notesCountResult)
+  const upcomingThisWeekCount = extractSettledCount(upcomingThisWeekResult)
 
-  const futurePremieres = upcomingPremieresResult.status === 'fulfilled'
-    ? upcomingPremieresResult.value.data || []
-    : []
+  const recentMentions = extractSettledData<any[]>(mentionsResult) || []
 
-  const combinedPerformances: UpcomingPerformance[] = [
-    ...scheduledShows
-      .filter(item => item.performance)
-      .map(item => {
-        const perf = item.performance as PerformanceRow
-        return {
-          id: perf.id,
-          title: perf.title,
-          date: item.show_date,
-          status: perf.status,
-          color: perf.color
-        }
-      }),
-    ...futurePremieres.map(perf => ({
-      id: perf.id,
-      title: perf.title,
-      date: perf.premiere_date!,
-      status: perf.status,
-      color: perf.color
-    }))
-  ]
-
-  const uniquePerformancesMap = new Map()
-  combinedPerformances.forEach(p => {
-    if (new Date(p.date) >= new Date(new Date().setHours(0, 0, 0, 0))) {
-      const key = `${p.id}-${p.date.split('T')[0]}`
-      if (!uniquePerformancesMap.has(key)) {
-        uniquePerformancesMap.set(key, p)
-      }
-    }
-  })
-
-  // Limit to 3 as requested
-  const upcomingPerformances = Array.from(uniquePerformancesMap.values())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3)
-
-  const groupsCount = groupsCountResult.status === 'fulfilled' ? groupsCountResult.value.count || 0 : 0
-  const performancesCount = performancesCountResult.status === 'fulfilled' ? performancesCountResult.value.count || 0 : 0
-  const notesCount = notesCountResult.status === 'fulfilled' ? notesCountResult.value.count || 0 : 0
-  const upcomingThisWeekCount = upcomingThisWeekResult.status === 'fulfilled' ? upcomingThisWeekResult.value.count || 0 : 0
-
-  const recentMentions = mentionsResult.status === 'fulfilled'
-    ? (mentionsResult.value.data || [])
-    : []
-
-  const newGroupsCount = newGroupsCountResult.status === 'fulfilled' ? newGroupsCountResult.value.count || 0 : 0
-  const newPerformancesCount = newPerformancesCountResult.status === 'fulfilled' ? newPerformancesCountResult.value.count || 0 : 0
-  const newNotesCount = newNotesCountResult.status === 'fulfilled' ? newNotesCountResult.value.count || 0 : 0
+  const newGroupsCount = extractSettledCount(newGroupsCountResult)
+  const newPerformancesCount = extractSettledCount(newPerformancesCountResult)
+  const newNotesCount = extractSettledCount(newNotesCountResult)
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">

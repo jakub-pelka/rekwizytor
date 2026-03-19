@@ -10,10 +10,10 @@ type Prop = Database['public']['Tables']['performance_props']['Row']
 type Scene = Database['public']['Tables']['scenes']['Row']
 
 type Props = {
-    performanceId: string
-    propsByAct: Record<number, Prop[]>
-    scenes: Scene[]
-    sceneNote: any | null
+    readonly performanceId: string
+    readonly propsByAct: Record<number, Prop[]>
+    readonly scenes: Scene[]
+    readonly sceneNote: any | null
 }
 
 export function PerformanceContent({ performanceId, propsByAct, scenes, sceneNote }: Props) {

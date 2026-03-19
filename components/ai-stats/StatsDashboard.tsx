@@ -27,6 +27,30 @@ export function StatsDashboard({ logs, allStats, storageStats }: Props) {
     const EXCHANGE_RATE = 4.15 // Hardcoded for now, could be fetched
     const t = useTranslations('AIStats')
 
+    const getOperationLabel = (operationType: string): string => {
+        if (operationType === 'fast_add') return t('operations.fastAdd')
+        if (operationType === 'smart_search') return t('operations.smartSearch')
+        if (operationType === 'generate_description') return t('operations.generateDesc')
+        if (operationType === 'create_item') return t('operations.createItem')
+        if (operationType === 'scan_scenes') return t('operations.scanScenes')
+        if (operationType === 'vision_group') return t('operations.visionGroup')
+        if (operationType === 'vision_props') return t('operations.visionProps')
+        if (operationType === 'mapping_ai') return t('operations.mappingAI')
+        if (operationType === 'query_correction') return t('operations.queryCorrection')
+        if (operationType === 'embedding_indexing') return t('operations.embeddingIndexing')
+        return operationType
+    }
+
+    const getOperationBadgeClass = (operationType: string): string => {
+        if (operationType === 'fast_add') {
+            return 'bg-yellow-400/10 text-yellow-400 ring-1 ring-inset ring-yellow-400/20'
+        }
+        if (operationType === 'smart_search') {
+            return 'bg-burgundy-main/10 text-burgundy-light ring-1 ring-inset ring-burgundy-main/20'
+        }
+        return 'bg-pink-400/10 text-pink-400 ring-1 ring-inset ring-pink-400/20'
+    }
+
     // Calculate totals
     const totalInput = allStats.reduce((acc, curr) => acc + (curr.tokens_input || 0), 0)
     const totalOutput = allStats.reduce((acc, curr) => acc + (curr.tokens_output || 0), 0)
@@ -249,17 +273,7 @@ export function StatsDashboard({ logs, allStats, storageStats }: Props) {
                                     const typeCostUSD = ((typeInput / 1_000_000) * 0.10) + ((typeOutput / 1_000_000) * 0.40)
                                     const typeCost = currency === 'USD' ? typeCostUSD : typeCostUSD * EXCHANGE_RATE
 
-                                    const label = type === 'fast_add' ? t('operations.fastAdd') :
-                                        type === 'smart_search' ? t('operations.smartSearch') :
-                                            type === 'generate_description' ? t('operations.generateDesc') :
-                                                type === 'create_item' ? t('operations.createItem') :
-                                                    type === 'scan_scenes' ? t('operations.scanScenes') :
-                                                        type === 'vision_group' ? t('operations.visionGroup') :
-                                                            type === 'vision_props' ? t('operations.visionProps') :
-                                                                type === 'mapping_ai' ? t('operations.mappingAI') :
-                                                                    type === 'query_correction' ? t('operations.queryCorrection') :
-                                                                        type === 'embedding_indexing' ? t('operations.embeddingIndexing') :
-                                                                            type
+                                    const label = getOperationLabel(type)
 
                                     return (
                                         <div key={type} className="flex justify-between items-center">
@@ -287,17 +301,7 @@ export function StatsDashboard({ logs, allStats, storageStats }: Props) {
                                     const totalTokens = typeLogs.reduce((acc, curr) => acc + (curr.tokens_input || 0) + (curr.tokens_output || 0), 0)
                                     const avg = count > 0 ? Math.round(totalTokens / count) : 0
 
-                                    const label = type === 'fast_add' ? t('operations.fastAdd') :
-                                        type === 'smart_search' ? t('operations.smartSearch') :
-                                            type === 'generate_description' ? t('operations.generateDesc') :
-                                                type === 'create_item' ? t('operations.createItem') :
-                                                    type === 'scan_scenes' ? t('operations.scanScenes') :
-                                                        type === 'vision_group' ? t('operations.visionGroup') :
-                                                            type === 'vision_props' ? t('operations.visionProps') :
-                                                                type === 'mapping_ai' ? t('operations.mappingAI') :
-                                                                    type === 'query_correction' ? t('operations.queryCorrection') :
-                                                                        type === 'embedding_indexing' ? t('operations.embeddingIndexing') :
-                                                                            type
+                                    const label = getOperationLabel(type)
 
                                     return (
                                         <div key={type} className="flex justify-between items-center">
@@ -336,23 +340,8 @@ export function StatsDashboard({ logs, allStats, storageStats }: Props) {
                                                 {new Date(log.created_at || '').toLocaleString()}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium font-sans ${log.operation_type === 'fast_add'
-                                                    ? 'bg-yellow-400/10 text-yellow-400 ring-1 ring-inset ring-yellow-400/20'
-                                                    : log.operation_type === 'smart_search'
-                                                        ? 'bg-burgundy-main/10 text-burgundy-light ring-1 ring-inset ring-burgundy-main/20'
-                                                        : 'bg-pink-400/10 text-pink-400 ring-1 ring-inset ring-pink-400/20'
-                                                    }`}>
-                                                    {log.operation_type === 'fast_add' ? t('operations.fastAdd') :
-                                                        log.operation_type === 'smart_search' ? t('operations.smartSearch') :
-                                                            log.operation_type === 'generate_description' ? t('operations.generateDesc') :
-                                                                log.operation_type === 'create_item' ? t('operations.createItem') :
-                                                                    log.operation_type === 'scan_scenes' ? t('operations.scanScenes') :
-                                                                        log.operation_type === 'vision_group' ? t('operations.visionGroup') :
-                                                                            log.operation_type === 'vision_props' ? t('operations.visionProps') :
-                                                                                log.operation_type === 'mapping_ai' ? t('operations.mappingAI') :
-                                                                                    log.operation_type === 'query_correction' ? t('operations.queryCorrection') :
-                                                                                        log.operation_type === 'embedding_indexing' ? t('operations.embeddingIndexing') :
-                                                                                            log.operation_type}
+                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium font-sans ${getOperationBadgeClass(log.operation_type)}`}>
+                                                    {getOperationLabel(log.operation_type)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-neutral-400 text-xs">

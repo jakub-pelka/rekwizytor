@@ -5,7 +5,6 @@ import { Database } from '@/types/supabase'
 import { useTranslations } from 'next-intl'
 import { deletePerformanceItem } from '@/app/actions/performance-props'
 import { Trash2 } from 'lucide-react'
-import { notify } from '@/utils/notify'
 import { SceneDetailModal } from './SceneDetailModal'
 import { createClient } from '@/utils/supabase/client'
 
@@ -14,12 +13,12 @@ type Scene = Database['public']['Tables']['scenes']['Row']
 type SceneTask = Database['public']['Tables']['scene_tasks']['Row']
 
 type Props = {
-    performanceId: string
-    propsByAct: Record<number, PropItem[]>
-    scenes: Scene[]
-    sceneNote: any | null // Keep for backward compatibility during migration
-    limitTasks?: boolean
-    enableScrolling?: boolean
+    readonly performanceId: string
+    readonly propsByAct: Record<number, PropItem[]>
+    readonly scenes: Scene[]
+    readonly sceneNote: any | null // Keep for backward compatibility during migration
+    readonly limitTasks?: boolean
+    readonly enableScrolling?: boolean
 }
 
 export function PerformanceSceneView({
@@ -33,7 +32,7 @@ export function PerformanceSceneView({
     const t = useTranslations('ProductionDetails')
     const [selectedScene, setSelectedScene] = useState<Scene | null>(null)
     const [sceneTasks, setSceneTasks] = useState<Record<string, SceneTask[]>>({})
-    const [loadingTasks, setLoadingTasks] = useState(true)
+    const [, setLoadingTasks] = useState(true)
     const supabase = createClient()
 
     // Load tasks from database
@@ -195,6 +194,14 @@ export function PerformanceSceneView({
                                         <div
                                             key={scene.id}
                                             onClick={() => setSelectedScene(scene)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault()
+                                                    setSelectedScene(scene)
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
                                             className="bg-neutral-900 border border-neutral-800 p-4 space-y-3 cursor-pointer hover:bg-neutral-800/50 transition-colors first:rounded-t-lg last:rounded-b-lg md:rounded-lg"
                                         >
                                             <div className="flex items-baseline gap-2 pb-2 border-b border-neutral-800 mb-2">

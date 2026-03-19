@@ -38,17 +38,17 @@ export interface KanbanColumn {
 }
 
 interface KanbanBoardProps<T extends KanbanItem> {
-    items: T[]
-    columns: KanbanColumn[]
-    renderItem: (item: T, isOverlay?: boolean) => React.ReactNode
-    renderColumnHeader: (column: KanbanColumn, items: T[]) => React.ReactNode
-    renderColumnFooter?: (column: KanbanColumn, items: T[]) => React.ReactNode
-    onItemReorder: (newItems: T[]) => void
-    extraActions?: React.ReactNode
-    onValidateMove?: (item: T, targetColumnId: ColumnId) => boolean
+    readonly items: T[]
+    readonly columns: KanbanColumn[]
+    readonly renderItem: (item: T, isOverlay?: boolean) => React.ReactNode
+    readonly renderColumnHeader: (column: KanbanColumn, items: T[]) => React.ReactNode
+    readonly renderColumnFooter?: (column: KanbanColumn, items: T[]) => React.ReactNode
+    readonly onItemReorder: (newItems: T[]) => void
+    readonly extraActions?: React.ReactNode
+    readonly onValidateMove?: (item: T, targetColumnId: ColumnId) => boolean
 }
 
-function DroppableColumn({ id, children, className }: { id: ColumnId, children: React.ReactNode, className?: string }) {
+function DroppableColumn({ id, children, className }: { readonly id: ColumnId, readonly children: React.ReactNode, readonly className?: string }) {
     const { setNodeRef } = useDroppable({ id })
     return <div ref={setNodeRef} className={className}>{children}</div>
 }
@@ -133,6 +133,14 @@ export function KanbanBoard<T extends KanbanItem>({
         }
     }
 
+    const moveItemToColumn = (items: T[], activeId: ItemId, targetColumnId: ColumnId): T[] => {
+        return items.map(i => i.id === activeId ? { ...i, columnId: targetColumnId } : i)
+    }
+
+    const canMoveItem = (item: T, targetColumnId: ColumnId): boolean => {
+        return !onValidateMove || onValidateMove(item, targetColumnId)
+    }
+
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
         const activeId = active.id as ItemId
@@ -146,35 +154,27 @@ export function KanbanBoard<T extends KanbanItem>({
         if (!activeItem) return
 
         const isOverColumn = columns.some(c => c.id === overId)
-
         let newItems = [...items]
 
         if (isOverColumn) {
             const colId = overId as ColumnId
-            if (activeItem.columnId !== colId) {
-                // VALIDATION CHECK
-                if (onValidateMove && !onValidateMove(activeItem, colId)) {
-                    return
-                }
+            if (activeItem.columnId === colId) return
 
-                newItems = newItems.map(i => i.id === activeId ? { ...i, columnId: colId } : i)
-            }
+            if (!canMoveItem(activeItem, colId)) return
+            newItems = moveItemToColumn(newItems, activeId, colId)
         } else {
             const overItem = items.find(i => i.id === overId)
-            if (overItem) {
-                const oldIndex = newItems.findIndex(i => i.id === activeId)
-                const newIndex = newItems.findIndex(i => i.id === overId)
+            if (!overItem) return
 
-                if (newItems[oldIndex].columnId !== overItem.columnId) {
-                    // VALIDATION CHECK
-                    if (onValidateMove && !onValidateMove(activeItem, overItem.columnId)) {
-                        return
-                    }
-                    newItems[oldIndex] = { ...newItems[oldIndex], columnId: overItem.columnId }
-                }
+            const oldIndex = newItems.findIndex(i => i.id === activeId)
+            const newIndex = newItems.findIndex(i => i.id === overId)
 
-                newItems = arrayMove(newItems, oldIndex, newIndex)
+            if (newItems[oldIndex].columnId !== overItem.columnId) {
+                if (!canMoveItem(activeItem, overItem.columnId)) return
+                newItems[oldIndex] = { ...newItems[oldIndex], columnId: overItem.columnId }
             }
+
+            newItems = arrayMove(newItems, oldIndex, newIndex)
         }
 
         onItemReorder(newItems)

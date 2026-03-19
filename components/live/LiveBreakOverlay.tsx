@@ -4,11 +4,11 @@ import React from 'react'
 import { PauseCircle, ArrowRight } from 'lucide-react'
 
 type Props = {
-    now: number
-    breakStartTime: number | null
-    formatDuration: (ms: number) => string
-    endBreak: () => void
-    t: (key: string, params?: any) => string
+    readonly now: number
+    readonly breakStartTime: number | null
+    readonly formatDuration: (ms: number) => string
+    readonly endBreak: () => void
+    readonly t: (key: string, params?: any) => string
 }
 
 export function LiveBreakOverlay({

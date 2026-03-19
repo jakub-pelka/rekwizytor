@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
-import { ArrowLeft, Info, FileText, Shield, Github, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Info, FileText, Shield, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import packageJson from '@/package.json'
 
@@ -98,7 +98,7 @@ export default function AboutPage() {
                     {/* Credits */}
                     <div className="p-6 bg-neutral-900/50 border border-neutral-800 rounded-xl space-y-4">
                         <h2 className="text-lg font-semibold flex items-center gap-2">
-                            <Github className="w-5 h-5 text-purple-400" />
+                            <Info className="w-5 h-5 text-purple-400" />
                             {t('credits')}
                         </h2>
                         <p className="text-sm text-neutral-400">

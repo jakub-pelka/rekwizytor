@@ -170,22 +170,29 @@ export default function NotesList({ performanceId, initialNotes = [] }: { perfor
                 </div>
             </FilterBar>
 
-            {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="h-32 rounded-xl bg-neutral-900/40 border border-neutral-800 animate-pulse" />
-                    ))}
-                </div>
-            ) : notes.length === 0 ? (
-                <div className="text-center py-20 bg-neutral-900/20 rounded-2xl border border-neutral-800/50 border-dashed">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-800/50 mb-4 text-neutral-600">
-                        <StickyNote className="w-8 h-8" />
-                    </div>
-                    <p className="text-xl font-bold text-neutral-500">{t('noNotes')}</p>
-                    <p className="text-neutral-600 mt-2">Create a new note to get started.</p>
-                </div>
-            ) : (
-                <div className="space-y-8">
+            {(() => {
+                if (loading) {
+                    return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="h-32 rounded-xl bg-neutral-900/40 border border-neutral-800 animate-pulse" />
+                            ))}
+                        </div>
+                    )
+                }
+                if (notes.length === 0) {
+                    return (
+                        <div className="text-center py-20 bg-neutral-900/20 rounded-2xl border border-neutral-800/50 border-dashed">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-neutral-800/50 mb-4 text-neutral-600">
+                                <StickyNote className="w-8 h-8" />
+                            </div>
+                            <p className="text-xl font-bold text-neutral-500">{t('noNotes')}</p>
+                            <p className="text-neutral-600 mt-2">Create a new note to get started.</p>
+                        </div>
+                    )
+                }
+                return (
+                    <div className="space-y-8">
                     {sortedGroups.map((group: any) => (
                         <div key={group.id} className="space-y-4">
                             <button
@@ -278,7 +285,8 @@ export default function NotesList({ performanceId, initialNotes = [] }: { perfor
                         </div>
                     ))}
                 </div>
-            )}
+                )
+            })()}
         </div>
     )
 }

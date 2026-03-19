@@ -28,7 +28,6 @@ export function SvgMapViewer({ locationId, svgContent, initialPins }: SvgMapView
     const [pins, setPins] = useState<Pin[]>(initialPins)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [pendingPin, setPendingPin] = useState<{ x: number, y: number } | null>(null)
-    const supabase = createClient()
     const t = useTranslations('Notifications')
 
     const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {

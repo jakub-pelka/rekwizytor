@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createPortal } from 'react-dom'
-import { X, ChevronRight, ChevronLeft } from 'lucide-react'
+import { X, ChevronRight } from 'lucide-react'
 
 export interface TourStep {
     targetId: string
@@ -155,7 +155,18 @@ export function FeatureTour({ steps, isOpen, onClose, onComplete, variant = 'def
             {isOpen && (
                 <>
                     {/* Backdrop Click Layer (Invisible, just for closing) */}
-                    <div className="fixed inset-0 z-9998" onClick={onClose} />
+                    <div
+                        className="fixed inset-0 z-9998"
+                        onClick={onClose}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                                onClose()
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close tour"
+                    />
 
                     {/* Highlight Effect with Backdrop via Box Shadow */}
                     {targetRect && (
@@ -189,11 +200,12 @@ export function FeatureTour({ steps, isOpen, onClose, onComplete, variant = 'def
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             key={currentStep} // Animate when step changes
                             className={`bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-2xl shadow-xl relative border border-zinc-200 dark:border-zinc-800 ${variant === 'minimal' ? 'w-[280px] p-4' : 'max-w-sm w-[360px] p-6'
-                                } ${actualPlacement === 'top' ? '-translate-x-1/2 -translate-y-full' :
-                                    actualPlacement === 'left' ? '-translate-x-full -translate-y-1/2' :
-                                        actualPlacement === 'right' ? '-translate-y-1/2' :
-                                            '-translate-x-1/2' // default bottom
-                                }`}
+                                } ${(() => {
+                                    if (actualPlacement === 'top') return '-translate-x-1/2 -translate-y-full'
+                                    if (actualPlacement === 'left') return '-translate-x-full -translate-y-1/2'
+                                    if (actualPlacement === 'right') return '-translate-y-1/2'
+                                    return '-translate-x-1/2' // default bottom
+                                })()}`}
                         >
                             <button onClick={onClose} className={`absolute text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 ${variant === 'minimal' ? 'top-2 right-2' : 'top-3 right-3'}`}>
                                 <X size={16} />
@@ -247,11 +259,12 @@ export function FeatureTour({ steps, isOpen, onClose, onComplete, variant = 'def
 
                             {/* Arrow Pointer */}
                             <div
-                                className={`absolute w-4 h-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rotate-45 ${actualPlacement === 'top' ? 'bottom-[-8px] left-1/2 -translate-x-1/2 border-t-0 border-l-0' :
-                                    actualPlacement === 'left' ? 'right-[-8px] top-1/2 -translate-y-1/2 border-b-0 border-l-0' :
-                                        actualPlacement === 'right' ? 'left-[-8px] top-1/2 -translate-y-1/2 border-t-0 border-r-0' :
-                                            'top-[-8px] left-1/2 -translate-x-1/2 border-b-0 border-r-0'
-                                    }`}
+                                className={`absolute w-4 h-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rotate-45 ${(() => {
+                                    if (actualPlacement === 'top') return 'bottom-[-8px] left-1/2 -translate-x-1/2 border-t-0 border-l-0'
+                                    if (actualPlacement === 'left') return 'right-[-8px] top-1/2 -translate-y-1/2 border-b-0 border-l-0'
+                                    if (actualPlacement === 'right') return 'left-[-8px] top-1/2 -translate-y-1/2 border-t-0 border-r-0'
+                                    return 'top-[-8px] left-1/2 -translate-x-1/2 border-b-0 border-r-0'
+                                })()}`}
                             />
                         </motion.div>
                     </div>

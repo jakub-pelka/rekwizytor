@@ -32,7 +32,6 @@ export default async function ManageScenesPage({ params }: Props) {
         .select('*')
         .eq('performance_id', id)
         .order('scene_number', { ascending: true })
-        .returns<Scene[]>()
 
     return (
         <div className="p-4 md:p-10 max-w-7xl mx-auto">

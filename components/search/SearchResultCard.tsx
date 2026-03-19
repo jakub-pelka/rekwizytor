@@ -184,7 +184,7 @@ const getEntityActions = (item: SearchResult, t: any, onOpenSchedule?: (performa
                             const url = window.URL.createObjectURL(blob)
                             const a = document.createElement('a')
                             a.href = url
-                            a.download = `etykieta_${i.name.replace(/[^a-z0-9]/gi, '_')}.pdf`
+                            a.download = `etykieta_${i.name.replaceAll(/[^a-z0-9]/gi, '_')}.pdf`
                             a.click()
                         })()
 
@@ -275,9 +275,9 @@ const extractTextFromTipTap = (json: any): string => {
 // --- Main Component ---
 
 interface SearchResultCardProps {
-    item: SearchResult & { explanation?: string } // Add explanation type
-    aiMode?: boolean
-    onClose?: () => void // Callback to close search modal
+    readonly item: SearchResult & { readonly explanation?: string } // Add explanation type
+    readonly aiMode?: boolean
+    readonly onClose?: () => void // Callback to close search modal
 }
 
 export function SearchResultCard({ item, aiMode, onClose }: SearchResultCardProps) {
@@ -441,9 +441,11 @@ export function SearchResultCard({ item, aiMode, onClose }: SearchResultCardProp
                         {item.metadata?.status && (
                             <span className={clsx(
                                 "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border",
-                                item.metadata.status === 'active' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
-                                    item.metadata.status === 'archived' ? "bg-neutral-800 text-neutral-500 border-neutral-700" :
-                                        "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                (() => {
+                                    if (item.metadata.status === 'active') return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    if (item.metadata.status === 'archived') return "bg-neutral-800 text-neutral-500 border-neutral-700"
+                                    return "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                })()
                             )}>
                                 {item.metadata.status}
                             </span>
@@ -452,16 +454,20 @@ export function SearchResultCard({ item, aiMode, onClose }: SearchResultCardProp
 
                     <div className="flex items-center gap-3 text-xs text-neutral-500 truncate h-4">
                         {/* Location or Description */}
-                        {item.entity_type === 'group' && item.metadata?.location_name ? (
-                            <div className="flex items-center gap-1 text-orange-400/80">
-                                <MapPin className="w-3 h-3" />
-                                <span>{item.metadata.location_name}</span>
-                            </div>
-                        ) : description ? (
-                            <span className="truncate">{description}</span>
-                        ) : (
-                            <span className="opacity-50 italic">No description</span>
-                        )}
+                        {(() => {
+                            if (item.entity_type === 'group' && item.metadata?.location_name) {
+                                return (
+                                    <div className="flex items-center gap-1 text-orange-400/80">
+                                        <MapPin className="w-3 h-3" />
+                                        <span>{item.metadata.location_name}</span>
+                                    </div>
+                                )
+                            }
+                            if (description) {
+                                return <span className="truncate">{description}</span>
+                            }
+                            return <span className="opacity-50 italic">No description</span>
+                        })()}
 
                         {/* Performance Next Show */}
                         {item.entity_type === 'performance' && item.metadata?.next_show && (

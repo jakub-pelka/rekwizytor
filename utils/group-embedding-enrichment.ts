@@ -35,8 +35,12 @@ export async function enrichGroupNameForEmbedding(
     const performanceContext = await getPerformanceContextForGroup(name)
 
     // Determine provider from model name
-    const provider = enrichmentModel.includes('gpt') ? 'openai' :
-        enrichmentModel.includes('mistral') ? 'mistral' : 'gemini'
+    const getProvider = (model: string): 'openai' | 'mistral' | 'gemini' => {
+        if (model.includes('gpt')) return 'openai'
+        if (model.includes('mistral')) return 'mistral'
+        return 'gemini'
+    }
+    const provider = getProvider(enrichmentModel)
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
@@ -254,14 +258,14 @@ function parseEnrichmentResponse(responseText: string, name: string): GroupEnric
 
     // Try to extract from markdown code block first
     const codeBlockRegex = /```(?:json)?\s*([\s\S]*?)\s*```/i
-    const codeBlockMatch = cleanText.match(codeBlockRegex)
+    const codeBlockMatch = codeBlockRegex.exec(cleanText)
     if (codeBlockMatch) {
         cleanText = codeBlockMatch[1].trim()
         console.log(`📝 [ENRICH] Extracted from markdown block`)
     }
 
     // Remove any text before the first { or [
-    const jsonStart = cleanText.search(/[\{\[]/)
+    const jsonStart = cleanText.search(/[{[]/)
 
     if (jsonStart === -1) {
         console.error(`❌ [ENRICH] No JSON start ({ or [) found. Response: ${cleanText.substring(0, 100)}`)

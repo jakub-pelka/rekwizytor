@@ -12,11 +12,11 @@ type SceneTask = Database['public']['Tables']['scene_tasks']['Row']
 type ExtendedSceneTask = SceneTask & { columnId: string }
 
 interface SceneTaskItemProps {
-    task: ExtendedSceneTask
-    isOverlay?: boolean
-    onUpdate: (taskId: string, sceneId: string, newContent: string) => void
-    onSave: (taskId: string, newContent: string) => void
-    onDelete: (sceneId: string, taskId: string) => void
+    readonly task: ExtendedSceneTask
+    readonly isOverlay?: boolean
+    readonly onUpdate: (taskId: string, sceneId: string, newContent: string) => void
+    readonly onSave: (taskId: string, newContent: string) => void
+    readonly onDelete: (sceneId: string, taskId: string) => void
 }
 
 export function SceneTaskItem({ task, isOverlay, onUpdate, onSave, onDelete }: SceneTaskItemProps) {

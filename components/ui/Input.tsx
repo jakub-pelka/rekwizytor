@@ -5,7 +5,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     className?: string
 }
 
-export function Input({ className, ...props }: InputProps) {
+export function Input({ className, ...props }: Readonly<InputProps>) {
     return (
         <input
             className={cn(

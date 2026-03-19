@@ -3,7 +3,7 @@ import { MapEditor } from "@/components/mapping/MapEditor"
 import { MapUploader } from "@/components/mapping/MapUploader"
 import { notFound } from "next/navigation"
 
-export default async function LocationMappingPage({ params }: { params: Promise<{ locationId: string }> }) {
+export default async function LocationMappingPage({ params }: { readonly params: Promise<{ readonly locationId: string }> }) {
     const supabase = await createClient()
 
     // Await params in Next.js 15+

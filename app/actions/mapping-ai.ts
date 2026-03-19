@@ -92,7 +92,7 @@ export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
         let svgContent = result.response.text()
 
         // Clean up response if it contains markdown code blocks despite instructions
-        svgContent = svgContent.replace(/```svg/g, '').replace(/```xml/g, '').replace(/```/g, '').trim()
+        svgContent = svgContent.replaceAll(/```svg/g, '').replaceAll(/```xml/g, '').replaceAll(/```/g, '').trim()
 
         // Note: map_svg column has been removed from the database
         // SVG content is now managed differently

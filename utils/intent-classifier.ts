@@ -43,7 +43,7 @@ WAŻNE: Odpowiedz TYLKO tym JSON (bez markdown, bez wyjaśnień):
             const responseText = result.response.text().trim()
 
             // Parse JSON response
-            const jsonMatch = responseText.match(/\{[^}]+\}/)
+            const jsonMatch = /\{[^}]+\}/.exec(responseText)
             if (!jsonMatch) {
                 console.error('Failed to parse LLM response:', responseText)
                 return null
@@ -98,7 +98,7 @@ WAŻNE: Odpowiedz TYLKO tym JSON (bez markdown, bez wyjaśnień):
     private tokenize(query: string): string[] {
         return query
             .toLowerCase()
-            .replace(/[^\w\sąćęłńóśźż]/gi, ' ')
+            .replaceAll(/[^\w\sąćęłńóśźż]/gi, ' ')
             .split(/\s+/)
             .filter(token => token.length > 1)
     }
@@ -152,7 +152,7 @@ export class IntentClassifier {
     private async logClassification(query: string, result: IntentClassificationResult): Promise<void> {
         const tokens = query
             .toLowerCase()
-            .replace(/[^\w\sąćęłńóśźż]/gi, ' ')
+            .replaceAll(/[^\w\sąćęłńóśźż]/gi, ' ')
             .split(/\s+/)
             .filter(token => token.length > 1)
 

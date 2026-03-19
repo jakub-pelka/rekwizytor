@@ -5,13 +5,13 @@ import { clsx } from 'clsx'
 import { motion } from 'framer-motion'
 
 interface PageHeaderProps {
-    title: string
-    subtitle?: string
-    icon?: React.ReactNode
-    className?: string
-    children?: React.ReactNode // For actions/buttons
-    iconColor?: string
-    backLink?: string
+    readonly title: string
+    readonly subtitle?: string
+    readonly icon?: React.ReactNode
+    readonly className?: string
+    readonly children?: React.ReactNode // For actions/buttons
+    readonly iconColor?: string
+    readonly backLink?: string
 }
 
 export function PageHeader({

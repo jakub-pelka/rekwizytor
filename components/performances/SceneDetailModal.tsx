@@ -9,11 +9,11 @@ import { getSceneNotesFromContent } from '@/components/notes/scene-utils'
 type Scene = Database['public']['Tables']['scenes']['Row']
 
 type Props = {
-    isOpen: boolean
-    onClose: () => void
-    scene: Scene
-    sceneNote?: { content: any } | null
-    allScenes: Scene[]
+    readonly isOpen: boolean
+    readonly onClose: () => void
+    readonly scene: Scene
+    readonly sceneNote?: { readonly content: any } | null
+    readonly allScenes: Scene[]
 }
 
 // Helper to extract text from Tiptap nodes
@@ -62,19 +62,30 @@ export function SceneDetailModal({ isOpen, onClose, scene, sceneNote, allScenes 
                     <div className="text-4xl font-bold text-white leading-none mb-2">
                         {(scene.scene_number === 0 || scene.type === 'intermission') ? 'P' : scene.scene_number}
                     </div>
-                    {(scene.scene_number === 0 || scene.type === 'preparation') ? (
-                        <div className="text-xs uppercase tracking-wide text-burgundy-light font-bold leading-tight">
-                            {t('preparation', { defaultValue: 'Przygotowanie' })}
-                        </div>
-                    ) : (scene.type === 'intermission') ? (
-                        <div className="text-xs uppercase tracking-wide text-neutral-500 font-bold leading-tight">
-                            {scene.name || 'PRZERWA'}
-                        </div>
-                    ) : scene.name && (
-                        <div className="text-xs uppercase tracking-wide text-neutral-500 leading-tight">
-                            {scene.name}
-                        </div>
-                    )}
+                    {(() => {
+                        if (scene.scene_number === 0 || scene.type === 'preparation') {
+                            return (
+                                <div className="text-xs uppercase tracking-wide text-burgundy-light font-bold leading-tight">
+                                    {t('preparation', { defaultValue: 'Przygotowanie' })}
+                                </div>
+                            )
+                        }
+                        if (scene.type === 'intermission') {
+                            return (
+                                <div className="text-xs uppercase tracking-wide text-neutral-500 font-bold leading-tight">
+                                    {scene.name || 'PRZERWA'}
+                                </div>
+                            )
+                        }
+                        if (scene.name) {
+                            return (
+                                <div className="text-xs uppercase tracking-wide text-neutral-500 leading-tight">
+                                    {scene.name}
+                                </div>
+                            )
+                        }
+                        return null
+                    })()}
                 </div>
 
                 {/* Right Column: Scene Content */}
@@ -100,7 +111,7 @@ export function SceneDetailModal({ isOpen, onClose, scene, sceneNote, allScenes 
                 <Button
                     onClick={() => {
                         // Navigate to task editor
-                        window.location.href = `/performances/${scene.performance_id}/tasks/edit`
+                        globalThis.location.href = `/performances/${scene.performance_id}/tasks/edit`
                     }}
                     variant="glassy-secondary"
                     className="text-neutral-400 hover:text-white"

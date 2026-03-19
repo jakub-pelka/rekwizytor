@@ -226,11 +226,11 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
                                 </div>
                                 <span className={clsx(
                                     "text-lg leading-relaxed",
-                                    checkedItems[item.id]
-                                        ? "line-through text-neutral-500"
-                                        : (item.text.trim().startsWith('(') || item.text.trim().startsWith('['))
-                                            ? "text-amber-400 italic"
-                                            : "text-white"
+                                    (() => {
+                                        if (checkedItems[item.id]) return "line-through text-neutral-500"
+                                        if (item.text.trim().startsWith('(') || item.text.trim().startsWith('[')) return "text-amber-400 italic"
+                                        return "text-white"
+                                    })()
                                 )}>
                                     {item.text}
                                 </span>
@@ -363,11 +363,11 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
                                 </div>
                                 <span className={clsx(
                                     "text-xl font-medium leading-normal",
-                                    checkedItems[item.id]
-                                        ? "text-neutral-500 line-through decoration-2"
-                                        : (item.text.trim().startsWith('(') || item.text.trim().startsWith('['))
-                                            ? "text-amber-400 italic"
-                                            : "text-white"
+                                    (() => {
+                                        if (checkedItems[item.id]) return "text-neutral-500 line-through decoration-2"
+                                        if (item.text.trim().startsWith('(') || item.text.trim().startsWith('[')) return "text-amber-400 italic"
+                                        return "text-white"
+                                    })()
                                 )}>
                                     {item.text}
                                 </span>

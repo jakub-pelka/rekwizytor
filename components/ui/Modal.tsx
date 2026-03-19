@@ -1,7 +1,7 @@
 'use client'
 
-import { Fragment, ReactNode } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
+import { ReactNode } from 'react'
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -36,10 +36,9 @@ export function Modal({
     }
 
     return (
-        <Transition.Root show={isOpen} as={Fragment}>
+        <Transition show={isOpen}>
             <Dialog as="div" className="relative z-50" onClose={onClose}>
-                <Transition.Child
-                    as={Fragment}
+                <TransitionChild
                     enter="ease-out duration-300"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
@@ -48,12 +47,11 @@ export function Modal({
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/80 transition-opacity backdrop-blur-sm" />
-                </Transition.Child>
+                </TransitionChild>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                        <Transition.Child
-                            as={Fragment}
+                        <TransitionChild
                             enter="ease-out duration-300"
                             enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                             enterTo="opacity-100 translate-y-0 sm:scale-100"
@@ -61,7 +59,7 @@ export function Modal({
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel
+                            <DialogPanel
                                 className={cn(
                                     "relative transform overflow-hidden rounded-xl bg-[#1a1a1a] px-4 pb-4 pt-5 text-left shadow-2xl transition-all sm:my-8 sm:p-6 border border-neutral-800 w-full",
                                     maxWidthClasses[maxWidth],
@@ -84,9 +82,9 @@ export function Modal({
                                 {(title || description) && (
                                     <div className="mb-6 text-center sm:text-left pr-8">
                                         {title && (
-                                            <Dialog.Title as="h3" className="text-lg font-bold leading-6 text-white tracking-tight">
+                                            <DialogTitle as="h3" className="text-lg font-bold leading-6 text-white tracking-tight">
                                                 {title}
-                                            </Dialog.Title>
+                                            </DialogTitle>
                                         )}
                                         {description && (
                                             <div className="mt-2">
@@ -99,11 +97,11 @@ export function Modal({
                                 )}
 
                                 {children}
-                            </Dialog.Panel>
-                        </Transition.Child>
+                            </DialogPanel>
+                        </TransitionChild>
                     </div>
                 </div>
             </Dialog>
-        </Transition.Root>
+        </Transition>
     )
 }

@@ -1,15 +1,13 @@
 'use client'
 
-import { Fragment } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 import { X, BarChart, Settings, LogOut, Tag, Layers, ClipboardList } from 'lucide-react'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
 
 type Props = {
     isOpen: boolean
@@ -35,10 +33,9 @@ export function MobileMenu({ isOpen, onClose }: Props) {
     }
 
     return (
-        <Transition.Root show={isOpen} as={Fragment}>
+        <Transition show={isOpen}>
             <Dialog as="div" className="relative z-50 md:hidden" onClose={onClose}>
-                <Transition.Child
-                    as={Fragment}
+                <TransitionChild
                     enter="ease-in-out duration-300"
                     enterFrom="opacity-0"
                     enterTo="opacity-100"
@@ -47,12 +44,11 @@ export function MobileMenu({ isOpen, onClose }: Props) {
                     leaveTo="opacity-0"
                 >
                     <div className="fixed inset-0 bg-black/80 transition-opacity" />
-                </Transition.Child>
+                </TransitionChild>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">
                     <div className="flex min-h-full items-end justify-center text-center sm:items-center sm:p-0">
-                        <Transition.Child
-                            as={Fragment}
+                        <TransitionChild
                             enter="transform transition ease-in-out duration-300"
                             enterFrom="translate-y-full"
                             enterTo="translate-y-0"
@@ -60,7 +56,7 @@ export function MobileMenu({ isOpen, onClose }: Props) {
                             leaveFrom="translate-y-0"
                             leaveTo="translate-y-full"
                         >
-                            <Dialog.Panel className="relative w-full transform overflow-hidden rounded-t-2xl bg-[#1a1a1a] px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
+                            <DialogPanel className="relative w-full transform overflow-hidden rounded-t-2xl bg-[#1a1a1a] px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
                                 <div className="absolute right-4 top-4">
                                     <button
                                         type="button"
@@ -72,9 +68,9 @@ export function MobileMenu({ isOpen, onClose }: Props) {
                                 </div>
 
                                 <div className="mt-3">
-                                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-white mb-6">
+                                    <DialogTitle as="h3" className="text-lg font-semibold leading-6 text-white mb-6">
                                         {t('more')}
-                                    </Dialog.Title>
+                                    </DialogTitle>
                                     <div className="grid grid-cols-1 gap-2">
                                         {menuItems.map((item) => {
                                             const isActive = pathname === item.href || pathname.startsWith(item.href) && item.href !== '/settings'
@@ -109,11 +105,11 @@ export function MobileMenu({ isOpen, onClose }: Props) {
                                         </button>
                                     </div>
                                 </div>
-                            </Dialog.Panel>
-                        </Transition.Child>
+                            </DialogPanel>
+                        </TransitionChild>
                     </div>
                 </div>
             </Dialog>
-        </Transition.Root>
+        </Transition>
     )
 }

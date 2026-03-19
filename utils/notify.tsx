@@ -1,7 +1,7 @@
 import toast from 'react-hot-toast'
 import React from 'react'
-import { Info, FileText, FileSpreadsheet, Download, Save, CheckCircle2, AlertCircle } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Info, FileText, FileSpreadsheet, Download, Save } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 /**
  * Unified notification system using react-hot-toast

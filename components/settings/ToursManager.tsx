@@ -1,12 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useTour } from '@/hooks/useTour'
 import { TOURS } from '@/utils/constants/tours'
-import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
-import { Power, RotateCcw, CheckCircle, XCircle, Info, ChevronDown, ChevronUp } from 'lucide-react'
-import { useState } from 'react'
+import { Power, RotateCcw, CheckCircle, Info, ChevronDown, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export function ToursManager() {
@@ -64,7 +62,7 @@ export function ToursManager() {
     )
 }
 
-function TourGuideCard({ tour, isCompleted, onReset }: { tour: any, isCompleted: boolean, onReset: () => void }) {
+function TourGuideCard({ tour, isCompleted, onReset }: { readonly tour: any, readonly isCompleted: boolean, readonly onReset: () => void }) {
     const [isExpanded, setIsExpanded] = useState(false)
 
     return (
@@ -72,6 +70,14 @@ function TourGuideCard({ tour, isCompleted, onReset }: { tour: any, isCompleted:
             <div
                 className="p-6 cursor-pointer flex items-start justify-between gap-4"
                 onClick={() => setIsExpanded(!isExpanded)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setIsExpanded(!isExpanded)
+                    }
+                }}
+                role="button"
+                tabIndex={0}
             >
                 <div>
                     <div className="flex items-center gap-3 mb-2">

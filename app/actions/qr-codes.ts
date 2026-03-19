@@ -2,9 +2,6 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { nanoid } from 'nanoid'
-
-// We use a custom alphabet for cleaner codes
 import { customAlphabet } from 'nanoid'
 const generateCode = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 6)
 

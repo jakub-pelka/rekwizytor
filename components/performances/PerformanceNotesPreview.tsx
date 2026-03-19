@@ -10,10 +10,10 @@ import { Database } from '@/types/supabase'
 type Note = Database['public']['Tables']['notes']['Row']
 
 interface Props {
-    notes: Note[]
-    performanceId: string
-    title: string
-    performanceColor?: string | null
+    readonly notes: Note[]
+    readonly performanceId: string
+    readonly title: string
+    readonly performanceColor?: string | null
 }
 
 export function PerformanceNotesPreview({ notes, performanceId, title, performanceColor }: Props) {

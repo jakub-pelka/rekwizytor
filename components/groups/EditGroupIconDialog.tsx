@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/Button'
 type Group = Pick<Database['public']['Tables']['groups']['Row'], 'id' | 'name' | 'icon'>
 
 type Props = {
-    group: Group | null
-    isOpen: boolean
-    onClose: () => void
+    readonly group: Group | null
+    readonly isOpen: boolean
+    readonly onClose: () => void
 }
 
 const getSuggestedIcons = (inputName: string): typeof ICONS => {

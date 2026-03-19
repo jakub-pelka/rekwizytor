@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { CheckCircle2, Circle } from 'lucide-react'
+import { CheckCircle2, Circle, Box } from 'lucide-react'
 import NextImage from 'next/image'
-import { Box } from 'lucide-react' // ItemIcon removed
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
 

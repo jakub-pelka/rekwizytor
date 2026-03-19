@@ -24,14 +24,12 @@ import { Modal } from '@/components/ui/Modal'
 export type SearchContext = 'item' | 'performance' | 'group' | 'location' | 'note' | undefined
 
 interface GlobalSearchDialogProps {
-    isOpen: boolean
-    onClose: () => void
-    initialContext?: SearchContext
+    readonly isOpen: boolean
+    readonly onClose: () => void
+    readonly initialContext?: SearchContext
 }
 
 export function GlobalSearchDialog({ isOpen, onClose, initialContext }: GlobalSearchDialogProps) {
-    const router = useRouter()
-
     // Core search state
     const [query, setQuery] = React.useState('')
     const [results, setResults] = React.useState<SearchResult[]>([])
@@ -105,7 +103,6 @@ export function GlobalSearchDialog({ isOpen, onClose, initialContext }: GlobalSe
         }
 
         setLoading(true)
-        const searchStartTime = Date.now()
 
         // Keep previous results visible (stale-while-revalidate)
         if (results.length > 0) {
@@ -411,21 +408,54 @@ export function GlobalSearchDialog({ isOpen, onClose, initialContext }: GlobalSe
                                             <div className="flex flex-col gap-2">
                                                 {/* FTS Results */}
                                                 {matchResults.fts.map((item: SearchResult) => (
-                                                    <div key={`fts-${item.id}`} onClick={handleResultClick}>
+                                                    <div
+                                                        key={`fts-${item.id}`}
+                                                        onClick={handleResultClick}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault()
+                                                                handleResultClick()
+                                                            }
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                    >
                                                         <SearchResultCard item={item} />
                                                     </div>
                                                 ))}
 
                                                 {/* Fuzzy Results */}
                                                 {matchResults.fuzzy.map((item: SearchResult) => (
-                                                    <div key={`fuzzy-${item.id}`} onClick={handleResultClick}>
+                                                    <div
+                                                        key={`fuzzy-${item.id}`}
+                                                        onClick={handleResultClick}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault()
+                                                                handleResultClick()
+                                                            }
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                    >
                                                         <SearchResultCard item={item} />
                                                     </div>
                                                 ))}
 
                                                 {/* Vector Results */}
                                                 {matchResults.vector.map((item: SearchResult) => (
-                                                    <div key={`vector-${item.id}`} onClick={handleResultClick}>
+                                                    <div
+                                                        key={`vector-${item.id}`}
+                                                        onClick={handleResultClick}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                                e.preventDefault()
+                                                                handleResultClick()
+                                                            }
+                                                        }}
+                                                        role="button"
+                                                        tabIndex={0}
+                                                    >
                                                         <SearchResultCard item={item} />
                                                     </div>
                                                 ))}

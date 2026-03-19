@@ -2,28 +2,28 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface CardProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 interface CardHeaderProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 interface CardTitleProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 interface CardDescriptionProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 interface CardContentProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 export function Card({ children, className }: CardProps) {

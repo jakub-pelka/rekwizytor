@@ -1,16 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { QrCode as QrIcon, Plus, ExternalLink, Trash2, Edit2, Check, X, Copy, Lock, Globe, Users, Archive, MoreHorizontal, ChevronRight, ChevronDown, Box, Theater, Link as LinkIcon } from 'lucide-react'
+import { ExternalLink, Trash2, Edit2, Copy, Lock, Globe, Users, Archive, ChevronRight, ChevronDown, Box, Theater, Link as LinkIcon } from 'lucide-react'
 import { notify } from '@/utils/notify'
-import { createQrCode, updateQrCode, deleteQrCode, type QrCode } from '@/app/actions/qr-codes'
+import { updateQrCode, deleteQrCode, type QrCode } from '@/app/actions/qr-codes'
 import { getLinkTargets, type LinkTarget } from '@/app/actions/link-targets'
 import QRCode from 'qrcode'
 import { useTranslations } from 'next-intl'
 import { clsx } from 'clsx'
 
 interface QrCodesManagerProps {
-    initialCodes: QrCode[]
+    readonly initialCodes: QrCode[]
 }
 
 type GroupedCodes = {
@@ -22,7 +22,6 @@ type GroupedCodes = {
 export function QrCodesManager({ initialCodes }: QrCodesManagerProps) {
     const t = useTranslations('QrManager')
     const [codes, setCodes] = useState(initialCodes)
-    const [isCreating, setIsCreating] = useState(false)
     const [editingCode, setEditingCode] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
     const [selectedCodes, setSelectedCodes] = useState<Set<string>>(new Set())
@@ -135,7 +134,8 @@ export function QrCodesManager({ initialCodes }: QrCodesManagerProps) {
             setSelectedCodes(new Set())
             notify.dismiss(toastId)
             notify.success(t('toast.success.deleted', { defaultMessage: 'Deleted' }))
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to delete selected QR codes:', error)
             notify.dismiss(toastId)
             notify.error('Error')
         } finally {
@@ -182,22 +182,23 @@ export function QrCodesManager({ initialCodes }: QrCodesManagerProps) {
 
     const downloadQr = async (code: string, desc: string) => {
         try {
-            const baseUrl = window.location.origin
+            const baseUrl = globalThis.location.origin
             const url = `${baseUrl}/qr/${code}`
             const dataUrl = await QRCode.toDataURL(url, { width: 400, margin: 1 })
             const link = document.createElement('a')
             link.href = dataUrl
-            link.download = `qr_${desc.replace(/[^a-z0-9]/gi, '_')}.png`
+            link.download = `qr_${desc.replaceAll(/[^a-z0-9]/gi, '_')}.png`
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to download QR code:', error)
             notify.error('Error')
         }
     }
 
     const copyLink = (code: string) => {
-        const url = `${window.location.origin}/qr/${code}`
+        const url = `${globalThis.location.origin}/qr/${code}`
         navigator.clipboard.writeText(url)
         notify.success('Link copied!')
     }

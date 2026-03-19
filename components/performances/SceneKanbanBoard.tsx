@@ -75,7 +75,7 @@ export function SceneKanbanBoard({ scenes, onReorder, onUpdate, onRemove, onRemo
         uniqueActs.forEach(act => {
             // Get scenes for this act
             const actScenes = items.filter(s => s.act_number === act)
-            
+
             // Separate by type
             const prepScenes = actScenes.filter(s => s.type === 'preparation')
             const intermissionScenes = actScenes.filter(s => s.type === 'intermission')
@@ -88,7 +88,7 @@ export function SceneKanbanBoard({ scenes, onReorder, onUpdate, onRemove, onRemo
             // Re-assign scene numbers
             sortedActScenes.forEach((scene, index) => {
                 const newNum = act === 0 ? index : index + 1
-                
+
                 // Construct updated scene object
                 result.push({
                     ...scene,
@@ -97,7 +97,7 @@ export function SceneKanbanBoard({ scenes, onReorder, onUpdate, onRemove, onRemo
                 })
             })
         })
-        
+
         return result
     }
 
@@ -255,6 +255,58 @@ export function SceneKanbanBoard({ scenes, onReorder, onUpdate, onRemove, onRemo
 function SortableScene({ scene, onUpdate, onRemove, isOverlay }: { scene: SceneItem, onUpdate: (id: string, updates: Partial<SceneItem>) => void, onRemove: (id: string) => void, isOverlay?: boolean }) {
     const [isEditing, setIsEditing] = useState(false)
     const [tempName, setTempName] = useState(scene.name || '')
+    const isSystemScene = scene.type === 'preparation' || scene.type === 'intermission'
+
+    const getSceneDisplayNumber = (): string | number => {
+        if (scene.scene_number === 0 || scene.type === 'intermission') return 'P'
+        return scene.scene_number
+    }
+
+    const getContainerClasses = (): string => {
+        const base = 'group flex items-center gap-3 p-3 rounded-lg border transition-all shadow-sm'
+        const variant = isSystemScene
+            ? 'bg-neutral-900/40 border-neutral-800 border-dashed hover:border-neutral-700'
+            : 'bg-neutral-950/80 border-neutral-800 hover:border-neutral-700'
+        return `${base} ${variant}`
+    }
+
+    const getDragHandleClasses = (): string => {
+        return isSystemScene
+            ? 'p-1 cursor-grab text-neutral-600 hover:text-neutral-500'
+            : 'p-1 cursor-grab text-neutral-600 hover:text-neutral-400'
+    }
+
+    const getBadgeClasses = (): string => {
+        const base = 'w-8 h-8 shrink-0 rounded flex items-center justify-center font-mono font-bold text-sm'
+        const variant = isSystemScene
+            ? 'bg-neutral-800/50 border border-neutral-700/50 text-neutral-500'
+            : 'bg-neutral-900 border border-neutral-800 text-white'
+        return `${base} ${variant}`
+    }
+
+    const getNameClasses = (): string => {
+        const base = 'block w-full text-sm font-medium truncate transition-colors'
+        const variant = isSystemScene
+            ? 'text-neutral-500 italic cursor-default'
+            : 'text-white cursor-text hover:text-amber-400'
+        return `${base} ${variant}`
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleBlur()
+        } else if (e.key === 'Escape') {
+            setTempName(scene.name || '')
+            setIsEditing(false)
+        }
+    }
+
+    const handleNameClick = () => {
+        if (!isSystemScene) {
+            setTempName(scene.name || '')
+            setIsEditing(true)
+        }
+    }
 
     const {
         attributes,
@@ -278,15 +330,11 @@ function SortableScene({ scene, onUpdate, onRemove, isOverlay }: { scene: SceneI
         }
     }
 
-    const isSystemScene = scene.type === 'preparation' || scene.type === 'intermission'
-
     if (isOverlay) {
         return (
-            <div className={`p-4 rounded-lg shadow-2xl opacity-90 text-white font-medium w-[300px] flex items-center gap-3 ${
-                isSystemScene ? 'bg-neutral-800 border-neutral-600 border' : 'bg-neutral-800 border-neutral-600 border'
-            }`}>
+            <div className="p-4 rounded-lg shadow-2xl opacity-90 text-white font-medium w-[300px] flex items-center gap-3 bg-neutral-800 border-neutral-600 border">
                 <div className="w-8 h-8 shrink-0 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center text-white font-mono font-bold text-sm">
-                    {scene.scene_number === 0 ? 'P' : (scene.type === 'intermission' ? 'P' : scene.scene_number)}
+                    {getSceneDisplayNumber()}
                 </div>
                 <span>{scene.name}</span>
             </div>
@@ -294,37 +342,15 @@ function SortableScene({ scene, onUpdate, onRemove, isOverlay }: { scene: SceneI
     }
 
     return (
-        <div
-            ref={setNodeRef}
-            style={style}
-            className={`group flex items-center gap-3 p-3 rounded-lg border transition-all shadow-sm ${
-                isSystemScene 
-                ? 'bg-neutral-900/40 border-neutral-800 border-dashed hover:border-neutral-700' 
-                : 'bg-neutral-950/80 border-neutral-800 hover:border-neutral-700'
-            }`}
-        >
-            <div 
-                {...attributes} 
-                {...listeners} 
-                className={`p-1 ${isSystemScene ? 'cursor-grab text-neutral-600 hover:text-neutral-500' : 'cursor-grab text-neutral-600 hover:text-neutral-400'}`}
-            >
-                {scene.type === 'intermission' ? (
-                     <GripVertical className="w-4 h-4 opacity-50" />
-                ) : (
-                    <GripVertical className="w-4 h-4" />
-                )}
+        <div ref={setNodeRef} style={style} className={getContainerClasses()}>
+            <div {...attributes} {...listeners} className={getDragHandleClasses()}>
+                <GripVertical className={`w-4 h-4 ${scene.type === 'intermission' ? 'opacity-50' : ''}`} />
             </div>
 
-            {/* Scene Number Badge */}
-            <div className={`w-8 h-8 shrink-0 rounded flex items-center justify-center font-mono font-bold text-sm ${
-                isSystemScene
-                ? 'bg-neutral-800/50 border border-neutral-700/50 text-neutral-500' 
-                : 'bg-neutral-900 border border-neutral-800 text-white'
-            }`}>
-                {scene.scene_number === 0 ? 'P' : (scene.type === 'intermission' ? 'P' : scene.scene_number)}
+            <div className={getBadgeClasses()}>
+                {getSceneDisplayNumber()}
             </div>
 
-            {/* Name Input/Text */}
             <div className="flex-1 min-w-0">
                 {isEditing ? (
                     <input
@@ -332,37 +358,29 @@ function SortableScene({ scene, onUpdate, onRemove, isOverlay }: { scene: SceneI
                         value={tempName}
                         onChange={(e) => setTempName(e.target.value)}
                         onBlur={handleBlur}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleBlur()
-                            if (e.key === 'Escape') {
-                                setTempName(scene.name || '')
-                                setIsEditing(false)
-                            }
-                        }}
+                        onKeyDown={handleKeyDown}
                         className="w-full bg-neutral-900 border border-neutral-700 rounded px-2 py-0.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-amber-500/50"
                         autoFocus
                         disabled={isSystemScene}
                     />
                 ) : (
                     <span
-                        onClick={() => {
-                            if (!isSystemScene) {
-                                setTempName(scene.name || '')
-                                setIsEditing(true)
+                        onClick={handleNameClick}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleNameClick()
                             }
                         }}
-                        className={`block w-full text-sm font-medium truncate transition-colors ${
-                            isSystemScene 
-                            ? 'text-neutral-500 italic cursor-default' 
-                            : 'text-white cursor-text hover:text-amber-400'
-                        }`}
+                        role="button"
+                        tabIndex={0}
+                        className={getNameClasses()}
                     >
                         {scene.name || 'Bez nazwy'}
                     </span>
                 )}
             </div>
 
-            {/* Actions Menu */}
             {!isSystemScene ? (
                 <div onClick={e => e.stopPropagation()} className="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                     <DropdownAction
@@ -396,4 +414,3 @@ function SortableScene({ scene, onUpdate, onRemove, isOverlay }: { scene: SceneI
         </div>
     )
 }
-

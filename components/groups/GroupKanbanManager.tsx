@@ -5,7 +5,7 @@ import { KanbanBoard, KanbanColumn } from '@/components/ui/KanbanBoard'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { notify } from '@/utils/notify'
-import { Folder, Trash2, Edit2, MoreVertical, X, Check, GripVertical, Save, Plus } from 'lucide-react'
+import { Folder, Trash2, GripVertical, Plus } from 'lucide-react'
 import { Database } from '@/types/supabase'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -17,8 +17,8 @@ import { EditGroupIconDialog } from './EditGroupIconDialog'
 type Group = Pick<Database['public']['Tables']['groups']['Row'], 'id' | 'name' | 'icon' | 'location_id'>
 
 type Props = {
-    initialGroups: Group[]
-    locations: { id: string; name: string }[]
+    readonly initialGroups: Group[]
+    readonly locations: readonly { readonly id: string; readonly name: string }[]
 }
 
 // Reuse similar card style from SceneKanbanBoard for persistent groups
@@ -29,11 +29,11 @@ const GroupKanbanCard = ({
     onEdit,
     onUpdate
 }: {
-    group: Group,
-    isOverlay?: boolean,
-    onDelete: (id: string) => void,
-    onEdit: (group: Group) => void,
-    onUpdate: (id: string, updates: Partial<Group>) => void
+    readonly group: Group,
+    readonly isOverlay?: boolean,
+    readonly onDelete: (id: string) => void,
+    readonly onEdit: (group: Group) => void,
+    readonly onUpdate: (id: string, updates: Partial<Group>) => void
 }) => {
     const [isEditing, setIsEditing] = useState(false)
     const [tempName, setTempName] = useState(group.name || '')
@@ -120,6 +120,15 @@ const GroupKanbanCard = ({
                             setTempName(group.name || '')
                             setIsEditing(true)
                         }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                setTempName(group.name || '')
+                                setIsEditing(true)
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
                         className="block w-full text-sm text-white font-medium truncate cursor-text hover:text-amber-400 transition-colors"
                     >
                         {group.name}
@@ -150,7 +159,7 @@ export function GroupKanbanManager({ initialGroups, locations: initialLocations 
     const [locations, setLocations] = useState(initialLocations)
     const [editGroup, setEditGroup] = useState<Group | null>(null)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-    const [hasPendingChanges, setHasPendingChanges] = useState(false)
+    const [, setHasPendingChanges] = useState(false)
     const [editingColumnId, setEditingColumnId] = useState<string | null>(null)
     const [tempColumnName, setTempColumnName] = useState('')
 
@@ -458,6 +467,15 @@ export function GroupKanbanManager({ initialGroups, locations: initialLocations 
                                 setTempColumnName(col.title || '')
                                 setEditingColumnId(String(col.id))
                             }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    setTempColumnName(col.title || '')
+                                    setEditingColumnId(String(col.id))
+                                }
+                            }}
+                            role="button"
+                            tabIndex={0}
                             className="font-medium text-neutral-300 text-sm truncate cursor-pointer hover:text-white transition-colors"
                             title="Kliknij aby edytować nazwę"
                         >

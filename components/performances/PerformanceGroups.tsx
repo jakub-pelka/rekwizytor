@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { GroupCard } from '@/components/groups/GroupCard'
 import { Button } from '@/components/ui/Button'
-import { Plus } from 'lucide-react'
+import { Plus, Link2 } from 'lucide-react'
 import { notify } from '@/utils/notify'
 import { GroupDetailsDialog } from '@/components/groups/GroupDetailsDialog'
 import { EditGroupDialog } from '@/components/groups/EditGroupDialog'
@@ -13,17 +13,16 @@ import { Database } from '@/types/supabase'
 import { DropdownAction } from '@/components/ui/DropdownAction'
 import { Modal } from '@/components/ui/Modal'
 import { SearchableSelect } from '@/components/ui/SearchableSelect'
-import { Link2 } from 'lucide-react'
 
 type Group = Database['public']['Tables']['groups']['Row'] & {
     locations: { name: string } | null
 }
 
 interface Props {
-    performanceId: string
-    performanceTitle: string
-    groups: Group[]
-    performanceColor?: string | null
+    readonly performanceId: string
+    readonly performanceTitle: string
+    readonly groups: Group[]
+    readonly performanceColor?: string | null
 }
 
 export function PerformanceGroups({ performanceId, performanceTitle, groups, performanceColor }: Props) {
@@ -51,9 +50,9 @@ export function PerformanceGroups({ performanceId, performanceTitle, groups, per
                     hasBaseGroup = true
                 }
 
-                const match = g.name.match(regex)
+                const match = regex.exec(g.name)
                 if (match) {
-                    const num = parseInt(match[1])
+                    const num = Number.parseInt(match[1])
                     if (num > maxNum) maxNum = num
                 }
             })
@@ -187,13 +186,13 @@ export function PerformanceGroups({ performanceId, performanceTitle, groups, per
                         {
                             label: 'Utwórz nową grupę',
                             icon: <Plus className="w-4 h-4" />,
-                            onClick: handleAddGroup,
+                            onClick: () => void handleAddGroup(),
                             isLoading: isLoading && !isLinkModalOpen
                         },
                         {
                             label: 'Dodaj istniejącą grupę',
                             icon: <Link2 className="w-4 h-4" />,
-                            onClick: openLinkModal,
+                            onClick: () => void openLinkModal(),
                             isLoading: isLoading && isLinkModalOpen
                         }
                     ]}

@@ -19,7 +19,7 @@ export function useGlobalSearch() {
     return context
 }
 
-export function GlobalSearchProvider({ children }: { children: React.ReactNode }) {
+export function GlobalSearchProvider({ children }: { readonly children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false)
     const [context, setContext] = useState<SearchContext>(undefined)
 
@@ -49,8 +49,8 @@ export function GlobalSearchProvider({ children }: { children: React.ReactNode }
             }
         }
 
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
+        globalThis.addEventListener('keydown', handleKeyDown)
+        return () => globalThis.removeEventListener('keydown', handleKeyDown)
     }, [isOpen, openSearch, closeSearch])
 
     return (

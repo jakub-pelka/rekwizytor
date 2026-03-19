@@ -50,7 +50,7 @@ export async function analyzePropsImage(imageBase64: string) {
         }
 
         // Extract JSON array
-        const jsonMatch = responseText.match(/\[[\s\S]*\]/)
+        const jsonMatch = /\[[\s\S]*\]/.exec(responseText)
         if (!jsonMatch) {
             throw new Error('Invalid AI response format')
         }

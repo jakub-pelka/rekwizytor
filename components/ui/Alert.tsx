@@ -2,13 +2,13 @@ import React from 'react'
 import { cn } from '@/lib/utils'
 
 interface AlertProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 interface AlertDescriptionProps {
-    children: React.ReactNode
-    className?: string
+    readonly children: React.ReactNode
+    readonly className?: string
 }
 
 export function Alert({ children, className }: AlertProps) {

@@ -8,13 +8,12 @@ import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button-variants'
 
 type Props = {
-    params: Promise<{ id: string }>
+    readonly params: Promise<{ readonly id: string }>
 }
 
 export default async function PerformanceTasksPage({ params }: Props) {
     const { id } = await params
     const supabase = await createClient()
-    const t = await getTranslations('ProductionDetails')
 
     // Fetch performance and scenes
     const [performanceResult, scenesResult] = await Promise.all([

@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
-import { MapPin, ZoomIn, ZoomOut, Save, Sparkles, Loader2, Trash2 } from 'lucide-react'
+import { Save, Sparkles, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
@@ -11,14 +10,13 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { analyzeFloorPlan } from '@/app/actions/mapping-ai'
 import { deleteMap } from '@/app/actions/delete-map'
-import { SvgMapViewer } from './SvgMapViewer'
 import { MapUploader } from './MapUploader'
 import { SvgMapEditor } from './SvgMapEditor'
 
 interface MapEditorProps {
-    locationId: string
-    initialMapUrl: string | null
-    initialPins: any[]
+    readonly locationId: string
+    readonly initialMapUrl: string | null
+    readonly initialPins: any[]
 }
 
 export function MapEditor({ locationId, initialMapUrl, initialPins }: MapEditorProps) {
@@ -39,7 +37,8 @@ export function MapEditor({ locationId, initialMapUrl, initialPins }: MapEditorP
             } else {
                 notify.error(result.error || t('analysisError'))
             }
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to analyze location plan:', error)
             notify.error(t('genericError'))
         } finally {
             setIsAnalyzing(false)
@@ -57,7 +56,8 @@ export function MapEditor({ locationId, initialMapUrl, initialPins }: MapEditorP
             } else {
                 notify.error(result.error || t('deleteError'))
             }
-        } catch (e) {
+        } catch (error) {
+            console.error('Failed to delete map:', error)
             notify.error(t('genericError'))
         }
     }

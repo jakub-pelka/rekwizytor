@@ -1,5 +1,4 @@
 import { createClient } from '@/utils/supabase/server'
-import { IntentWeights } from './intent-classifier-rules'
 
 /**
  * Intent Classification Logging Service

@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { LayoutGrid, Layers, CalendarCheck, StickyNote } from 'lucide-react'
 
 interface InventoryStatsProps {
-    groupsCount: number
-    performancesCount: number
-    notesCount: number
-    upcomingThisWeekCount: number
-    newGroupsCount: number
-    newPerformancesCount: number
-    newNotesCount: number
+    readonly groupsCount: number
+    readonly performancesCount: number
+    readonly notesCount: number
+    readonly upcomingThisWeekCount: number
+    readonly newGroupsCount: number
+    readonly newPerformancesCount: number
+    readonly newNotesCount: number
 }
 
 export function InventoryStats({

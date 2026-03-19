@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Database } from '@/types/supabase'
 import { LayoutGrid, List, Box } from 'lucide-react'
-import NextImage from 'next/image'
 import { useTranslations } from 'next-intl'
 
 type PerformanceProp = Database['public']['Tables']['performance_props']['Row']

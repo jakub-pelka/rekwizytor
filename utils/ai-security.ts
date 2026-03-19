@@ -80,7 +80,7 @@ export function sanitizeAIOutput(text: string): string {
 
 export const SmartSearchResultSchema = z.object({
     results: z.array(z.object({
-        id: z.string().uuid(),
+        id: z.string().uuid({ message: "Invalid UUID format" }),
         name: z.string().max(200),
         explanation: z.string().max(500),
         matchType: z.enum(['exact', 'close', 'alternative'])

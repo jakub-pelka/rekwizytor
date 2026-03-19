@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Folder, Search, X } from 'lucide-react'
+import { Folder, Search } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { ICONS } from '@/utils/icon-map'
 import { KEYWORD_MAPPINGS } from '@/utils/icon-matcher'
@@ -10,16 +10,16 @@ import { createClient } from '@/utils/supabase/client'
 import { Database } from '@/types/supabase'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
-import { DEFAULT_GROUP_COLOR, COLORS } from '@/utils/constants/colors'
+import { DEFAULT_GROUP_COLOR } from '@/utils/constants/colors'
 import { Textarea } from '@/components/ui/Textarea'
 
 type Group = Pick<Database['public']['Tables']['groups']['Row'], 'id' | 'name' | 'icon' | 'location_id' | 'description' | 'performance_id' | 'color'>
 
 type Props = {
-    group: Group | null
-    isOpen: boolean
-    onClose: () => void
-    parentId?: string | null
+    readonly group: Group | null
+    readonly isOpen: boolean
+    readonly onClose: () => void
+    readonly parentId?: string | null
 }
 
 const getSuggestedIcons = (inputName: string): typeof ICONS => {
@@ -169,10 +169,6 @@ export function EditGroupDialog({ group, isOpen, onClose }: Props) {
             setIsSaving(false)
         }
     }
-
-    const suggestedIcons = getSuggestedIcons(name)
-
-    const SelectedIconComp = ICONS.find(i => i.name === selectedIcon)?.icon || Folder
 
     // Custom Width Modal? The Modal component might restrict width. 
     // I can try to pass className/maxWidth to Modal if it accepts it.
@@ -326,7 +322,7 @@ export function EditGroupDialog({ group, isOpen, onClose }: Props) {
     )
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title }: { readonly title: string }) {
     return (
         <div className="flex items-center gap-2 pb-2 border-b border-neutral-800 mb-2">
             <h3 className="text-sm font-bold text-neutral-300 uppercase tracking-wider">{title}</h3>
@@ -334,6 +330,6 @@ function SectionHeader({ title }: { title: string }) {
     )
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+function Label({ children }: { readonly children: React.ReactNode }) {
     return <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider block">{children}</label>
 }

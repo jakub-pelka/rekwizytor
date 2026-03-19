@@ -13,10 +13,10 @@ interface Group {
 }
 
 interface SelectGroupDialogProps {
-    locationId: string
-    isOpen: boolean
-    onClose: () => void
-    onSelect: (groupId: string, groupName: string) => void
+    readonly locationId: string
+    readonly isOpen: boolean
+    readonly onClose: () => void
+    readonly onSelect: (groupId: string, groupName: string) => void
 }
 
 export function SelectGroupDialog({ locationId, isOpen, onClose, onSelect }: SelectGroupDialogProps) {
@@ -74,16 +74,22 @@ export function SelectGroupDialog({ locationId, isOpen, onClose, onSelect }: Sel
                 </div>
 
                 <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
-                    {loading ? (
-                        <div className="flex justify-center py-8">
-                            <Loader2 className="w-6 h-6 animate-spin text-burgundy-main" />
-                        </div>
-                    ) : filteredGroups.length === 0 ? (
-                        <div className="text-center py-8 text-neutral-500 text-sm">
-                            Brak grup pasujących do wyszukiwania.
-                        </div>
-                    ) : (
-                        filteredGroups.map(group => (
+                    {(() => {
+                        if (loading) {
+                            return (
+                                <div className="flex justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-burgundy-main" />
+                                </div>
+                            )
+                        }
+                        if (filteredGroups.length === 0) {
+                            return (
+                                <div className="text-center py-8 text-neutral-500 text-sm">
+                                    Brak grup pasujących do wyszukiwania.
+                                </div>
+                            )
+                        }
+                        return filteredGroups.map(group => (
                             <button
                                 key={group.id}
                                 onClick={() => onSelect(group.id, group.name)}
@@ -101,7 +107,7 @@ export function SelectGroupDialog({ locationId, isOpen, onClose, onSelect }: Sel
                                 </span>
                             </button>
                         ))
-                    )}
+                    })()}
                 </div>
             </div>
         </Modal>

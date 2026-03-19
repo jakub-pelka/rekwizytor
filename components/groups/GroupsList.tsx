@@ -5,8 +5,8 @@ import { DEFAULT_GROUP_COLOR } from '@/utils/constants/colors'
 import { GroupCard } from './GroupCard'
 import { GroupListItem } from './GroupListItem'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { ChevronDown, ChevronRight, MapPin, Warehouse, Briefcase, Home, Package, Building } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { ChevronDown, ChevronRight, MapPin, Warehouse, Briefcase, Home, Package } from 'lucide-react'
 import { FilterBar } from '@/components/ui/FilterBar'
 import { MorphingSearchBar } from '@/components/search/MorphingSearchBar'
 import { Button } from '@/components/ui/Button'
@@ -57,7 +57,7 @@ export function GroupsList({ groups, currentParentId }: GroupsListProps) {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
                 const lastUpdate = sessionStorage.getItem('groups_updated')
-                if (lastUpdate && parseInt(lastUpdate) > pageLoadTime) {
+                if (lastUpdate && Number.parseInt(lastUpdate) > pageLoadTime) {
                     console.log('Groups updated signal detected, refreshing...')
                     sessionStorage.removeItem('groups_updated')
                     router.refresh()
@@ -69,7 +69,7 @@ export function GroupsList({ groups, currentParentId }: GroupsListProps) {
 
         // Also check immediately in case we navigated back
         const lastUpdate = sessionStorage.getItem('groups_updated')
-        if (lastUpdate && parseInt(lastUpdate) > pageLoadTime - 5000) {
+        if (lastUpdate && Number.parseInt(lastUpdate) > pageLoadTime - 5000) {
             sessionStorage.removeItem('groups_updated')
             router.refresh()
         }
@@ -188,6 +188,27 @@ export function GroupsList({ groups, currentParentId }: GroupsListProps) {
         }
     }, [jumpToLocation])
 
+    // Clear activeLocation on manual scroll
+    useEffect(() => {
+        let isScrollingTimeout: NodeJS.Timeout
+
+        const handleScroll = () => {
+            // Only clear if it was set (to avoid unnecessary re-renders)
+            if (activeLocation) {
+                // We clear it immediately on interaction
+                setActiveLocation(undefined)
+            }
+        }
+
+        globalThis.addEventListener('wheel', handleScroll)
+        globalThis.addEventListener('touchmove', handleScroll)
+
+        return () => {
+            globalThis.removeEventListener('wheel', handleScroll)
+            globalThis.removeEventListener('touchmove', handleScroll)
+        }
+    }, [activeLocation])
+
     if (currentLevelGroups.length === 0) {
         return (
             <div className="text-center py-12">
@@ -211,30 +232,9 @@ export function GroupsList({ groups, currentParentId }: GroupsListProps) {
         count: groupedByLocation[loc].length
     }))
 
-    // Clear activeLocation on manual scroll
-    useEffect(() => {
-        let isScrollingTimeout: NodeJS.Timeout
-
-        const handleScroll = () => {
-            // Only clear if it was set (to avoid unnecessary re-renders)
-            if (activeLocation) {
-                // We clear it immediately on interaction
-                setActiveLocation(undefined)
-            }
-        }
-
-        window.addEventListener('wheel', handleScroll)
-        window.addEventListener('touchmove', handleScroll)
-
-        return () => {
-            window.removeEventListener('wheel', handleScroll)
-            window.removeEventListener('touchmove', handleScroll)
-        }
-    }, [activeLocation])
-
     const handleJumpToLocation = (locationName: string) => {
         setActiveLocation(locationName)
-        const element = document.getElementById(`location-${locationName.replace(/\s+/g, '-')}`)
+        const element = document.getElementById(`location-${locationName.replaceAll(/\s+/g, '-')}`)
         if (element) {
             // Use block: 'start' and inline: 'nearest' for better positioning
             element.scrollIntoView({ behavior: 'smooth', block: 'start' })

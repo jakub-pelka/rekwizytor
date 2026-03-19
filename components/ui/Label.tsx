@@ -6,7 +6,7 @@ interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
     children: React.ReactNode
 }
 
-export function Label({ className, children, ...props }: LabelProps) {
+export function Label({ className, children, ...props }: Readonly<LabelProps>) {
     return (
         <label
             className={cn(

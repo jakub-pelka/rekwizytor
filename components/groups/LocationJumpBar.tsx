@@ -8,9 +8,9 @@ interface LocationItem {
 }
 
 interface LocationJumpBarProps {
-    locations: LocationItem[]
-    activeLocation?: string
-    onLocationClick: (locationName: string) => void
+    readonly locations: LocationItem[]
+    readonly activeLocation?: string
+    readonly onLocationClick: (locationName: string) => void
 }
 
 export function LocationJumpBar({ locations, activeLocation, onLocationClick }: LocationJumpBarProps) {

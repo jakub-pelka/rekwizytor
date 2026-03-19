@@ -6,7 +6,6 @@ import { Settings } from 'lucide-react'
 
 export default async function GroupsManagePage() {
     const supabase = await createClient()
-    const t = await getTranslations('Groups.Manage')
 
     const { data: groups } = await supabase
         .from('groups')

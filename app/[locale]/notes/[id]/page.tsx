@@ -279,7 +279,7 @@ export default function NoteDetailPage() {
                                     items={[
                                         {
                                             label: t('editNote'),
-                                            onClick: toggleEditMode
+                                            onClick: () => void toggleEditMode()
                                         },
                                         {
                                             label: t('manageScenes'),

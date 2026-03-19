@@ -14,21 +14,19 @@ import {
     Pause,
     RotateCcw,
     User,
-    AlertTriangle,
-    ArrowRight,
-    Search
+    AlertTriangle
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Database } from '@/types/supabase'
 
 type Scene = Database['public']['Tables']['scenes']['Row']
 type Task = Database['public']['Tables']['scene_tasks']['Row']
 
 type Props = {
-    performanceId: string
-    initialScenes: Scene[]
-    initialTasks: Task[]
-    profiles?: { id: string; full_name: string | null }[]
+    readonly performanceId: string
+    readonly initialScenes: Scene[]
+    readonly initialTasks: Task[]
+    readonly profiles?: readonly { readonly id: string; readonly full_name: string | null }[]
 }
 
 function SimpleLiveTaskItem({
@@ -39,12 +37,12 @@ function SimpleLiveTaskItem({
     safeVibrate,
     t
 }: {
-    task: Task
-    profiles: Props['profiles']
-    handleAssign: (taskId: string, userId: string) => void
-    toggleCompleted: (id: string, currentState: boolean | null) => void
-    safeVibrate: () => void
-    t: any
+    readonly task: Task
+    readonly profiles: Props['profiles']
+    readonly handleAssign: (taskId: string, userId: string) => void
+    readonly toggleCompleted: (id: string, currentState: boolean | null) => void
+    readonly safeVibrate: () => void
+    readonly t: any
 }) {
     const profile = profiles?.find(p => p.id === task.assigned_to)
 
@@ -135,15 +133,15 @@ function SceneSidebar({
     router,
     t
 }: {
-    scenes: Scene[]
-    tasks: Task[]
-    activeSceneId: string
-    setActiveSceneId: (id: string) => void
-    isSidebarOpen: boolean
-    setIsSidebarOpen: (open: boolean) => void
-    resetAllTasks: () => void
-    router: any
-    t: any
+    readonly scenes: Scene[]
+    readonly tasks: Task[]
+    readonly activeSceneId: string
+    readonly setActiveSceneId: (id: string) => void
+    readonly isSidebarOpen: boolean
+    readonly setIsSidebarOpen: (open: boolean) => void
+    readonly resetAllTasks: () => void
+    readonly router: any
+    readonly t: any
 }) {
     return (
         <div className={clsx(
@@ -262,15 +260,15 @@ function LiveHeader({
     setIsSidebarOpen,
     t
 }: {
-    currentScene?: Scene
-    isTimerRunning: boolean
-    elapsedTime: number
-    formatDuration: (ms: number) => string
-    startTimer: () => void
-    pauseTimer: () => void
-    resetTimer: () => void
-    setIsSidebarOpen: (open: boolean) => void
-    t: any
+    readonly currentScene?: Scene
+    readonly isTimerRunning: boolean
+    readonly elapsedTime: number
+    readonly formatDuration: (ms: number) => string
+    readonly startTimer: () => void
+    readonly pauseTimer: () => void
+    readonly resetTimer: () => void
+    readonly setIsSidebarOpen: (open: boolean) => void
+    readonly t: any
 }) {
     return (
         <div className="h-20 border-b border-neutral-800 flex items-center justify-between px-6 bg-[#0a0a0a] shrink-0 z-30 sticky top-0">
@@ -340,7 +338,7 @@ export function SimpleLiveView({
     const [supabase] = useState(() => createClient())
 
     // State
-    const [scenes, setScenes] = useState<Scene[]>(initialScenes)
+    const [scenes] = useState<Scene[]>(initialScenes)
     const [tasks, setTasks] = useState<Task[]>(initialTasks)
     const [isSidebarOpen, setIsSidebarOpen] = useState(false)
     const [connectionError, setConnectionError] = useState<string | null>(null)
@@ -493,7 +491,7 @@ export function SimpleLiveView({
 
         if (error) {
             console.error('Error resetting tasks:', error)
-            window.location.reload()
+            globalThis.location.reload()
         }
     }
 
@@ -514,7 +512,9 @@ export function SimpleLiveView({
             if (typeof navigator !== 'undefined' && navigator.vibrate) {
                 navigator.vibrate(50)
             }
-        } catch (e) { }
+        } catch (error) {
+            console.error('Vibration API error:', error)
+        }
     }
 
     return (
@@ -538,6 +538,14 @@ export function SimpleLiveView({
                 <div
                     className="fixed inset-0 bg-black/50 z-40 md:hidden"
                     onClick={() => setIsSidebarOpen(false)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') {
+                            setIsSidebarOpen(false)
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Close sidebar"
                 />
             )}
 

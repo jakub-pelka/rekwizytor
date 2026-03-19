@@ -2,16 +2,16 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Save, X, Move, Trash2, Maximize2, MousePointer, PenTool, Square, Plus, X as XIcon, Scaling, AlignCenterHorizontal, AlignCenterVertical, Undo, Redo } from 'lucide-react'
+import { Save, X, Trash2, MousePointer, PenTool, Square, Plus, Scaling, AlignCenterVertical, Undo, Redo } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 
 interface SvgMapEditorProps {
-    locationId: string
-    initialSvgContent: string
-    onClose: () => void
+    readonly locationId: string
+    readonly initialSvgContent: string
+    readonly onClose: () => void
 }
 
 // Recursive interface
@@ -37,15 +37,15 @@ const RenderSvgElement = ({
     onContextMenu,
     onWallClick
 }: {
-    el: SvgElement,
-    selectedId: string | null,
-    hoveredId: string | null,
-    parentGroupId?: string,
-    onSelect: (e: React.MouseEvent, id: string) => void,
-    onHover: (id: string | null) => void,
-    onMouseDown: (e: React.MouseEvent, id: string) => void,
-    onContextMenu: (e: React.MouseEvent, id: string) => void,
-    onWallClick?: (e: React.MouseEvent, el: SvgElement) => void
+    readonly el: SvgElement,
+    readonly selectedId: string | null,
+    readonly hoveredId: string | null,
+    readonly parentGroupId?: string,
+    readonly onSelect: (e: React.MouseEvent, id: string) => void,
+    readonly onHover: (id: string | null) => void,
+    readonly onMouseDown: (e: React.MouseEvent, id: string) => void,
+    readonly onContextMenu: (e: React.MouseEvent, id: string) => void,
+    readonly onWallClick?: (e: React.MouseEvent, el: SvgElement) => void
 }) => {
     const TagName = el.type as any
     const reactProps: Record<string, string> = {}
@@ -62,7 +62,6 @@ const RenderSvgElement = ({
 
     const effectiveSelectionId = parentGroupId || el.id
     const isSelected = selectedId === effectiveSelectionId
-    const isHovered = hoveredId === effectiveSelectionId
 
     // Group Logic
     if (el.children && el.children.length > 0) {
@@ -113,7 +112,11 @@ const RenderSvgElement = ({
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{
-                cursor: isWall ? 'crosshair' : (isSelected ? 'move' : 'pointer'),
+                cursor: (() => {
+                    if (isWall) return 'crosshair'
+                    if (isSelected) return 'move'
+                    return 'pointer'
+                })(),
             }}
             stroke={isSelected ? 'blue' : (reactProps.stroke || '#000')}
             strokeWidth={isSelected ? '3' : (reactProps.strokeWidth || '1')}
@@ -186,7 +189,6 @@ export function SvgMapEditor({ locationId, initialSvgContent, onClose }: SvgMapE
     const svgRef = useRef<SVGSVGElement>(null)
     const [isSaving, setIsSaving] = useState(false)
     const router = useRouter()
-    const supabase = createClient()
     const t = useTranslations('Notifications')
 
     // History Management
@@ -230,29 +232,6 @@ export function SvgMapEditor({ locationId, initialSvgContent, onClose }: SvgMapE
     }
 
     // Deletion Logic
-    const handleDeleteKey = useCallback(() => {
-        if (mode === 'draw_wall') {
-            setDrawingPoints(prev => {
-                if (prev.length > 0) return prev.slice(0, -1)
-                return prev
-            })
-        } else if (selectedElementId) {
-            setElements(prev => {
-                const newEl = deleteFromTree(prev, selectedElementId)
-                // Side effect: push to history?
-                // Ideally updateElements handles it, but we are inside setter.
-                // Let's use updateElements wrapper instead of setElements if possible?
-                // No, updateElements expects updater.
-                // But we can just calculate new state and call updateElements?
-                // Problem: accessing current 'elements' in dependency.
-                return newEl
-            })
-            // We need to sync history.
-            // Let's use the explicit update pattern
-        }
-    }, [mode, selectedElementId])
-
-    // Better implementation of handleDeleteKey that updates history correctly:
     const handleDeleteKeyAction = () => {
         if (mode === 'draw_wall') {
             setDrawingPoints(prev => prev.slice(0, -1))
@@ -283,8 +262,8 @@ export function SvgMapEditor({ locationId, initialSvgContent, onClose }: SvgMapE
                 handleDeleteKeyAction()
             }
         }
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
+        globalThis.addEventListener('keydown', handleKeyDown)
+        return () => globalThis.removeEventListener('keydown', handleKeyDown)
     }, [handleUndo, handleRedo, mode, selectedElementId, resizeDialog, elements, history, historyIndex, pushHistory]) // Added dependencies
 
     // ... (rest of file)
@@ -372,7 +351,7 @@ export function SvgMapEditor({ locationId, initialSvgContent, onClose }: SvgMapE
 
         // Parse path into points
         const d = wallEl.attributes.d
-        const tokens = d.replace(/([a-zA-Z])/g, ' $1 ').trim().split(/\s+/)
+        const tokens = d.replaceAll(/([a-zA-Z])/g, ' $1 ').trim().split(/\s+/)
 
         // Extract all coordinate pairs
         const points: { x: number, y: number, idx: number }[] = []
@@ -1191,7 +1170,6 @@ export function SvgMapEditor({ locationId, initialSvgContent, onClose }: SvgMapE
         setIsSaving(true)
         try {
             const elementsString = reconstructSvg(elements)
-            const newSvgContent = `<svg viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">${elementsString}</svg>`
 
             // Note: map_svg column has been removed from the database
             // SVG content is now managed differently
@@ -1537,7 +1515,18 @@ export function SvgMapEditor({ locationId, initialSvgContent, onClose }: SvgMapE
 
                 {/* Resize Dialog Modal */}
                 {resizeDialog && (
-                    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50" onClick={() => setResizeDialog(null)}>
+                    <div
+                        className="fixed inset-0 z-60 flex items-center justify-center bg-black/50"
+                        onClick={() => setResizeDialog(null)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                                setResizeDialog(null)
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Close dialog"
+                    >
                         <div className="bg-[#1e1e1e] p-6 rounded-lg border border-neutral-700 w-64" onClick={e => e.stopPropagation()}>
                             <h4 className="text-white font-semibold mb-4">Zmień wymiary</h4>
                             <div className="space-y-3">
