@@ -33,6 +33,32 @@ type ScheduledItem = {
     cast: CastType
 }
 
+function getDialogTitle(t: any, editData: Props['editData'], step: number): string {
+    if (editData) return t('titles.reviewSchedule')
+    if (step === 1) return t('titles.selectDate')
+    if (step === 2) return t('titles.selectTime')
+    return t('titles.reviewSchedule')
+}
+
+function getDialogDescription(t: any, editData: Props['editData'], step: number, queueLength: number): string {
+    if (editData) return "Edit the date and time of the performance."
+    if (step === 1) return t('subtitles.selectDate')
+    if (step === 2) return t('subtitles.selectTime')
+    return t('subtitles.reviewSchedule', { count: queueLength })
+}
+
+function getCastLabel(t: any, cast: CastType): string {
+    if (cast === 'first') return t('cast.first')
+    if (cast === 'second') return t('cast.second')
+    return t('cast.other')
+}
+
+function getCastItemLabel(t: any, cast: CastType): string {
+    if (cast === 'first') return t('cast.firstLabel')
+    if (cast === 'second') return t('cast.secondLabel')
+    return t('cast.otherLabel')
+}
+
 export function ScheduleShowDialog({ isOpen, onClose, performanceId, performanceColor, editData }: Props) {
     const [step, setStep] = useState(1)
     const t = useTranslations('ScheduleShow')
@@ -256,18 +282,8 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={
-                editData ? t('titles.reviewSchedule') : // Or "Edit Schedule" but reusing title is fine or can add key
-                    step === 1 ? t('titles.selectDate') :
-                        step === 2 ? t('titles.selectTime') :
-                            t('titles.reviewSchedule')
-            }
-            description={
-                editData ? "Edit the date and time of the performance." :
-                    step === 1 ? t('subtitles.selectDate') :
-                        step === 2 ? t('subtitles.selectTime') :
-                            t('subtitles.reviewSchedule', { count: queue.length })
-            }
+            title={getDialogTitle(t, editData, step)}
+            description={getDialogDescription(t, editData, step, queue.length)}
             maxWidth="xl"
             className="overflow-visible"
         >
@@ -424,7 +440,7 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
                                                     boxShadow: `0 10px 15px -3px ${performanceColor || '#1e3a8a'}20`
                                                 } : undefined}
                                             >
-                                                {cast === 'first' ? t('cast.first') : cast === 'second' ? t('cast.second') : t('cast.other')}
+                                                {getCastLabel(t, cast)}
                                             </button>
                                         ))}
                                     </div>
@@ -457,7 +473,7 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
                                                     </div>
                                                     <div className="mt-1">
                                                         <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border bg-neutral-800 text-neutral-400 border-neutral-700">
-                                                            {item.cast === 'first' ? t('cast.firstLabel') : item.cast === 'second' ? t('cast.secondLabel') : t('cast.otherLabel')}
+                                                            {getCastItemLabel(t, item.cast)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -542,7 +558,11 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
                                 }}
                             >
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                                {editData ? "Update Schedule" : (queue.length > 1 ? t('scheduleShows', { count: queue.length }) : t('confirm'))}
+                                {editData
+                                    ? "Update Schedule"
+                                    : queue.length > 1
+                                        ? t('scheduleShows', { count: queue.length })
+                                        : t('confirm')}
                             </Button>
                         )}
                     </div>

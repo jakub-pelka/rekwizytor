@@ -16,6 +16,25 @@ interface StepperProps {
     readonly color?: string | null
 }
 
+function getStepIndicatorClass(isActive: boolean, isCompleted: boolean, hasColor: boolean): string {
+    if (isActive && !hasColor) return 'bg-white text-black border-white'
+    if (isCompleted && !hasColor) return 'bg-green-500 text-white border-green-500'
+    if (!isActive && !isCompleted) return 'bg-transparent text-neutral-500 border-neutral-700 group-hover:border-neutral-500'
+    return ''
+}
+
+function getStepIndicatorStyle(
+    color: string | null | undefined,
+    isActive: boolean,
+    isCompleted: boolean
+): React.CSSProperties | undefined {
+    if (!color) return undefined
+    if (isActive || isCompleted) {
+        return { backgroundColor: color, borderColor: color, color: 'white' }
+    }
+    return undefined
+}
+
 export function Stepper({ steps, currentStep, onStepClick, className, color }: StepperProps) {
     return (
         <div className={cn("flex flex-col md:flex-row gap-4 md:items-center", className)}>
@@ -44,24 +63,9 @@ export function Stepper({ steps, currentStep, onStepClick, className, color }: S
                         <div
                             className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border transition-colors",
-                                (() => {
-                                    if (isActive && !color) return "bg-white text-black border-white"
-                                    if (isCompleted && !color) return "bg-green-500 text-white border-green-500"
-                                    if (!isActive && !isCompleted) return "bg-transparent text-neutral-500 border-neutral-700 group-hover:border-neutral-500"
-                                    return ""
-                                })()
+                                getStepIndicatorClass(isActive, isCompleted, !!color)
                             )}
-                            style={(() => {
-                                if (!color) return undefined
-                                if (isActive || isCompleted) {
-                                    return {
-                                        backgroundColor: color,
-                                        borderColor: color,
-                                        color: 'white'
-                                    }
-                                }
-                                return undefined
-                            })()}
+                            style={getStepIndicatorStyle(color, isActive, isCompleted)}
                         >
                             {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
                         </div>

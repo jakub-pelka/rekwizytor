@@ -20,6 +20,13 @@ interface FeatureTourProps {
     variant?: 'default' | 'minimal'
 }
 
+function getTooltipTranslateClass(placement: string): string {
+    if (placement === 'top') return '-translate-x-1/2 -translate-y-full'
+    if (placement === 'left') return '-translate-x-full -translate-y-1/2'
+    if (placement === 'right') return '-translate-y-1/2'
+    return '-translate-x-1/2' // default bottom
+}
+
 export function FeatureTour({ steps, isOpen, onClose, onComplete, variant = 'default' }: FeatureTourProps) {
     const [currentStep, setCurrentStep] = useState(0)
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
@@ -199,13 +206,7 @@ export function FeatureTour({ steps, isOpen, onClose, onComplete, variant = 'def
                             initial={{ opacity: 0, scale: 0.9, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             key={currentStep} // Animate when step changes
-                            className={`bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-2xl shadow-xl relative border border-zinc-200 dark:border-zinc-800 ${variant === 'minimal' ? 'w-[280px] p-4' : 'max-w-sm w-[360px] p-6'
-                                } ${(() => {
-                                    if (actualPlacement === 'top') return '-translate-x-1/2 -translate-y-full'
-                                    if (actualPlacement === 'left') return '-translate-x-full -translate-y-1/2'
-                                    if (actualPlacement === 'right') return '-translate-y-1/2'
-                                    return '-translate-x-1/2' // default bottom
-                                })()}`}
+                            className={`bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-2xl shadow-xl relative border border-zinc-200 dark:border-zinc-800 ${variant === 'minimal' ? 'w-[280px] p-4' : 'max-w-sm w-[360px] p-6'} ${getTooltipTranslateClass(actualPlacement)}`}
                         >
                             <button onClick={onClose} className={`absolute text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 ${variant === 'minimal' ? 'top-2 right-2' : 'top-3 right-3'}`}>
                                 <X size={16} />

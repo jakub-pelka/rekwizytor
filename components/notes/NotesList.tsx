@@ -231,12 +231,11 @@ export default function NotesList({ performanceId, initialNotes = [] }: { perfor
                                                 key={note.id}
                                                 initial={{ opacity: 0, scale: 0.9 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                className={`group relative rounded-xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer shadow-lg
-                                                    ${isMaster
+                                                className={`group relative rounded-xl transition-all duration-300 hover:scale-[1.02] flex flex-col justify-between overflow-hidden cursor-pointer shadow-lg ${
+                                                    isMaster
                                                         ? 'bg-amber-950/20 border border-amber-900/30 hover:border-amber-500/50'
                                                         : 'bg-neutral-900/40 border border-neutral-800 hover:border-neutral-600 hover:bg-neutral-900/60'
-                                                    }
-                                                `}
+                                                }`}
                                                 style={isMaster ? {
                                                     boxShadow: perfColor ? `inset 4px 0 0 ${perfColor}` : `inset 4px 0 0 #d97706`
                                                 } : undefined}

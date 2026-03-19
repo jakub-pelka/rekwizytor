@@ -21,35 +21,38 @@ type Props = {
     }[]
 }
 
+
+const OPERATION_BADGE_CLASSES: Record<string, string> = {
+    fast_add: 'bg-yellow-400/10 text-yellow-400 ring-1 ring-inset ring-yellow-400/20',
+    smart_search: 'bg-burgundy-main/10 text-burgundy-light ring-1 ring-inset ring-burgundy-main/20',
+}
+const DEFAULT_BADGE_CLASS = 'bg-pink-400/10 text-pink-400 ring-1 ring-inset ring-pink-400/20'
+
+function getOperationBadgeClass(operationType: string): string {
+    return OPERATION_BADGE_CLASSES[operationType] ?? DEFAULT_BADGE_CLASS
+}
+
 export function StatsDashboard({ logs, allStats, storageStats }: Props) {
     const [activeTab, setActiveTab] = useState<'ai' | 'storage'>('ai')
     const [currency, setCurrency] = useState<'USD' | 'PLN'>('USD')
     const EXCHANGE_RATE = 4.15 // Hardcoded for now, could be fetched
     const t = useTranslations('AIStats')
 
-    const getOperationLabel = (operationType: string): string => {
-        if (operationType === 'fast_add') return t('operations.fastAdd')
-        if (operationType === 'smart_search') return t('operations.smartSearch')
-        if (operationType === 'generate_description') return t('operations.generateDesc')
-        if (operationType === 'create_item') return t('operations.createItem')
-        if (operationType === 'scan_scenes') return t('operations.scanScenes')
-        if (operationType === 'vision_group') return t('operations.visionGroup')
-        if (operationType === 'vision_props') return t('operations.visionProps')
-        if (operationType === 'mapping_ai') return t('operations.mappingAI')
-        if (operationType === 'query_correction') return t('operations.queryCorrection')
-        if (operationType === 'embedding_indexing') return t('operations.embeddingIndexing')
-        return operationType
+    const OPERATION_LABELS: Record<string, string> = {
+        fast_add: t('operations.fastAdd'),
+        smart_search: t('operations.smartSearch'),
+        generate_description: t('operations.generateDesc'),
+        create_item: t('operations.createItem'),
+        scan_scenes: t('operations.scanScenes'),
+        vision_group: t('operations.visionGroup'),
+        vision_props: t('operations.visionProps'),
+        mapping_ai: t('operations.mappingAI'),
+        query_correction: t('operations.queryCorrection'),
+        embedding_indexing: t('operations.embeddingIndexing'),
     }
 
-    const getOperationBadgeClass = (operationType: string): string => {
-        if (operationType === 'fast_add') {
-            return 'bg-yellow-400/10 text-yellow-400 ring-1 ring-inset ring-yellow-400/20'
-        }
-        if (operationType === 'smart_search') {
-            return 'bg-burgundy-main/10 text-burgundy-light ring-1 ring-inset ring-burgundy-main/20'
-        }
-        return 'bg-pink-400/10 text-pink-400 ring-1 ring-inset ring-pink-400/20'
-    }
+    const getOperationLabel = (operationType: string): string =>
+        OPERATION_LABELS[operationType] ?? operationType
 
     // Calculate totals
     const totalInput = allStats.reduce((acc, curr) => acc + (curr.tokens_input || 0), 0)

@@ -15,6 +15,37 @@ type PerformanceRow = Database['public']['Tables']['performances']['Row']
 type ChecklistRow = Database['public']['Tables']['scene_checklists']['Row']
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
 
+type PartialChecklist = {
+  id: string
+  show_date: string
+  performance: {
+    id: string
+    title: string
+    premiere_date: string | null
+    image_url: string | null
+    status: 'active' | 'upcoming' | 'archived'
+  } | null
+}
+
+type PartialChecklistWithColor = {
+  id: string
+  show_date: string
+  performance: {
+    id: string
+    title: string
+    status: 'active' | 'upcoming' | 'archived'
+    color: string | null
+  } | null
+}
+
+type PartialPerformance = {
+  id: string
+  title: string
+  premiere_date: string | null
+  status: 'active' | 'upcoming' | 'archived'
+  color: string | null
+}
+
 interface DashboardPerformance {
   id: string
   title: string
@@ -33,7 +64,7 @@ interface UpcomingPerformance {
   title: string
   date: string
   status: string
-  color?: string | null
+  color?: string
 }
 
 function getDisplayName(user: any, profile: Pick<ProfileRow, 'full_name'> | null): string {
@@ -54,7 +85,7 @@ function extractSettledCount(result: PromiseSettledResult<{ count: number | null
   return result.status === 'fulfilled' ? result.value.count || 0 : 0
 }
 
-async function fetchTodayProgress(supabase: any, nearestChecklist: ChecklistRow | null) {
+async function fetchTodayProgress(supabase: any, nearestChecklist: PartialChecklist | null) {
   if (!nearestChecklist || !isToday(new Date(nearestChecklist.show_date))) {
     return undefined
   }
@@ -67,16 +98,16 @@ async function fetchTodayProgress(supabase: any, nearestChecklist: ChecklistRow 
   if (!items?.length) return undefined
 
   return {
-    completed: items.filter(i => i.is_prepared).length,
+    completed: items.filter((i: { is_prepared: boolean }) => i.is_prepared).length,
     total: items.length
   }
 }
 
 function buildNearestPerformance(
-  nearestChecklist: ChecklistRow | null,
+  nearestChecklist: PartialChecklist | null,
   todayProgress: { completed: number; total: number } | undefined
 ): DashboardPerformance | null {
-  if (!nearestChecklist?.performance || Array.isArray(nearestChecklist.performance)) {
+  if (!nearestChecklist?.performance) {
     return null
   }
 
@@ -92,20 +123,20 @@ function buildNearestPerformance(
 }
 
 function buildUpcomingPerformances(
-  scheduledShows: ChecklistRow[],
-  futurePremieres: PerformanceRow[]
+  scheduledShows: PartialChecklistWithColor[],
+  futurePremieres: PartialPerformance[]
 ): UpcomingPerformance[] {
   const combinedPerformances: UpcomingPerformance[] = [
     ...scheduledShows
       .filter(item => item.performance)
       .map(item => {
-        const perf = item.performance as PerformanceRow
+        const perf = item.performance!
         return {
           id: perf.id,
           title: perf.title,
           date: item.show_date,
           status: perf.status,
-          color: perf.color
+          color: perf.color ?? undefined
         }
       }),
     ...futurePremieres.map(perf => ({
@@ -113,7 +144,7 @@ function buildUpcomingPerformances(
       title: perf.title,
       date: perf.premiere_date!,
       status: perf.status,
-      color: perf.color
+      color: perf.color ?? undefined
     }))
   ]
 
@@ -284,14 +315,13 @@ export default async function Home() {
       .gte('created_at', lastWeekDate),
   ])
 
-  const nearestChecklist = extractSettledData<ChecklistRow>(nearestPerformanceResult)
+  const nearestChecklist = extractSettledData<PartialChecklist>(nearestPerformanceResult)
 
   const todayProgress = await fetchTodayProgress(supabase, nearestChecklist)
   const nearestPerformance = buildNearestPerformance(nearestChecklist, todayProgress)
 
-  const scheduledShows = extractSettledData<ChecklistRow[]>(upcomingChecklistsResult) || []
-  const futurePremieres = extractSettledData<PerformanceRow[]>(upcomingPremieresResult) || []
-
+  const scheduledShows = extractSettledData<PartialChecklistWithColor[]>(upcomingChecklistsResult) || []
+  const futurePremieres = extractSettledData<PartialPerformance[]>(upcomingPremieresResult) || []
   const upcomingPerformances = buildUpcomingPerformances(scheduledShows, futurePremieres)
 
   const groupsCount = extractSettledCount(groupsCountResult)

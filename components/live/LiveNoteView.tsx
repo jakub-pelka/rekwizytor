@@ -16,6 +16,13 @@ interface LiveNoteViewProps {
     activeChecklist: SceneChecklist | null
 }
 
+function getItemTextClass(isChecked: boolean, text: string): string {
+    if (isChecked) return 'line-through text-neutral-500'
+    const trimmed = text.trim()
+    if (trimmed.startsWith('(') || trimmed.startsWith('[')) return 'text-amber-400 italic'
+    return 'text-white'
+}
+
 export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNoteViewProps) {
     const supabase = createClient()
     const router = useRouter()
@@ -226,11 +233,7 @@ export function LiveNoteView({ performanceId, scenes, activeChecklist }: LiveNot
                                 </div>
                                 <span className={clsx(
                                     "text-lg leading-relaxed",
-                                    (() => {
-                                        if (checkedItems[item.id]) return "line-through text-neutral-500"
-                                        if (item.text.trim().startsWith('(') || item.text.trim().startsWith('[')) return "text-amber-400 italic"
-                                        return "text-white"
-                                    })()
+                                    getItemTextClass(checkedItems[item.id], item.text)
                                 )}>
                                     {item.text}
                                 </span>

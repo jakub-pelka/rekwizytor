@@ -4,6 +4,12 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation' // Added
 import { clsx } from 'clsx'
+
+function getStatusBadgeClass(status: string): string {
+    if (status === 'active') return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+    if (status === 'archived') return 'bg-neutral-800 text-neutral-500 border-neutral-700'
+    return 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+}
 import {
     Box,
     Layers,
@@ -441,11 +447,7 @@ export function SearchResultCard({ item, aiMode, onClose }: SearchResultCardProp
                         {item.metadata?.status && (
                             <span className={clsx(
                                 "px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border",
-                                (() => {
-                                    if (item.metadata.status === 'active') return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                    if (item.metadata.status === 'archived') return "bg-neutral-800 text-neutral-500 border-neutral-700"
-                                    return "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                })()
+                                getStatusBadgeClass(item.metadata.status)
                             )}>
                                 {item.metadata.status}
                             </span>

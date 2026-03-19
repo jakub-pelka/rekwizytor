@@ -95,12 +95,17 @@ export function NearestPerformanceCard({ performance }: NearestPerformanceCardPr
 
                 <div className="flex-1 min-w-0 flex flex-col justify-end h-full">
                     <div className="flex items-start justify-between mb-4 md:mb-6">
-                        <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium backdrop-blur-md border ${isPerformanceToday
-                            ? 'bg-red-500/20 text-red-200 border-red-500/30'
-                            : performance.status === 'active'
-                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                : 'bg-white/10 text-white border-white/20'
-                            }`}>
+                        {(() => {
+                            let statusBadgeClass: string
+                            if (isPerformanceToday) {
+                                statusBadgeClass = 'bg-red-500/20 text-red-200 border-red-500/30'
+                            } else if (performance.status === 'active') {
+                                statusBadgeClass = 'bg-green-500/10 text-green-400 border-green-500/20'
+                            } else {
+                                statusBadgeClass = 'bg-white/10 text-white border-white/20'
+                            }
+                            return (
+                        <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium backdrop-blur-md border ${statusBadgeClass}`}>
                             {isPerformanceToday ? (
                                 <>
                                     <Clock className="h-4 w-4" />
@@ -123,6 +128,8 @@ export function NearestPerformanceCard({ performance }: NearestPerformanceCardPr
                                 </>
                             )}
                         </div>
+                            )
+                        })()}
                     </div>
 
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight tracking-tight drop-shadow-lg max-w-full md:max-w-2xl wrap-break-word break-all md:break-normal">
