@@ -219,7 +219,7 @@ export default function LoginPage() {
                     <div className="flex flex-col gap-3">
                         <Button
                             type="submit"
-                            variant="primary"
+                            variant="glassy-primary"
                             isLoading={loading}
                             className="w-full"
                         >
@@ -240,7 +240,7 @@ export default function LoginPage() {
                         <Link href="/" className="block">
                             <Button
                                 type="button"
-                                variant="secondary"
+                                variant="glassy-secondary"
                                 className="w-full"
                             >
                                 <Eye className="h-4 w-4 mr-2" />

@@ -107,19 +107,25 @@ export default function NotesList({ performanceId, initialNotes = [] }: { perfor
 
     // Group notes - memoized to prevent recalculation
     const groupedNotes = useMemo(() => {
-        return filteredNotes.reduce((acc: any, note: any) => {
+        const groups: Record<string, any> = {}
+
+        filteredNotes.forEach((note: any) => {
             const key = note.performance_id || 'general'
-            if (!acc[key]) {
-                acc[key] = {
+
+            if (!groups[key]) {
+                groups[key] = {
                     id: key,
-                    title: note.performances?.title || t('generalNotes'),
-                    color: note.performances?.color,
+                    // Only use t('generalNotes') for notes without performance_id
+                    title: key === 'general' ? t('generalNotes') : (note.performances?.title || t('generalNotes')),
+                    color: note.performances?.color || null,
                     notes: []
                 }
             }
-            acc[key].notes.push(note)
-            return acc
-        }, {})
+
+            groups[key].notes.push(note)
+        })
+
+        return groups
     }, [filteredNotes, t])
 
     // Sort groups: General first, then others - memoized
