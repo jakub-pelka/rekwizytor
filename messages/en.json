@@ -107,6 +107,19 @@
         "readOnlyMode": "Read-Only Mode",
         "readOnlyDescription": "You're browsing the app without logging in. Sign in to manage props and performances.",
         "login": "Sign In",
+        "or": "or",
+        "browseWithoutLogin": "Browse without login",
+        "stats": {
+            "groups": "Total Groups",
+            "performances": "Productions",
+            "notes": "Notes"
+        },
+        "weekStatus": {
+            "zero": "No performances this week. Time to clean up! 🧹",
+            "low": "Light week ahead. Breathe easy! ☕",
+            "medium": "Intensive week! Good luck. 🎭",
+            "high": "Very busy week! Don't forget coffee. ☕🔥"
+        },
         "PendingAlert": {
             "title": "Pending Users",
             "message": "{count, plural, one {One user is waiting for approval.} other {# users are waiting for approval.}}"
