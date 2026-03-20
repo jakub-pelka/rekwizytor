@@ -506,6 +506,8 @@
         "name": "Imię",
         "passwordTooWeak": "Hasło jest za słabe. Musi mieć co najmniej 8 znaków i zawierać wielkie litery, cyfry oraz znaki specjalne.",
         "forgotPassword": "Nie pamiętasz hasła?",
+        "or": "lub",
+        "browseWithoutLogin": "Przeglądaj bez logowania",
         "resetPassword": "Zresetuj Hasło",
         "sendResetLink": "Wyślij Link Resetujący",
         "backToLogin": "Powrót do Logowania",

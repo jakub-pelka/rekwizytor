@@ -4,8 +4,9 @@ import { checkSignupAllowed } from '@/app/actions/auth-check'
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Sparkles } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import LightRays from '@/components/ui/LightRays'
@@ -124,19 +125,19 @@ export default function LoginPage() {
                             <div>
                                 <label
                                     htmlFor="name"
-                                    className="block text-sm font-medium text-neutral-300"
+                                    className="block text-sm font-medium text-neutral-300 mb-1"
                                 >
                                     {t('name')}
                                 </label>
-                                <input
+                                <Input
                                     id="name"
                                     name="name"
                                     type="text"
                                     required
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm px-3 py-2 text-white placeholder-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm"
                                     placeholder="John Doe"
+                                    className="mt-1 border-neutral-800 bg-neutral-900/80 backdrop-blur-sm"
                                 />
                             </div>
                         )}
@@ -144,11 +145,11 @@ export default function LoginPage() {
                         <div>
                             <label
                                 htmlFor="email"
-                                className="block text-sm font-medium text-neutral-300"
+                                className="block text-sm font-medium text-neutral-300 mb-1"
                             >
                                 {t('email')}
                             </label>
-                            <input
+                            <Input
                                 id="email"
                                 name="email"
                                 type="email"
@@ -156,24 +157,24 @@ export default function LoginPage() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="mt-1 block w-full rounded-md border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm px-3 py-2 text-white placeholder-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm"
                                 placeholder="inspector@theater.com"
+                                className="mt-1 border-neutral-800 bg-neutral-900/80 backdrop-blur-sm"
                             />
                         </div>
 
                         <div>
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-neutral-300"
-                            >
-                                {t('password')}
-                            </label>
-                            <div className="flex justify-end">
+                            <div className="flex justify-between items-center mb-1">
+                                <label
+                                    htmlFor="password"
+                                    className="block text-sm font-medium text-neutral-300"
+                                >
+                                    {t('password')}
+                                </label>
                                 <Link href="/forgot-password" className="text-xs text-neutral-400 hover:text-white transition-colors">
                                     {t('forgotPassword')}
                                 </Link>
                             </div>
-                            <input
+                            <Input
                                 id="password"
                                 name="password"
                                 type="password"
@@ -181,7 +182,7 @@ export default function LoginPage() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="mt-1 block w-full rounded-md border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm px-3 py-2 text-white placeholder-neutral-500 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm"
+                                className="mt-1 border-neutral-800 bg-neutral-900/80 backdrop-blur-sm"
                             />
                             {isSignUp && password && (
                                 <div className="mt-2 flex gap-1">
@@ -225,7 +226,27 @@ export default function LoginPage() {
                             {isSignUp ? t('signUp') : t('signIn')}
                         </Button>
 
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-neutral-800"></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-neutral-950 px-2 text-neutral-500">
+                                    {t('or')}
+                                </span>
+                            </div>
+                        </div>
 
+                        <Link href="/" className="block">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                className="w-full"
+                            >
+                                <Eye className="h-4 w-4 mr-2" />
+                                {t('browseWithoutLogin')}
+                            </Button>
+                        </Link>
                     </div>
                 </form>
 

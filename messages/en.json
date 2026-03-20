@@ -491,6 +491,8 @@
         "name": "Name",
         "passwordTooWeak": "Password is too weak. It must be at least 8 characters long and contain uppercase letters, numbers, and special characters.",
         "forgotPassword": "Forgot password?",
+        "or": "or",
+        "browseWithoutLogin": "Browse without login",
         "resetPassword": "Reset Password",
         "sendResetLink": "Send Reset Link",
         "backToLogin": "Back to Login",
