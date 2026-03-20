@@ -110,6 +110,9 @@
             "medium": "Intensywny tydzień! Powodzenia. 🎭",
             "high": "Bardzo gorący tydzień! Nie zapomnij o kawie. ☕🔥"
         },
+        "readOnlyMode": "Tryb Podglądu",
+        "readOnlyDescription": "Przeglądasz aplikację bez logowania. Zaloguj się aby zarządzać rekwizytami i spektaklami.",
+        "login": "Zaloguj się",
         "stats": {
             "groups": "Grup ogółem",
             "performances": "Spektakli",

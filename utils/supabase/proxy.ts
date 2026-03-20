@@ -61,8 +61,19 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         path.startsWith('/forgot-password') ||
         path.startsWith('/update-password')
 
-    if (!user && !isAuthPage) {
-        // no user, potentially respond by redirecting the user to the login page
+    // Public read-only mode - allow access without login except for:
+    // - Admin pages
+    // - Settings pages
+    // - User-specific pages (waiting, rejected)
+    // - Write operations (handled by RLS)
+    const isProtectedPage =
+        path.includes('/admin') ||
+        path.includes('/settings') ||
+        path.includes('/waiting') ||
+        path.includes('/rejected')
+
+    if (!user && !isAuthPage && isProtectedPage) {
+        // Redirect to login only for protected pages
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)

@@ -4,6 +4,7 @@ import { isToday } from 'date-fns'
 
 import { Greeting } from '@/components/dashboard/Greeting'
 import { PendingUsersAlert } from '@/components/dashboard/PendingUsersAlert'
+import { ReadOnlyBanner } from '@/components/dashboard/ReadOnlyBanner'
 import { NearestPerformanceCard } from '@/components/dashboard/NearestPerformanceCard'
 import { UserMentionsList } from '@/components/dashboard/UserMentionsList'
 import { QuickNav } from '@/components/dashboard/QuickNav'
@@ -168,6 +169,7 @@ function buildUpcomingPerformances(
 export default async function Home() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const isReadOnly = !user
 
   let displayName = 'User'
   if (user) {
@@ -337,6 +339,7 @@ export default async function Home() {
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+      {isReadOnly && <ReadOnlyBanner />}
       <PendingUsersAlert />
 
       <Greeting name={displayName} />

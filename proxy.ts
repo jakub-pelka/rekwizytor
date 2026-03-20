@@ -1,11 +1,11 @@
 import { type NextRequest } from 'next/server'
-import { updateSession } from '@/utils/supabase/middleware'
+import { updateSession } from '@/utils/supabase/proxy'
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     // Skip intl middleware for API routes
     if (request.nextUrl.pathname.startsWith('/api')) {
         return await updateSession(request);
@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     // First run the intl middleware to handle locale routing
     const response = intlMiddleware(request);
 
-    // Then run the supabase middleware, passing the response
+    // Then run the supabase proxy, passing the response
     return await updateSession(request, response);
 }
 

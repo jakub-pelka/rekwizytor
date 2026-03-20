@@ -104,6 +104,9 @@
         "noActiveChecklists": "No active checklists",
         "checklistProgress": "{completed} of {total} items",
         "viewLiveView": "Task List",
+        "readOnlyMode": "Read-Only Mode",
+        "readOnlyDescription": "You're browsing the app without logging in. Sign in to manage props and performances.",
+        "login": "Sign In",
         "PendingAlert": {
             "title": "Pending Users",
             "message": "{count, plural, one {One user is waiting for approval.} other {# users are waiting for approval.}}"
