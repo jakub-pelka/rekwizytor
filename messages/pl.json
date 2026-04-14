@@ -113,6 +113,8 @@
         "readOnlyMode": "Tryb Podglądu",
         "readOnlyDescription": "Przeglądasz aplikację bez logowania. Zaloguj się aby zarządzać rekwizytami i spektaklami.",
         "login": "Zaloguj się",
+        "or": "lub",
+        "browseWithoutLogin": "Przeglądaj bez logowania",
         "stats": {
             "groups": "Grup ogółem",
             "performances": "Spektakli",

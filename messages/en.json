@@ -433,7 +433,11 @@
         "totalDuration": "Total Duration (excl. breaks)",
         "resumeShow": "Resume Show",
         "goToActive": "Go to Active Scene",
-        "currentScene": "CURRENT SCENE"
+        "currentScene": "CURRENT SCENE",
+        "resetAll": "Reset All",
+        "exit": "Exit",
+        "confirmResetAll": "Are you sure you want to reset all markings? This will clear the status of all tasks.",
+        "unknownItem": "Unknown item"
     },
     "ChecklistPage": {
         "backToPerformance": "Back to Performance",
