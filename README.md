@@ -8,6 +8,10 @@
 
 Aplikacja do zarządzania rekwizytami teatralnymi z AI-powered search.
 
+## 🌐 Live Demo
+
+**📱 [Otwórz demo aplikacji](https://rekwizytor.vercel.app/en)** - Projekt portfolio, testuj funkcjonalności online!
+
 ## ✨ Features
 
 - 🎨 **Modern UI** - Dark mode, animacje (Framer Motion), responsywny design
