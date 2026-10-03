@@ -165,7 +165,7 @@ export function SearchFilters({ entityType, filters, onChange, className }: Prop
                     onClick={() => onChange({ status: [], sortBy: filters.sortBy })} // Keep sort
                     className="text-xs text-neutral-500 hover:text-white transition-colors ml-auto"
                 >
-                    Clear filters
+                    {t('clearFilters')}
                 </button>
             )}
         </div>

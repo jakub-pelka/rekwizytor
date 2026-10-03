@@ -246,7 +246,7 @@ export function PerformancesList({ performances }: Props) {
                         <Layers className="w-8 h-8 text-neutral-600" />
                     </div>
                     <p className="text-xl font-bold text-neutral-500">{t('noPerformancesFound')}</p>
-                    <p className="text-neutral-600 mt-2">Try adjusting your filters.</p>
+                    <p className="text-neutral-600 mt-2">{t('noPerformancesHint')}</p>
                 </div>
             )}
         </div>
