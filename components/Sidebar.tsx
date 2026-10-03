@@ -3,7 +3,6 @@
 
 import { Link, useRouter } from '@/i18n/routing'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
 import { Theater, Box, Layers, ClipboardList, Settings, LogOut, LogIn, Sparkles, StickyNote, Tag, CheckCircle2, Search } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/utils/supabase/client'
@@ -14,6 +13,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { isFeatureEnabled } from '@/utils/features'
 import { useGlobalSearch } from '@/components/search/GlobalSearchProvider'
+import { useIsGuest } from '@/hooks/useIsGuest'
 
 export function Sidebar() {
     const pathname = usePathname()
@@ -21,12 +21,7 @@ export function Sidebar() {
     const supabase = createClient()
     const t = useTranslations('Navigation')
     const { openSearch } = useGlobalSearch()
-    const [isGuest, setIsGuest] = useState(false)
-
-    useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => setIsGuest(!data.user))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    const isGuest = useIsGuest()
 
     // Remove locale from pathname for comparison (e.g., /pl/performances -> /performances)
     const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}(\/|$)/, '/')

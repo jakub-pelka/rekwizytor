@@ -1,7 +1,6 @@
 'use client'
 
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
-import { useEffect, useState } from 'react'
 import { X, BarChart, Settings, LogOut, LogIn, Tag, Layers, ClipboardList } from 'lucide-react'
 
 import Link from 'next/link'
@@ -9,6 +8,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
+import { useIsGuest } from '@/hooks/useIsGuest'
 
 type Props = {
     isOpen: boolean
@@ -20,12 +20,7 @@ export function MobileMenu({ isOpen, onClose }: Props) {
     const router = useRouter()
     const supabase = createClient()
     const pathname = usePathname() // Import needed! Wait, import is missing.
-    const [isGuest, setIsGuest] = useState(false)
-
-    useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => setIsGuest(!data.user))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    const isGuest = useIsGuest()
 
     const menuItems = [
         { name: t('productions'), href: '/performances', icon: Layers },
