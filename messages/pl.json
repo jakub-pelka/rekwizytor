@@ -35,7 +35,8 @@
     },
     "Common": {
         "save": "Zapisz",
-        "cancel": "Anuluj"
+        "cancel": "Anuluj",
+        "clearFilters": "Wyczyść filtry"
     },
     "Greeting": {
         "morning": [
@@ -87,6 +88,7 @@
         "nearestPerformance": "Najbliższy Spektakl",
         "noUpcomingPerformances": "Brak nadchodzących spektakli",
         "manageProduction": "Przejdź",
+        "addProduction": "Dodaj spektakl",
         "daysLeft": "{count, plural, one {za 1 dzień} few {za # dni} many {za # dni} other {za # dni}}",
         "today": "Dzisiaj!",
         "recentMentions": "Ostatnie Wzmianki",
@@ -134,6 +136,7 @@
         "aiStats": "Statystyki",
         "settings": "Ustawienia",
         "signOut": "Wyloguj się",
+        "signIn": "Zaloguj się",
         "lists": "Listy",
         "notes": "Notatki",
         "search": "Szukaj",
@@ -577,7 +580,8 @@
             "upcoming": "Nadchodzący",
             "archived": "Zarchiwizowany"
         },
-        "noPerformancesFound": "Nie znaleziono spektakli pasujących do kryteriów."
+        "noPerformancesFound": "Nie znaleziono spektakli pasujących do kryteriów.",
+        "noPerformancesHint": "Spróbuj zmienić filtry."
     },
     "ManageScenesForm": {
         "addNewScene": "Dodaj Nową Scenę",
@@ -851,6 +855,7 @@
         "searchPlaceholder": "Szukaj notatek...",
         "loading": "Ładowanie notatek...",
         "noNotes": "Brak notatek.",
+        "noNotesHint": "Utwórz nową notatkę, aby zacząć.",
         "generalNotes": "Notatki Ogólne",
         "master": "Główna",
         "noContent": "Brak treści",

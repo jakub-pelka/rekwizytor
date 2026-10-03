@@ -35,7 +35,8 @@
     },
     "Common": {
         "save": "Save",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "clearFilters": "Clear filters"
     },
     "Greeting": {
         "morning": [
@@ -87,6 +88,7 @@
         "nearestPerformance": "Nearest Performance",
         "noUpcomingPerformances": "No upcoming performances scheduled",
         "manageProduction": "Manage Production",
+        "addProduction": "Add production",
         "daysLeft": "{count, plural, one {in 1 day} other {in # days}}",
         "today": "Today",
         "recentMentions": "Recent Mentions",
@@ -134,6 +136,7 @@
         "aiStats": "AI Stats",
         "settings": "Settings",
         "signOut": "Sign out",
+        "signIn": "Sign in",
         "lists": "Lists",
         "notes": "Notes",
         "groups": "Groups",
@@ -577,7 +580,8 @@
             "upcoming": "Upcoming",
             "archived": "Archived"
         },
-        "noPerformancesFound": "No productions found matching your criteria."
+        "noPerformancesFound": "No productions found matching your criteria.",
+        "noPerformancesHint": "Try adjusting your filters."
     },
     "ManageScenesForm": {
         "addNewScene": "Add New Scene",
@@ -850,6 +854,7 @@
         "searchPlaceholder": "Search notes...",
         "loading": "Loading notes...",
         "noNotes": "No notes yet.",
+        "noNotesHint": "Create a new note to get started.",
         "generalNotes": "General Notes",
         "master": "Master",
         "noContent": "No content",

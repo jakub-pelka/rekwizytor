@@ -1,7 +1,8 @@
 'use client'
 
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
-import { X, BarChart, Settings, LogOut, Tag, Layers, ClipboardList } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { X, BarChart, Settings, LogOut, LogIn, Tag, Layers, ClipboardList } from 'lucide-react'
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -19,6 +20,12 @@ export function MobileMenu({ isOpen, onClose }: Props) {
     const router = useRouter()
     const supabase = createClient()
     const pathname = usePathname() // Import needed! Wait, import is missing.
+    const [isGuest, setIsGuest] = useState(false)
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => setIsGuest(!data.user))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const menuItems = [
         { name: t('productions'), href: '/performances', icon: Layers },
@@ -100,8 +107,8 @@ export function MobileMenu({ isOpen, onClose }: Props) {
                                             onClick={handleSignOut}
                                             className="flex w-full items-center gap-3 rounded-lg p-3 text-red-400 hover:bg-red-900/20 transition-colors"
                                         >
-                                            <LogOut className="h-5 w-5" />
-                                            <span className="font-medium">{t('signOut')}</span>
+                                            {isGuest ? <LogIn className="h-5 w-5" /> : <LogOut className="h-5 w-5" />}
+                                            <span className="font-medium">{isGuest ? t('signIn') : t('signOut')}</span>
                                         </button>
                                     </div>
                                 </div>

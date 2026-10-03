@@ -340,7 +340,7 @@ export default async function Home() {
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
       {isReadOnly && <ReadOnlyBanner />}
-      <PendingUsersAlert />
+      {!isReadOnly && <PendingUsersAlert />}
 
       <Greeting name={displayName} />
 

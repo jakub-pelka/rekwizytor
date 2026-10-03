@@ -41,7 +41,7 @@ export function NearestPerformanceCard({ performance }: NearestPerformanceCardPr
                     <h3 className="text-xl font-medium text-white mb-2">{t('noUpcomingPerformances')}</h3>
                     <Link href="/performances/new">
                         <Button variant="primary" size="lg" className="rounded-full shadow-lg shadow-action-primary/20">
-                            {t('manageProduction')}
+                            {t('addProduction')}
                         </Button>
                     </Link>
                 </div>

@@ -193,7 +193,7 @@ export default function NotesList({ performanceId, initialNotes = [] }: { perfor
                                 <StickyNote className="w-8 h-8" />
                             </div>
                             <p className="text-xl font-bold text-neutral-500">{t('noNotes')}</p>
-                            <p className="text-neutral-600 mt-2">Create a new note to get started.</p>
+                            <p className="text-neutral-600 mt-2">{t('noNotesHint')}</p>
                         </div>
                     )
                 }
