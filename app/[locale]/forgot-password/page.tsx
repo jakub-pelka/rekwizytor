@@ -23,7 +23,7 @@ export default async function ForgotPasswordPage() {
 
             <div className="mb-8 relative h-32 w-80 z-10">
                 <Image
-                    src="/logo-full-sub.png"
+                    src="/brand/rekwizytor-logo-pion-dark.svg"
                     alt="Rekwizytor"
                     fill
                     className="object-contain"

@@ -55,7 +55,7 @@ export function Sidebar() {
             <div className="flex min-h-0 flex-1 flex-col bg-[#1a1a1a] border-r border-neutral-800">
                 <div className="flex flex-col gap-5 p-4 border-b border-neutral-800/50">
                     <Link href="/" className="flex items-center justify-center mt-2.5 mb-2 hover:opacity-80 transition-opacity">
-                        <h1 className="font-bold text-white text-xl tracking-tight leading-none">Rekwizytor</h1>
+                        <Image src="/brand/rekwizytor-logo-dark.svg" alt="Rekwizytor" width={148} height={28} priority />
                     </Link>
 
 

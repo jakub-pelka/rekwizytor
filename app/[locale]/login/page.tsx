@@ -113,7 +113,7 @@ export default function LoginPage() {
             {/* Showcase panel (desktop) */}
             <aside className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-12 xl:p-16 border-r border-white/5 bg-linear-to-br from-burgundy-extra-dark/60 via-neutral-950/40 to-transparent">
                 <div className="relative h-16 w-48">
-                    <Image src="/logo-full-sub.png" alt="Rekwizytor" fill className="object-contain object-left" priority />
+                    <Image src="/brand/rekwizytor-logo-dark.svg" alt="Rekwizytor" fill className="object-contain object-left" priority />
                 </div>
 
                 <div className="max-w-lg space-y-8">
@@ -142,7 +142,7 @@ export default function LoginPage() {
                     <div className="flex flex-col items-center text-center">
                         <div className="mb-6 relative h-28 w-72 lg:hidden">
                             <Image
-                                src="/logo-full-sub.png"
+                                src="/brand/rekwizytor-logo-pion-dark.svg"
                                 alt="Rekwizytor"
                                 fill
                                 className="object-contain"

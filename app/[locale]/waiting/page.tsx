@@ -60,7 +60,7 @@ export default async function WaitingPage() {
             <div className="absolute bottom-8 right-8 z-20 opacity-50 hover:opacity-100 transition-opacity">
                 <div className="relative h-8 w-32">
                     <Image
-                        src="/logo-full-sub.png"
+                        src="/brand/rekwizytor-logo-dark.svg"
                         alt="Rekwizytor"
                         fill
                         className="object-contain object-right"

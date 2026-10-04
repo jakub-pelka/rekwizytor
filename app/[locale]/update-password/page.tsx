@@ -25,7 +25,7 @@ export default async function UpdatePasswordPage() {
                 <div className="flex flex-col items-center text-center">
                     <div className="mb-8 relative h-32 w-80">
                         <Image
-                            src="/logo-full-sub.png"
+                            src="/brand/rekwizytor-logo-pion-dark.svg"
                             alt="Rekwizytor"
                             fill
                             className="object-contain"
