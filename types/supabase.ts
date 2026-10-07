@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -50,8 +50,61 @@ export type Database = {
         }
         Relationships: []
       }
+      group_items: {
+        Row: {
+          code: string | null
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          group_id: string | null
+          location_id: string | null
+          id: string
+          name: string
+          sort_order: number
+          status: string
+          status_note: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          group_id?: string | null
+          location_id?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          status?: string
+          status_note?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          group_id?: string | null
+          location_id?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          status?: string
+          status_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       groups: {
         Row: {
+          code: string | null
+          approx_count: number | null
+          sort_order: number
           color: string | null
           created_at: string | null
           deleted_at: string | null
@@ -65,8 +118,13 @@ export type Database = {
           name: string
           performance_id: string | null
           short_id: string | null
+          status: string
+          status_note: string | null
         }
         Insert: {
+          code?: string | null
+          approx_count?: number | null
+          sort_order?: number
           color?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -80,8 +138,13 @@ export type Database = {
           name: string
           performance_id?: string | null
           short_id?: string | null
+          status?: string
+          status_note?: string | null
         }
         Update: {
+          code?: string | null
+          approx_count?: number | null
+          sort_order?: number
           color?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -95,6 +158,8 @@ export type Database = {
           name?: string
           performance_id?: string | null
           short_id?: string | null
+          status?: string
+          status_note?: string | null
         }
         Relationships: [
           {
@@ -148,6 +213,9 @@ export type Database = {
       }
       locations: {
         Row: {
+          kind: string
+          code: string | null
+          sort_order: number
           belongs_to: string | null
           created_at: string | null
           deleted_at: string | null
@@ -159,6 +227,9 @@ export type Database = {
           type: Database["public"]["Enums"]["location_type_enum"]
         }
         Insert: {
+          kind?: string
+          code?: string | null
+          sort_order?: number
           belongs_to?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -170,6 +241,9 @@ export type Database = {
           type?: Database["public"]["Enums"]["location_type_enum"]
         }
         Update: {
+          kind?: string
+          code?: string | null
+          sort_order?: number
           belongs_to?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -271,42 +345,82 @@ export type Database = {
       }
       performance_props: {
         Row: {
+          item_id: string | null
+          handler: string | null
+          act_number: number | null
+          area: string | null
+          cast_only: string | null
           column_index: number | null
           created_at: string | null
+          description: string | null
+          group_id: string | null
           id: string
           is_checked: boolean | null
           item_name: string
           order: number | null
           performance_id: string
+          place: string | null
+          prep: string | null
           scene_name: string | null
           scene_number: number | null
           sort_order: number | null
+          stages: string[] | null
+          structured_at: string | null
         }
         Insert: {
+          item_id?: string | null
+          handler?: string | null
+          act_number?: number | null
+          area?: string | null
+          cast_only?: string | null
           column_index?: number | null
           created_at?: string | null
+          description?: string | null
+          group_id?: string | null
           id?: string
           is_checked?: boolean | null
           item_name: string
           order?: number | null
           performance_id: string
+          place?: string | null
+          prep?: string | null
           scene_name?: string | null
           scene_number?: number | null
           sort_order?: number | null
+          stages?: string[] | null
+          structured_at?: string | null
         }
         Update: {
+          item_id?: string | null
+          handler?: string | null
+          act_number?: number | null
+          area?: string | null
+          cast_only?: string | null
           column_index?: number | null
           created_at?: string | null
+          description?: string | null
+          group_id?: string | null
           id?: string
           is_checked?: boolean | null
           item_name?: string
           order?: number | null
           performance_id?: string
+          place?: string | null
+          prep?: string | null
           scene_name?: string | null
           scene_number?: number | null
           sort_order?: number | null
+          stages?: string[] | null
+          structured_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "performance_props_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "performance_props_performance_id_fkey"
             columns: ["performance_id"]
@@ -330,9 +444,11 @@ export type Database = {
           premiere_date: string | null
           source_url: string | null
           status: Database["public"]["Enums"]["performance_status_enum"]
+          structure: string
           thumbnail_url: string | null
           title: string
           updated_at: string | null
+          venue: string | null
         }
         Insert: {
           color?: string | null
@@ -347,9 +463,11 @@ export type Database = {
           premiere_date?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["performance_status_enum"]
+          structure?: string
           thumbnail_url?: string | null
           title: string
           updated_at?: string | null
+          venue?: string | null
         }
         Update: {
           color?: string | null
@@ -364,9 +482,11 @@ export type Database = {
           premiere_date?: string | null
           source_url?: string | null
           status?: Database["public"]["Enums"]["performance_status_enum"]
+          structure?: string
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
+          venue?: string | null
         }
         Relationships: []
       }
@@ -635,6 +755,147 @@ export type Database = {
           },
         ]
       }
+      show_list_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          performance_prop_id: string | null
+          resolved_at: string | null
+          scene_number: number | null
+          show_list_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          performance_prop_id?: string | null
+          resolved_at?: string | null
+          scene_number?: number | null
+          show_list_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          performance_prop_id?: string | null
+          resolved_at?: string | null
+          scene_number?: number | null
+          show_list_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_list_reports_show_list_id_fkey"
+            columns: ["show_list_id"]
+            isOneToOne: false
+            referencedRelation: "show_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_list_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      show_list_checks: {
+        Row: {
+          done_at: string
+          done_by: string | null
+          id: string
+          performance_prop_id: string
+          show_list_id: string
+          stage: string
+        }
+        Insert: {
+          done_at?: string
+          done_by?: string | null
+          id?: string
+          performance_prop_id: string
+          show_list_id: string
+          stage: string
+        }
+        Update: {
+          done_at?: string
+          done_by?: string | null
+          id?: string
+          performance_prop_id?: string
+          show_list_id?: string
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_list_checks_done_by_fkey"
+            columns: ["done_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_list_checks_performance_prop_id_fkey"
+            columns: ["performance_prop_id"]
+            isOneToOne: false
+            referencedRelation: "performance_props"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_list_checks_show_list_id_fkey"
+            columns: ["show_list_id"]
+            isOneToOne: false
+            referencedRelation: "show_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      show_lists: {
+        Row: {
+          live_act_started_at: string | null
+          live_scene_number: number | null
+          live_updated_by: string | null
+          cast: string | null
+          created_at: string
+          id: string
+          kind: string
+          performance_id: string
+          show_date: string
+        }
+        Insert: {
+          live_act_started_at?: string | null
+          live_scene_number?: number | null
+          live_updated_by?: string | null
+          cast?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          performance_id: string
+          show_date: string
+        }
+        Update: {
+          live_act_started_at?: string | null
+          live_scene_number?: number | null
+          live_updated_by?: string | null
+          cast?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          performance_id?: string
+          show_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_lists_performance_id_fkey"
+            columns: ["performance_id"]
+            isOneToOne: false
+            referencedRelation: "performances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       vw_searchable_entities: {
@@ -817,12 +1078,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -846,11 +1107,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -871,11 +1132,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -896,11 +1157,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -913,11 +1174,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

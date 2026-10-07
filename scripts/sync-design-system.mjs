@@ -60,5 +60,48 @@ mkdirSync(outDir, { recursive: true })
 writeFileSync(join(outDir, 'tokens.css'), tokensCss)
 writeFileSync(join(outDir, 'components.css'), HEADER + bundle)
 
+// Wzorce ekranów (pl-*, sp-*, ls-*, sl-*) z zatwierdzonych ekranów w docs/redesign/ekrany.
+// Bez bloku tokenów .rk-th (tokeny są w tokens.css) i bez klas, które układają tylko tablice prezentacji
+// (st-head, st-row, st-fig, st-cap, st-phone, st-body, st-toast). Zostają st-title, st-text i st-steps.
+const screensSrc = readFileSync(join(root, 'docs/redesign/ekrany/html/rk-theme.css'), 'utf8')
+const screens = screensSrc
+    .replace(/^\.rk-th[\s\S]*?\n\}\n/gm, '')
+    .split('\n')
+    .filter(line => !/^\.(st-(head|row|fig|cap|phone|body|toast)|rk-th)\b/.test(line))
+    .join('\n')
+    .replace(/\/\* Stany: tablice z kilkoma telefonami \*\/\n/, '')
+writeFileSync(join(outDir, 'screens.css'), HEADER + screens)
+
+// Ikony teatru i rekwizytów (gramatyka Lucide) dla komponentu RkIcon.
+const icons = JSON.parse(readFileSync(join(dsDir, 'icons/rekwizytor-icons.json'), 'utf8'))
+// icons.ui: { nazwa: ikona }, icons.props: { kategoria: { nazwa: ikona } }
+const iconPaths = Object.fromEntries(
+    [...Object.entries(icons.ui), ...Object.values(icons.props).flatMap(group => Object.entries(group))]
+        .map(([name, icon]) => [name, icon.paths])
+)
+const iconsTs = `// Wygenerowane przez scripts/sync-design-system.mjs z docs/redesign/design-system/icons. Nie edytuj ręcznie.
+
+export const RK_ICON_PATHS = ${JSON.stringify(iconPaths, null, 4)} as const
+
+export type RkIconName = keyof typeof RK_ICON_PATHS
+`
+mkdirSync(join(root, 'components/rk'), { recursive: true })
+writeFileSync(join(root, 'components/rk/icon-paths.ts'), iconsTs)
+
+// Awatary ilustrowane (karta Avatar): kafelek 100×100 z promieniem 22,5%, wnętrze SVG z {SK} i {HR}.
+const avatars = JSON.parse(readFileSync(join(dsDir, 'icons/rekwizytor-avatars.json'), 'utf8'))
+const avatarsTs = `// Wygenerowane przez scripts/sync-design-system.mjs z docs/redesign/design-system/icons. Nie edytuj ręcznie.
+
+export const RK_AVATAR_PALETTES = ${JSON.stringify(avatars.palettes, null, 4)} as const
+
+export const RK_AVATARS = ${JSON.stringify(avatars.avatars, null, 4)} as const
+
+export type RkAvatarName = keyof typeof RK_AVATARS
+`
+writeFileSync(join(root, 'components/rk/avatar-data.ts'), avatarsTs)
+console.log(`components/rk/avatar-data.ts: ${Object.keys(avatars.avatars).length} awatarów`)
+
 console.log(`styles/rk/tokens.css: ${themed.dark.length + shared.length} tokenów (${themed.light.length} nadpisań dla motywu jasnego)`)
 console.log('styles/rk/components.css: skopiowano bundle.css')
+console.log('styles/rk/screens.css: wzorce ekranów')
+console.log(`components/rk/icon-paths.ts: ${Object.keys(iconPaths).length} ikon`)
