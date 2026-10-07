@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Courier_Prime } from "next/font/google";
+import { Geist, Courier_Prime } from "next/font/google";
 import localFont from "next/font/local";
 import "../globals.css";
 import { AppShell } from "@/components/AppShell";
@@ -10,18 +10,13 @@ import { ToastProvider } from '@/components/providers/ToastProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 const courierPrime = Courier_Prime({
   variable: "--font-courier-prime",
   weight: ["400", "700"],
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
 });
 
 const boldonse = localFont({
@@ -31,8 +26,8 @@ const boldonse = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Rekwizytorium",
-  description: "Theater props management system",
+  title: "Rekwizytor",
+  description: "Narzędzie dla teatru",
 };
 
 export default async function LocaleLayout({
@@ -46,10 +41,12 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${courierPrime.variable} ${boldonse.variable} antialiased`}
-      >
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${courierPrime.variable} ${boldonse.variable}`}
+    >
+      <body className="rk antialiased">
         <ToastProvider />
         <ErrorBoundary>
           <NextIntlClientProvider messages={messages}>

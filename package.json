@@ -22,7 +22,8 @@
     "test:setup": "npx tsx scripts/pocketbase-helper.ts setup",
     "test:seed": "npx tsx scripts/pocketbase-helper.ts seed",
     "test:reset": "npx tsx scripts/pocketbase-helper.ts reset",
-    "test:init": "npx tsx scripts/pocketbase-helper.ts all"
+    "test:init": "npx tsx scripts/pocketbase-helper.ts all",
+    "ds:sync": "node scripts/sync-design-system.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,10 +1,55 @@
 @import "tailwindcss";
 
+/* Design system „Rekwizytor”: tokeny i klasy .rk-*. Pliki generuje scripts/sync-design-system.mjs. */
+@import "../styles/rk/tokens.css";
+@import "../styles/rk/components.css" layer(components);
+
+/* Tailwind tylko do układu; kolory, promienie, cienie i fonty wskazują na tokeny systemu.
+   Skala odstępów Tailwinda (1, 2, 3, 4, 6, 8, 12) pokrywa się z space-* systemu. */
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-typewriter);
+  --font-typewriter: var(--font-typewriter);
+  --font-display: var(--font-display);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-section: var(--border-section);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-kurtyna: var(--kurtyna);
+  --color-kurtyna-hover: var(--kurtyna-hover);
+  --color-on-kurtyna: var(--on-kurtyna);
+  --color-kurtyna-text: var(--kurtyna-text);
+  --color-kurtyna-tint: var(--kurtyna-tint);
+  --color-kurtyna-deep: var(--kurtyna-deep);
+  --color-kurtyna-night: var(--kurtyna-night);
+  --color-focus: var(--focus);
+  --color-success: var(--success);
+  --color-success-tint: var(--success-tint);
+  --color-warning: var(--warning);
+  --color-warning-tint: var(--warning-tint);
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-info: var(--info);
+  --color-info-tint: var(--info-tint);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-full: var(--radius-full);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-overlay: var(--shadow-overlay);
+}
+
+/* Stare nazwy sprzed design systemu. Do usunięcia, gdy migracja ekranów się skończy. */
 @theme {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-courier: var(--font-courier-prime), "Courier New", monospace;
-  --font-boldonse: "Boldonse", "Impact", sans-serif;
+  --font-courier: var(--font-typewriter);
 
   --color-burgundy-main: #A0232F;
   --color-burgundy-dark: #6B1722;
@@ -25,29 +70,22 @@
 }
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: var(--bg);
+  --foreground: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 14px/20px var(--font-sans);
   overflow-x: hidden;
 }
 
-h1,
-h2,
+/* Boldonse tylko dla tytułów spektakli (.rk-show-title); stara klasa zostaje do czasu migracji. */
 .font-boldonse {
-  font-family: var(--font-boldonse);
+  font-family: var(--font-display);
   letter-spacing: 0.05em;
   line-height: 1.4;
-}
-
-
-
-.font-courier {
-  font-family: var(--font-courier);
 }
 
 .btn-burgundy {
@@ -65,18 +103,6 @@ h2,
   margin-bottom: 1em !important;
   border-color: var(--foreground) !important;
   border-top-width: 2px !important;
-}
-
-/* Ensure Boldonse is used in prose headings - override Tailwind Typography */
-.prose h1,
-.prose h2,
-.prose h3,
-.prose :where(h1):not(:where([class~="not-prose"] *)),
-.prose :where(h2):not(:where([class~="not-prose"] *)),
-.prose :where(h3):not(:where([class~="not-prose"] *)) {
-  font-family: 'Boldonse', 'Impact', sans-serif !important;
-  letter-spacing: 0.05em !important;
-  line-height: 1.4 !important;
 }
 
 @layer utilities {

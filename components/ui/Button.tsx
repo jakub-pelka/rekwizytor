@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { Loader2 } from "lucide-react"
 import { buttonVariants, variants } from "./button-variants"
 
 export interface ButtonProps
@@ -9,6 +8,8 @@ export interface ButtonProps
     variant?: keyof typeof variants.variant
     size?: keyof typeof variants.size
     isLoading?: boolean
+    /** Etykieta dla czytników ekranu w trakcie zapisu, gdy przycisk nie ma własnego aria-label. */
+    loadingLabel?: string
     leftIcon?: React.ReactNode
     rightIcon?: React.ReactNode
 }
@@ -16,20 +17,31 @@ export interface ButtonProps
 export { buttonVariants }
 
 
+// W trakcie zapisu przycisk pokazuje Trzy dzwonki zamiast etykiety i zachowuje szerokość:
+// treść zostaje w układzie, ale jest niewidoczna. Bez atrybutu disabled, bo ten przygasza przycisk;
+// zamiast tego aria-disabled i zablokowane kliknięcie (także submit formularza Enterem).
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant = "primary", size = "md", isLoading = false, leftIcon, rightIcon, children, disabled, ...props }, ref) => {
+    ({ className, variant = "primary", size = "md", isLoading = false, loadingLabel = "Zapisywanie", leftIcon, rightIcon, children, onClick, disabled, ...props }, ref) => {
 
         return (
             <button
-                className={buttonVariants({ variant, size, className })}
-                ref={ref}
-                disabled={isLoading || disabled}
                 {...props}
+                className={buttonVariants({ variant, size, className: isLoading ? `relative ${className ?? ""}` : className })}
+                ref={ref}
+                disabled={isLoading ? undefined : disabled}
+                aria-disabled={isLoading || undefined}
+                aria-busy={isLoading || undefined}
+                aria-label={isLoading ? (props["aria-label"] ?? loadingLabel) : props["aria-label"]}
+                onClick={isLoading ? (e) => e.preventDefault() : onClick}
             >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {!isLoading && leftIcon && <span className="mr-2">{leftIcon}</span>}
-                {children}
-                {!isLoading && rightIcon && <span className="ml-2">{rightIcon}</span>}
+                {isLoading && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="rk-bells" aria-hidden="true"><i></i><i></i><i></i></span>
+                    </span>
+                )}
+                {leftIcon && <span className={isLoading ? "invisible" : undefined}>{leftIcon}</span>}
+                {isLoading ? <span className="invisible">{children}</span> : children}
+                {rightIcon && <span className={isLoading ? "invisible" : undefined}>{rightIcon}</span>}
             </button>
         )
     }
