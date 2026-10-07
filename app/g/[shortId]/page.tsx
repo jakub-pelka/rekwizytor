@@ -12,7 +12,7 @@ export default async function ShortLinkPage({ params }: { params: Promise<{ shor
         .single()
 
     if (group) {
-        redirect(`/pl/groups?groupId=${group.id}`)
+        redirect(`/pl/groups/${group.id}`)
     }
 
     // If not found, redirect to home or show 404

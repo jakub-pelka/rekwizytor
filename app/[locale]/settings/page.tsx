@@ -6,6 +6,7 @@ import { UserApprovalList } from '@/components/settings/UserApprovalList'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { Settings } from 'lucide-react'
 import { AdminZoneWrapper } from '@/components/settings/AdminZoneWrapper'
+import { MotionSetting } from '@/components/settings/MotionSetting'
 
 export default async function SettingsPage() {
     const supabase = await createClient()
@@ -35,6 +36,8 @@ export default async function SettingsPage() {
             />
 
             <UserApprovalList />
+
+            <MotionSetting />
 
             <SettingsForm user={{ ...profile, email: user.email || undefined }} />
 

@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { MotionProvider } from "@/components/rk/MotionProvider";
 import { ToastProvider } from '@/components/providers/ToastProvider';
 
 const geistSans = Geist({
@@ -46,11 +47,17 @@ export default async function LocaleLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${courierPrime.variable} ${boldonse.variable}`}
     >
+      <head>
+        {/* Poziom ruchu od pierwszego renderu, żeby animacje nie mignęły (lib/motion.ts, detectMotionLevel). */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var p=localStorage.getItem('rk_motion_pref');if(p==='full'||p==='lite'){document.documentElement.dataset.motion=p;return;}var m='lite',n=navigator,c=window.CSS,rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,a=localStorage.getItem('rk_motion_auto');if(!rm&&a!=='lite'&&(!n||!n.hardwareConcurrency||n.hardwareConcurrency>2)&&(!n||!n.deviceMemory||n.deviceMemory>2)&&(!n||!n.connection||!n.connection.saveData)&&(c&&c.supports&&c.supports('clip-path','inset(0 0 100% 0)'))){m='full';}document.documentElement.dataset.motion=m;}catch(e){document.documentElement.dataset.motion='lite';}})();` }} />
+      </head>
       <body className="rk antialiased">
         <ToastProvider />
         <ErrorBoundary>
           <NextIntlClientProvider messages={messages}>
-            <AppShell>{children}</AppShell>
+            <MotionProvider>
+              <AppShell>{children}</AppShell>
+            </MotionProvider>
           </NextIntlClientProvider>
         </ErrorBoundary>
       </body>

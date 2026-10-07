@@ -171,34 +171,8 @@ const getEntityActions = (item: SearchResult, t: any, onOpenSchedule?: (performa
                     label: 'Generuj etykietę',
                     shortLabel: 'Etykieta',
                     icon: QrCode,
-                    handler: async (i) => {
-                        const generatePromise = (async () => {
-                            const response = await fetch('/api/generate-labels', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    groups: [{
-                                        id: i.id,
-                                        name: i.name,
-                                        locationName: i.metadata?.location_name,
-                                        iconImage: await rasterizeIcon(i.metadata?.icon || 'Folder', i.metadata?.color || '#000000')
-                                    }]
-                                })
-                            })
-                            if (!response.ok) throw new Error('Label generation failed')
-                            const blob = await response.blob()
-                            const url = window.URL.createObjectURL(blob)
-                            const a = document.createElement('a')
-                            a.href = url
-                            a.download = `etykieta_${i.name.replaceAll(/[^a-z0-9]/gi, '_')}.pdf`
-                            a.click()
-                        })()
-
-                        notify.promise(generatePromise, {
-                            loading: 'Generowanie etykiety...',
-                            success: 'Etykieta wygenerowana!',
-                            error: 'Błąd generowania etykiety'
-                        }, 'pdf')
+                    handler: (i) => {
+                        window.open(`/labels?kind=group&ids=${i.id}`, '_blank')
                     },
                 }
             ]

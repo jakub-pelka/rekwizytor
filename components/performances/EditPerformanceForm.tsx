@@ -21,6 +21,8 @@ type Performance = {
     thumbnail_url: string | null
     color: string | null
     source_url: string | null
+    venue: string | null
+    structure: string
 }
 
 type Props = {
@@ -34,6 +36,8 @@ export function EditPerformanceForm({ performance }: Props) {
     const [notes, setNotes] = useState(performance.notes || '')
     const [sourceUrl, setSourceUrl] = useState(performance.source_url || '')
     const [status, setStatus] = useState<Performance['status']>(performance.status)
+    const [venue, setVenue] = useState(performance.venue ?? '')
+    const [structure, setStructure] = useState(performance.structure === 'acts_only' ? 'acts_only' : 'acts_scenes')
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(performance.image_url)
     const [extractedColors, setExtractedColors] = useState<string[]>([])
@@ -154,7 +158,9 @@ export function EditPerformanceForm({ performance }: Props) {
                     image_url: imageUrl,
                     thumbnail_url: thumbnailUrl,
                     color: selectedColor,
-                    source_url: sourceUrl || null
+                    source_url: sourceUrl || null,
+                    venue: venue.trim() || null,
+                    structure,
                 })
                 .eq('id', performance.id)
 
@@ -281,6 +287,23 @@ export function EditPerformanceForm({ performance }: Props) {
                             <option value="archived">{t('statuses.archived')}</option>
                         </select>
                     </div>
+                </div>
+
+                <div className="grid gap-6 sm:grid-cols-2">
+                    <label className="rk-field">
+                        <span className="rk-label">{t('venue')}</span>
+                        <input className="rk-input" value={venue} onChange={e => setVenue(e.target.value)} placeholder={t('venuePlaceholder')} />
+                    </label>
+                    <label className="rk-field">
+                        <span className="rk-label">{t('structure')}</span>
+                        <span className="rk-select">
+                            <select value={structure} onChange={e => setStructure(e.target.value)}>
+                                <option value="acts_scenes">{t('structureScenes')}</option>
+                                <option value="acts_only">{t('structureActs')}</option>
+                            </select>
+                        </span>
+                        <span className="rk-hint">{t('structureHint')}</span>
+                    </label>
                 </div>
 
                 <div>

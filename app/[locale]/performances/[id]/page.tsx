@@ -17,6 +17,9 @@ import { PerformanceNotesPreview } from '@/components/performances/PerformanceNo
 import { PerformanceDetailActions } from '@/components/performances/PerformanceDetailActions'
 import { PerformanceGroups } from '@/components/performances/PerformanceGroups'
 import { PropsChecklist } from '@/components/props/PropsChecklist'
+import { PerformancePhone } from '@/components/performances/PerformancePhone'
+import { loadPerformanceStructure } from '@/lib/performance-structure'
+import { theatreNowNaive } from '@/lib/rk-format'
 
 type Props = {
     params: Promise<{ id: string }>
@@ -114,6 +117,33 @@ export default async function ProductionDetailsPage({ params }: Props) {
         notFound()
     }
 
+    // Telefon: rozpiska z nowym modelem, terminy (listy zadań) od dziś i nowe wzmianki w notatkach.
+    const nowNaive = theatreNowNaive()
+    const [structure, listsResult, mentionsResult, groupsResult] = await Promise.all([
+        loadPerformanceStructure(supabase, id),
+        supabase
+            .from('show_lists')
+            .select('id, show_date, kind, cast')
+            .eq('performance_id', id)
+            .gte('show_date', nowNaive.slice(0, 10))
+            .order('show_date', { ascending: true }),
+        supabaseUser
+            ? supabase
+                .from('note_mentions')
+                .select('id, note:notes!inner(performance_id)', { count: 'exact', head: true })
+                .eq('mentioned_id', supabaseUser.id)
+                .eq('note.performance_id', id)
+            : Promise.resolve({ count: 0 }),
+        supabaseUser
+            ? supabase.from('groups').select('id, name, locations(name)').is('deleted_at', null).order('name')
+            : Promise.resolve({ data: [] as { id: string; name: string; locations: { name: string } | null }[] }),
+    ])
+    const groupOptions = (groupsResult.data ?? []).map(g => ({
+        id: g.id,
+        label: [g.locations?.name, g.name].filter(Boolean).join(' › '),
+    }))
+    const upcomingLists = listsResult.data ?? []
+
     // Helper to get Act number
     const getActNumber = (sceneNum: string | null) => {
         if (!sceneNum) return 1
@@ -133,7 +163,19 @@ export default async function ProductionDetailsPage({ params }: Props) {
     const sceneNote = notes?.find(n => n.title.startsWith('Notatka sceniczna')) || null
 
     return (
-        <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
+        <>
+        <PerformancePhone
+            performance={{ id, title: production.title, venue: production.venue }}
+            structure={structure}
+            lists={upcomingLists}
+            currentListId={upcomingLists[0]?.id ?? null}
+            notes={(notes ?? []).map(n => ({ id: n.id, title: n.title }))}
+            newMentions={mentionsResult.count ?? 0}
+            canEdit={!!supabaseUser}
+            groups={groupOptions}
+            now={nowNaive}
+        />
+        <div className="hidden md:block p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
             <div className="relative group overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 shadow-2xl">
                 {/* Blurred Background Layer */}
                 {production.image_url ? (
@@ -298,5 +340,6 @@ export default async function ProductionDetailsPage({ params }: Props) {
                 </div>
             </div>
         </div>
+        </>
     )
 }

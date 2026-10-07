@@ -1,5 +1,6 @@
 'use client'
 
+import { LegalFooter } from '@/components/rk/LegalFooter'
 import { checkSignupAllowed } from '@/app/actions/auth-check'
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
@@ -312,6 +313,8 @@ export default function LoginPage() {
                             </li>
                         ))}
                     </ul>
+
+                    <LegalFooter className="pt-6" />
                 </div>
             </main>
         </div>

@@ -3,6 +3,7 @@
 /* Design system „Rekwizytor”: tokeny i klasy .rk-*. Pliki generuje scripts/sync-design-system.mjs. */
 @import "../styles/rk/tokens.css";
 @import "../styles/rk/components.css" layer(components);
+@import "../styles/rk/screens.css" layer(components);
 
 /* Tailwind tylko do układu; kolory, promienie, cienie i fonty wskazują na tokeny systemu.
    Skala odstępów Tailwinda (1, 2, 3, 4, 6, 8, 12) pokrywa się z space-* systemu. */

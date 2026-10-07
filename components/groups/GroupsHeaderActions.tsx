@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Plus, QrCode, MoreVertical, FolderPlus, Wand2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { DropdownAction } from '@/components/ui/DropdownAction'
@@ -23,7 +24,8 @@ interface GroupsHeaderActionsProps {
 
 export function GroupsHeaderActions({ groups, currentParentId }: GroupsHeaderActionsProps) {
     const [isGenerating, setIsGenerating] = useState(false)
-    const [isScannerOpen, setIsScannerOpen] = useState(false)
+    // „Skanuj” w dolnym menu prowadzi tu z ?scan=1 i od razu otwiera skaner.
+    const [isScannerOpen, setIsScannerOpen] = useState(useSearchParams().get('scan') === '1')
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [isImportOpen, setIsImportOpen] = useState(false)
 

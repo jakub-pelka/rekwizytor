@@ -1,0 +1,155 @@
+/* Wygenerowane przez scripts/sync-design-system.mjs z docs/redesign/design-system. Nie edytuj ręcznie. */
+/* Rekwizytor — motywy i wzorce ekranów (tokeny z design systemu Rekwizytor) */
+
+
+/* Pulpit */
+.pl-h2 { margin: 0; font: 600 16px/24px var(--font-sans); color: var(--ink); }
+.pl-sect-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.pl-link { display: inline-flex; align-items: center; gap: var(--space-1); font: 500 13px/18px var(--font-sans); color: var(--kurtyna-text); text-decoration: none; }
+.pl-link svg { width: 14px; height: 14px; }
+.pl-count { font: 700 12px/16px var(--font-typewriter); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+
+.pl-show-title { font: 400 28px/40px var(--font-display); letter-spacing: .05em; color: var(--ink); margin: 0; }
+.pl-countdown { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.pl-countdown b { font: 700 22px/28px var(--font-typewriter); color: var(--ink); letter-spacing: .02em; }
+.pl-countdown small { font: 400 12px/16px var(--font-sans); color: var(--ink-muted); }
+
+.pl-stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); }
+.pl-stage { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3) var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--ink-muted); text-decoration: none; }
+.pl-stage__top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.pl-stage__name { font: 500 14px/20px var(--font-sans); color: var(--ink-muted); }
+.pl-stage__n { font: 700 12px/16px var(--font-typewriter); color: var(--ink-muted); }
+.pl-stage__meta { font: 400 12px/16px var(--font-sans); color: var(--ink-subtle); }
+.pl-stage svg { width: 16px; height: 16px; }
+.pl-stage.is-done .pl-stage__name { color: var(--ink); }
+.pl-stage.is-done svg { color: var(--success); }
+.pl-stage.is-current { border-color: var(--kurtyna-text); box-shadow: 0 0 0 3px var(--kurtyna-tint); background: var(--surface); }
+.pl-stage.is-current .pl-stage__name { color: var(--ink); font-weight: 600; }
+.pl-stage.is-current .pl-stage__n { color: var(--kurtyna-text); }
+
+.pl-bar { height: 6px; border-radius: var(--radius-full); background: var(--chart-grid); overflow: hidden; }
+.pl-bar > span { display: block; height: 100%; border-radius: var(--radius-full); background: var(--kurtyna); }
+.pl-bar--done > span { background: var(--success); }
+
+.pl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.pl-list > li { position: relative; display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; min-width: 0; }
+.pl-list > li + li::before { content: ""; position: absolute; top: 0; left: var(--pl-inset, 0px); right: 0; height: 1px; background: var(--border); }
+.pl-list--media { --pl-inset: 44px; }
+.pl-list--date { --pl-inset: 76px; }
+.pl-list > li:first-child { border-top: 0; padding-top: 0; }
+.pl-list > li:last-child { padding-bottom: 0; }
+.pl-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.pl-main b { font: 500 14px/20px var(--font-sans); color: var(--ink); }
+.pl-main small { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.pl-main p { margin: 0; font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+.pl-main p b { font-weight: 600; }
+.pl-ico { flex: none; width: 32px; height: 32px; border-radius: var(--radius-sm); display: grid; place-items: center; }
+.pl-ico svg { width: 18px; height: 18px; }
+.pl-ico--warning { background: var(--warning-tint); color: var(--warning); }
+.pl-ico--danger { background: var(--danger-tint); color: var(--danger); }
+.pl-time { flex: none; font: 400 12px/16px var(--font-sans); color: var(--ink-subtle); white-space: nowrap; }
+
+.pl-date { flex: none; width: 64px; box-sizing: border-box; padding: var(--space-1) var(--space-2); border-radius: var(--radius-sm); background: var(--surface-raised); display: flex; flex-direction: column; align-items: center; }
+.pl-date small { font: 400 11px/14px var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); }
+.pl-date b { font: 700 16px/20px var(--font-typewriter); color: var(--ink); }
+.pl-date.is-today { background: var(--kurtyna); }
+.pl-date.is-today small, .pl-date.is-today b { color: var(--on-kurtyna); }
+
+.pl-av { flex: none; width: 32px; height: 32px; display: block; }
+.pl-av--sm { width: 28px; height: 28px; }
+.pl-team { display: flex; align-items: center; }
+.pl-team img + img { margin-left: -6px; }
+.pl-team-label { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+
+/* Wariant B: mniej ramek */
+.pl-hero { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-8); display: flex; flex-direction: column; gap: var(--space-8); }
+.pl-sect { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.pl-sect-head--rule { padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-section); }
+
+/* Pasek etapów jak bilet: odcinki rozdziela perforacja z wcięciami */
+.pl-tix { display: flex; flex-direction: column; gap: var(--space-3); }
+.pl-tix__bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pl-tix__seg { position: relative; height: 12px; background: var(--chart-grid); overflow: visible; }
+.pl-tix__seg:first-child { border-radius: var(--radius-full) 0 0 var(--radius-full); }
+.pl-tix__seg:last-child { border-radius: 0 var(--radius-full) var(--radius-full) 0; }
+.pl-tix__seg > span { display: block; height: 100%; background: var(--kurtyna); border-radius: inherit; }
+.pl-tix__seg.is-done > span { background: var(--success); }
+.pl-tix__seg + .pl-tix__seg { border-left: 2px dotted var(--surface); }
+.pl-tix__seg + .pl-tix__seg::before, .pl-tix__seg + .pl-tix__seg::after { content: ""; position: absolute; left: -5px; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--surface); }
+.pl-tix__seg + .pl-tix__seg::before { top: -5px; }
+.pl-tix__seg + .pl-tix__seg::after { bottom: -5px; }
+.pl-tix__labels { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pl-tix__lab { display: flex; flex-direction: column; gap: 2px; padding-right: var(--space-3); text-decoration: none; color: var(--ink-muted); min-width: 0; }
+.pl-tix__lab b { display: flex; align-items: center; gap: var(--space-1); font: 500 14px/20px var(--font-sans); color: var(--ink-muted); }
+.pl-tix__lab b svg { width: 14px; height: 14px; color: var(--success); flex: none; }
+.pl-tix__lab small { font: 400 12px/16px var(--font-sans); color: var(--ink-subtle); }
+.pl-tix__lab .pl-stage__n { font-size: 12px; }
+.pl-tix__lab.is-done b { color: var(--ink); }
+.pl-tix__lab.is-current b { color: var(--ink); font-weight: 600; }
+.pl-tix__lab.is-current .pl-stage__n { color: var(--kurtyna-text); }
+
+/* Liczby jak w programie teatralnym: bez kafelków, oddzielone kreską */
+.pl-figs { display: flex; flex-wrap: wrap; row-gap: var(--space-4); }
+.pl-fig { flex: 1 1 150px; display: flex; flex-direction: column; gap: var(--space-1); padding: 0 var(--space-6); border-left: 1px solid var(--border); min-width: 0; }
+.pl-fig:first-child { padding-left: 0; border-left: 0; }
+.pl-fig__label { font: 400 12px/16px var(--font-typewriter); text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); }
+.pl-fig__value { font: 600 40px/48px var(--font-sans); font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--ink); }
+.pl-fig__value--alert { color: var(--danger); }
+.pl-fig__note { display: flex; align-items: center; gap: var(--space-2); font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.pl-figs--grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 0; }
+.pl-figs--grid .pl-fig { padding: var(--space-4) 0 var(--space-4) var(--space-4); border-left: 1px solid var(--border); border-top: 1px solid var(--border); }
+.pl-figs--grid .pl-fig:nth-child(odd) { padding-left: 0; border-left: 0; }
+.pl-figs--grid .pl-fig:nth-child(-n+2) { border-top: 0; padding-top: 0; }
+.pl-figs--grid .pl-fig__value { font-size: 32px; line-height: 40px; }
+
+.pl-quote { margin: var(--space-1) 0 0; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--surface-raised); font: 400 13px/18px var(--font-sans); color: var(--ink); }
+.pl-quote .pl-at { color: var(--kurtyna-text); font-weight: 600; }
+
+/* Spektakl: rozpiska scen */
+.pl-back { display: inline-flex; align-items: center; gap: var(--space-1); font: 500 13px/18px var(--font-sans); color: var(--ink-muted); text-decoration: none; }
+.pl-back svg { width: 16px; height: 16px; }
+.pl-list.sp-scenes > li { display: block; padding: 0; }
+.sp-scene { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; color: var(--ink); text-decoration: none; }
+.sp-scene__n { flex: none; width: 44px; font: 700 13px/20px var(--font-typewriter); color: var(--ink-muted); }
+.sp-scene__name { flex: 1; min-width: 0; font: 500 14px/20px var(--font-sans); }
+.sp-scene > svg { flex: none; width: 16px; height: 16px; color: var(--ink-subtle); }
+.sp-scene.is-open .sp-scene__n { color: var(--kurtyna-text); }
+.sp-scene.is-open .sp-scene__name { font-weight: 600; }
+.sp-props { list-style: none; margin: 0 0 var(--space-3) 56px; padding: 0 0 0 var(--space-4); border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: var(--space-3); }
+.sp-props > li { display: flex; align-items: flex-start; gap: var(--space-3); min-width: 0; flex-wrap: wrap; }
+.pl-thumb { flex: none; width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--surface-raised); color: var(--ink-muted); display: grid; place-items: center; }
+.pl-thumb svg { width: 20px; height: 20px; }
+.pl-tag { display: inline-flex; align-items: center; gap: var(--space-1); height: 24px; padding: 0 var(--space-2); border-radius: var(--radius-sm); border: 1px solid var(--border); font: 500 12px/16px var(--font-sans); color: var(--ink-muted); white-space: nowrap; }
+.pl-tag svg { width: 12px; height: 12px; }
+.pl-meta { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+
+/* Lista zadań */
+.ls-item { display: flex; align-items: flex-start; gap: var(--space-3); width: 100%; }
+.ls-item .rk-box { width: 24px; height: 24px; margin-top: 2px; border-radius: 6px; }
+.ls-item .rk-box svg { width: 16px; height: 16px; }
+.ls-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ls-main b { font: 500 16px/24px var(--font-sans); color: var(--ink); }
+.ls-main small { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.ls-item input:checked ~ .ls-main b { color: var(--ink-muted); }
+.ls-skip { display: flex; align-items: flex-start; gap: var(--space-3); width: 100%; opacity: .7; }
+.ls-skip .ls-dash { flex: none; width: 24px; height: 24px; margin-top: 2px; display: grid; place-items: center; color: var(--ink-subtle); }
+.ls-skip .ls-dash svg { width: 16px; height: 16px; }
+.ls-scene { flex: none; font: 700 12px/24px var(--font-typewriter); color: var(--ink-muted); }
+.pl-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.st-title { margin: 0; font: 600 20px/28px var(--font-sans); color: var(--ink); }
+.st-text { margin: 0; font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+.st-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; counter-reset: st; }
+.st-steps > li { position: relative; display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) 0; counter-increment: st; }
+.st-steps > li + li::before { content: ""; position: absolute; top: 0; left: 36px; right: 0; height: 1px; background: var(--border); }
+.st-steps > li::after { content: counter(st); order: -1; flex: none; width: 24px; height: 24px; border-radius: var(--radius-full); border: 1px solid var(--border-strong); display: grid; place-items: center; font: 700 12px/1 var(--font-typewriter); color: var(--ink-muted); }
+.st-steps > li.is-done::after { content: "✓"; background: var(--success-tint); border-color: var(--success); color: var(--success); }
+
+
+/* Lista spektakli */
+.pl-list.sl-list > li { display: block; padding: 0; }
+.sl-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; color: var(--ink); text-decoration: none; }
+.sl-title { font: 600 16px/24px var(--font-sans) !important; }
+.sl-when { flex: none; font: 400 13px/18px var(--font-sans); color: var(--ink-muted); min-width: 140px; }
+.sl-row > svg { flex: none; width: 16px; height: 16px; color: var(--ink-subtle); }
+

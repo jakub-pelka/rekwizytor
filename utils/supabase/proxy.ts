@@ -93,18 +93,20 @@ export async function updateSession(request: NextRequest, response?: NextRespons
 
         const isWaitingPage = path.includes('/waiting')
         const isRejectedPage = path.includes('/rejected')
+        // Politykę prywatności i regulamin może przeczytać każdy, także osoba czekająca na zatwierdzenie.
+        const isLegalPage = /\/(privacy|terms)(\/|$)/.test(path)
 
         // If no profile found, treat as pending (safe default)
         const status = profile?.status || 'pending'
         console.log('[Middleware Debug] Determined status:', status)
 
-        if (status === 'pending' && !isWaitingPage) {
+        if (status === 'pending' && !isWaitingPage && !isLegalPage) {
             const url = request.nextUrl.clone()
             url.pathname = '/waiting'
             return NextResponse.redirect(url)
         }
 
-        if (status === 'rejected' && !isRejectedPage) {
+        if (status === 'rejected' && !isRejectedPage && !isLegalPage) {
             const url = request.nextUrl.clone()
             url.pathname = '/rejected'
             return NextResponse.redirect(url)

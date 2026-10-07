@@ -17,6 +17,8 @@ export interface AIRequest {
     images?: AIImage[]
     json?: boolean
     maxTokens?: number
+    /** Lista modeli OpenRouter dla tego wywołania (pierwszy próbowany najpierw); nadpisuje domyślne. */
+    models?: string[]
 }
 
 export interface AIResponse {
@@ -59,12 +61,12 @@ export function isAIAvailable(): boolean {
     return getProvider() !== null
 }
 
-export async function generateAI({ task, prompt, images = [], json = false, maxTokens = 4096 }: AIRequest): Promise<AIResponse> {
+export async function generateAI({ task, prompt, images = [], json = false, maxTokens = 4096, models: modelsOverride }: AIRequest): Promise<AIResponse> {
     const config = getProvider()
     if (!config) throw new Error('AI not configured - set OPENROUTER_API_KEY or OPENAI_API_KEY')
 
     const { provider, apiKey } = config
-    const models = getModels(provider, task)
+    const models = provider === 'openrouter' && modelsOverride?.length ? modelsOverride : getModels(provider, task)
 
     const content = images.length
         ? [

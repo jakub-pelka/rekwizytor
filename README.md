@@ -97,3 +97,8 @@ This project is private and not licensed for public use.
 ---
 
 Built with ❤️ using Next.js and AI
+
+## Licencja i prawa
+
+Kod źródłowy aplikacji Rekwizytor jest wyłączną własnością autora (Jakub Pełka) i nie jest udostępniany na zasadach open source. Wszelkie prawa są zastrzeżone. Kopiowanie, modyfikowanie, dystrybucja oraz wykorzystanie oprogramowania w całości lub w części wymagają uprzedniej pisemnej zgody autora. Szczegółowe warunki zostały określone w pliku [LICENSE](./LICENSE).
+

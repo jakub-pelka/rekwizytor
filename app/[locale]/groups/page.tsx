@@ -1,50 +1,26 @@
 import { createClient } from '@/utils/supabase/server'
-import { GroupsList } from '@/components/groups/GroupsList'
-import { getTranslations } from 'next-intl/server'
-import Link from 'next/link'
-import { ChevronRight, Home, FolderTree } from 'lucide-react'
-import { PageHeader } from '@/components/ui/PageHeader'
-import { GroupsHeaderActions } from '@/components/groups/GroupsHeaderActions'
+import { loadStorage } from '@/lib/storage'
+import { StorageView } from '@/components/storage/StorageView'
+import { StorageDialogs } from '@/components/storage/StorageDialogs'
 
 type Props = {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+    searchParams: Promise<{ room?: string }>
 }
 
+// Magazyn (ekrany „Magazyn”, „Magazyn-telefon”, „Magazyn-szukaj”).
 export default async function GroupsPage({ searchParams }: Props) {
-    const resolvedSearchParams = await searchParams
+    const { room } = await searchParams
     const supabase = await createClient()
-    const t = await getTranslations('Groups')
+    const [data, { data: { user } }] = await Promise.all([loadStorage(supabase), supabase.auth.getUser()])
 
-    const groupId = typeof resolvedSearchParams.groupId === 'string' ? resolvedSearchParams.groupId : null
-
-    // Fetch all groups to build hierarchy and list - optimized query
-    const { data: groups } = await supabase
-        .from('groups')
-        .select('id, name, icon, color, created_at, location_id, description, performance_id, locations(id, name), performances(id, title, color)')
-        .order('name')
-
-
+    // Jedno pomieszczenie w teatrze: od razu do niego.
+    const rooms = data.locations.filter(l => !l.parentId)
+    const roomId = room ?? (rooms.length === 1 ? rooms[0].id : null)
 
     return (
-        <div className="p-4 md:p-10 space-y-6 max-w-7xl mx-auto text-white">
-            <PageHeader
-                title={t('title')}
-                subtitle={t('subtitle')}
-                icon={<FolderTree className="w-6 h-6 text-white" />}
-                iconColor="text-blue-400"
-            >
-                <GroupsHeaderActions
-                    groups={groups || []}
-                    currentParentId={groupId}
-                />
-            </PageHeader>
-
-
-
-            <GroupsList
-                groups={groups || []}
-                currentParentId={groupId}
-            />
-        </div>
+        <>
+            <StorageView data={data} roomId={roomId} canEdit={!!user} />
+            <StorageDialogs locations={data.locations.map(l => ({ id: l.id, name: l.name }))} />
+        </>
     )
 }

@@ -1,7 +1,8 @@
 'use client'
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
-import { GlobalSearchDialog, SearchContext } from './GlobalSearchDialog'
+import type { SearchContext } from './GlobalSearchDialog'
+import { CommandPalette } from './CommandPalette'
 
 interface GlobalSearchContextType {
     isOpen: boolean
@@ -41,6 +42,12 @@ export function GlobalSearchProvider({ children }: { readonly children: React.Re
         const handleKeyDown = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault()
+                // Jedno pole na ekran (karta CommandPalette): na ekranie z listą ⌘K przenosi kursor do pola nad listą.
+                const field = document.querySelector<HTMLInputElement>('[data-rk-find]')
+                if (!isOpen && field && field.offsetParent !== null) {
+                    field.focus()
+                    return
+                }
                 if (isOpen) {
                     closeSearch()
                 } else {
@@ -56,7 +63,7 @@ export function GlobalSearchProvider({ children }: { readonly children: React.Re
     return (
         <GlobalSearchContext.Provider value={{ isOpen, openSearch, closeSearch }}>
             {children}
-            <GlobalSearchDialog
+            <CommandPalette
                 isOpen={isOpen}
                 onClose={closeSearch}
                 initialContext={context}

@@ -1,7 +1,8 @@
 'use client'
 
 import { Sidebar } from './Sidebar'
-import { BottomNav } from './BottomNav'
+import { TabBar } from './rk/TabBar'
+import { LegalFooter } from './rk/LegalFooter'
 import { usePathname } from 'next/navigation'
 
 import { GlobalSearchProvider } from './search/GlobalSearchProvider'
@@ -19,11 +20,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <GlobalSearchProvider>
             <div className="flex min-h-screen bg-background">
                 <Sidebar />
-                <div className="flex flex-1 flex-col md:pl-64 min-w-0">
-                    <main className="flex-1 pb-24 md:pb-0">
+                <div className="flex flex-1 flex-col md:pl-[var(--rk-sidebar-w,256px)] min-w-0">
+                    <main className="flex-1">
                         {children}
                     </main>
-                    <BottomNav />
+                    {/* Na telefonie stopka stoi nad dolnym menu. */}
+                    <LegalFooter className="border-t border-border max-md:pb-24" />
+                    <TabBar />
                 </div>
             </div>
         </GlobalSearchProvider>

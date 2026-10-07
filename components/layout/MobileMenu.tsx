@@ -1,7 +1,7 @@
 'use client'
 
 import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
-import { X, BarChart, Settings, LogOut, Tag, Layers, ClipboardList } from 'lucide-react'
+import { X, Settings, LogOut, NotebookPen, Search } from 'lucide-react'
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -21,8 +21,9 @@ export function MobileMenu({ isOpen, onClose }: Props) {
     const pathname = usePathname() // Import needed! Wait, import is missing.
 
     const menuItems = [
-        { name: t('productions'), href: '/performances', icon: Layers },
-        { name: t('groups'), href: '/groups', icon: Tag },
+        // Spektakle, rekwizyty i listy są w dolnym menu (TabBar); tu reszta i konto.
+        { name: t('notes'), href: '/notes', icon: NotebookPen },
+        { name: t('search'), href: '/search', icon: Search },
         { name: t('settings'), href: '/settings', icon: Settings },
     ]
 
