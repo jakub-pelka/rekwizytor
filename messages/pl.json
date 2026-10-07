@@ -142,7 +142,8 @@
         "groups": "Grupy",
         "locations": "Lokalizacje",
         "more": "Więcej",
-        "about": "O Aplikacji"
+        "about": "O Aplikacji",
+        "signIn": "Zaloguj się"
     },
     "Groups": {
         "title": "Grupy",
@@ -518,7 +519,13 @@
         "newPassword": "Nowe Hasło",
         "confirmPassword": "Potwierdź Hasło",
         "passwordUpdated": "Hasło zostało zaktualizowane pomyślnie.",
-        "passwordsDoNotMatch": "Hasła nie są identyczne."
+        "passwordsDoNotMatch": "Hasła nie są identyczne.",
+        "feature1": "Rozpoznawanie rekwizytów ze zdjęcia",
+        "feature2": "Listy rekwizytów do scen i spektakli",
+        "feature3": "Checklisty i tryb na żywo podczas przedstawienia",
+        "feature4": "Etykiety QR i mapa magazynu",
+        "showcaseTitle": "Cyfrowe zaplecze rekwizytorni",
+        "showcaseLead": "Mniej szukania, więcej grania."
     },
     "ItemsList": {
         "searchPlaceholderSmart": "Opisz czego potrzebujesz (np. 'stara walizka')...",
@@ -1035,5 +1042,54 @@
     "SuggestionTests": {
         "title": "Test Podpowiedzi",
         "subtitle": "Sprawdź działanie chmurek podpowiedzi w edytorze tekstu."
+    },
+    "Showcase": {
+        "eyebrow": "Narzędzie dla rekwizytorni",
+        "title": "Cały magazyn rekwizytów w jednym miejscu",
+        "lead": "Rekwizytor porządkuje rekwizyty, spektakle i przygotowania do przedstawień. Zrób zdjęcie półki, a AI samo przygotuje listę przedmiotów.",
+        "ctaLogin": "Zaloguj się",
+        "ctaExplore": "Zobacz spektakle",
+        "previewNote": "Przeglądasz wersję demonstracyjną w trybie tylko do odczytu.",
+        "featuresTitle": "Co potrafi Rekwizytor",
+        "features": {
+            "ai": {
+                "title": "Rozpoznawanie ze zdjęcia",
+                "desc": "AI rozpoznaje przedmioty na zdjęciu i tworzy z nich listę rekwizytów."
+            },
+            "performances": {
+                "title": "Spektakle i sceny",
+                "desc": "Rekwizyty przypisane do scen, aktów i konkretnych przedstawień."
+            },
+            "live": {
+                "title": "Tryb na żywo",
+                "desc": "Checklisty przed spektaklem i podgląd scen w trakcie przedstawienia."
+            },
+            "labels": {
+                "title": "Magazyn i etykiety",
+                "desc": "Grupy, lokalizacje i drukowane etykiety z kodami QR."
+            }
+        },
+        "repertoire": "Repertuar",
+        "seeAll": "Wszystkie",
+        "status": {
+            "active": "W repertuarze",
+            "upcoming": "Nadchodzący",
+            "archived": "Archiwum"
+        }
+    },
+    "PropsScanner": {
+        "title": "Dodaj rekwizyty ze zdjęcia",
+        "captureHint": "Zrób zdjęcie półki, stołu lub kosza z rekwizytami. AI rozpozna przedmioty i przygotuje listę do sprawdzenia.",
+        "openCamera": "Zrób zdjęcie lub wybierz z galerii",
+        "tip": "Najlepiej działa przy dobrym świetle i zdjęciu z przodu.",
+        "analyzing": "Rozpoznaję przedmioty…",
+        "analyzingHint": "Zwykle trwa to kilka sekund.",
+        "found": "{count, plural, =0 {Nie znaleziono przedmiotów} one {Znaleziono 1 przedmiot} few {Znaleziono # przedmioty} many {Znaleziono # przedmiotów} other {Znaleziono # przedmiotu}}",
+        "editHint": "Kliknij nazwę, aby ją poprawić.",
+        "addPlaceholder": "Dodaj kolejny przedmiot…",
+        "retake": "Inne zdjęcie",
+        "add": "{count, plural, one {Dodaj 1 rekwizyt} few {Dodaj # rekwizyty} many {Dodaj # rekwizytów} other {Dodaj # rekwizytu}}",
+        "error": "Nie udało się przeanalizować zdjęcia. Spróbuj ponownie lub dodaj przedmioty ręcznie.",
+        "unauthorized": "Rozpoznawanie AI jest dostępne po zalogowaniu."
     }
 }

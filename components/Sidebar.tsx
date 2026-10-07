@@ -3,7 +3,8 @@
 
 import { Link, useRouter } from '@/i18n/routing'
 import { usePathname } from 'next/navigation'
-import { Theater, Box, Layers, ClipboardList, Settings, LogOut, Sparkles, StickyNote, Tag, CheckCircle2, Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Theater, Box, Layers, ClipboardList, Settings, LogOut, LogIn, Sparkles, StickyNote, Tag, CheckCircle2, Search } from 'lucide-react'
 import { clsx } from 'clsx'
 import { createClient } from '@/utils/supabase/client'
 import { useTranslations } from 'next-intl'
@@ -20,6 +21,15 @@ export function Sidebar() {
     const supabase = createClient()
     const t = useTranslations('Navigation')
     const { openSearch } = useGlobalSearch()
+    const [isSignedIn, setIsSignedIn] = useState<boolean | null>(null)
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => setIsSignedIn(user !== null))
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setIsSignedIn(session !== null)
+        })
+        return () => subscription.unsubscribe()
+    }, [supabase])
 
     // Remove locale from pathname for comparison (e.g., /pl/performances -> /performances)
     const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}(\/|$)/, '/')
@@ -120,14 +130,24 @@ export function Sidebar() {
                             )} />
                             {t('settings')}
                         </Link>
-                        <Button
-                            variant="ghost"
-                            onClick={handleSignOut}
-                            className="w-full justify-start px-3 py-2 text-xs font-medium text-neutral-500 hover:text-red-300 hover:bg-red-900/10"
-                            leftIcon={<LogOut className="h-4 w-4 text-neutral-600 group-hover:text-red-400" />}
-                        >
-                            {t('signOut')}
-                        </Button>
+                        {isSignedIn === false ? (
+                            <Link
+                                href="/login"
+                                className="group flex items-center px-3 py-2 text-xs font-medium rounded-lg transition-all text-burgundy-light hover:text-white hover:bg-burgundy-main/20"
+                            >
+                                <LogIn className="mr-3 h-4 w-4" />
+                                {t('signIn')}
+                            </Link>
+                        ) : (
+                            <Button
+                                variant="ghost"
+                                onClick={handleSignOut}
+                                className="w-full justify-start px-3 py-2 text-xs font-medium text-neutral-500 hover:text-red-300 hover:bg-red-900/10"
+                                leftIcon={<LogOut className="h-4 w-4 text-neutral-600 group-hover:text-red-400" />}
+                            >
+                                {t('signOut')}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -4,7 +4,8 @@ import { isToday } from 'date-fns'
 
 import { Greeting } from '@/components/dashboard/Greeting'
 import { PendingUsersAlert } from '@/components/dashboard/PendingUsersAlert'
-import { ReadOnlyBanner } from '@/components/dashboard/ReadOnlyBanner'
+import { DemoShowcase } from '@/components/dashboard/DemoShowcase'
+import { RepertoireStrip } from '@/components/dashboard/RepertoireStrip'
 import { NearestPerformanceCard } from '@/components/dashboard/NearestPerformanceCard'
 import { UserMentionsList } from '@/components/dashboard/UserMentionsList'
 import { QuickNav } from '@/components/dashboard/QuickNav'
@@ -37,6 +38,10 @@ type PartialChecklistWithColor = {
     status: 'active' | 'upcoming' | 'archived'
     color: string | null
   } | null
+}
+
+type RepertoirePerformance = Pick<PerformanceRow, 'id' | 'title' | 'image_url' | 'color'> & {
+  status: 'active' | 'upcoming' | 'archived'
 }
 
 type PartialPerformance = {
@@ -200,6 +205,7 @@ export default async function Home() {
     newGroupsCountResult,
     newPerformancesCountResult,
     newNotesCountResult,
+    repertoireResult,
   ] = await Promise.allSettled([
     // Fetch Nearest Upcoming Performance
     supabase
@@ -315,6 +321,16 @@ export default async function Home() {
       .select('*', { count: 'exact', head: true })
       .is('deleted_at', null)
       .gte('created_at', lastWeekDate),
+
+    // Repertoire (active first, then upcoming)
+    supabase
+      .from('performances')
+      .select('id, title, image_url, status, color')
+      .is('deleted_at', null)
+      .in('status', ['active', 'upcoming'])
+      .order('status', { ascending: true })
+      .order('premiere_date', { ascending: false })
+      .limit(3),
   ])
 
   const nearestChecklist = extractSettledData<PartialChecklist>(nearestPerformanceResult)
@@ -337,33 +353,43 @@ export default async function Home() {
   const newPerformancesCount = extractSettledCount(newPerformancesCountResult)
   const newNotesCount = extractSettledCount(newNotesCountResult)
 
+  const repertoire = extractSettledData<RepertoirePerformance[]>(repertoireResult) || []
+
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-      {isReadOnly && <ReadOnlyBanner />}
-      <PendingUsersAlert />
-
-      <Greeting name={displayName} />
+      {isReadOnly ? (
+        <DemoShowcase />
+      ) : (
+        <>
+          <PendingUsersAlert />
+          <Greeting name={displayName} />
+        </>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Main Column */}
         <div className="lg:col-span-8 space-y-8">
+          {(nearestPerformance || !isReadOnly) && (
+            <section>
+              <NearestPerformanceCard performance={nearestPerformance} />
+            </section>
+          )}
+
+          <RepertoireStrip performances={repertoire} />
+
           <section>
-            <NearestPerformanceCard performance={nearestPerformance} />
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-red-900 rounded-full" />
+              {t('quickActions')}
+            </h2>
+            <QuickNav />
           </section>
 
-          <div className="grid gap-8">
-            <section>
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <span className="w-1.5 h-6 bg-red-900 rounded-full" />
-                {t('quickActions')}
-              </h2>
-              <QuickNav />
-            </section>
-
+          {upcomingPerformances.length > 0 && (
             <section>
               <UpcomingPerformances performances={upcomingPerformances} />
             </section>
-          </div>
+          )}
         </div>
 
         {/* Sidebar Column */}
@@ -380,9 +406,11 @@ export default async function Home() {
             />
           </section>
 
-          <section>
-            <UserMentionsList mentions={recentMentions} />
-          </section>
+          {!isReadOnly && (
+            <section>
+              <UserMentionsList mentions={recentMentions} />
+            </section>
+          )}
         </div>
       </div>
     </div>

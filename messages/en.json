@@ -142,7 +142,8 @@
         "searchPlaceholder": "Search...",
         "openGlobalSearchWithContext": "Search in {context}",
         "more": "More",
-        "about": "About"
+        "about": "About",
+        "signIn": "Sign in"
     },
     "Groups": {
         "title": "Groups",
@@ -518,7 +519,13 @@
         "newPassword": "New Password",
         "confirmPassword": "Confirm Password",
         "passwordUpdated": "Password updated successfully.",
-        "passwordsDoNotMatch": "Passwords do not match."
+        "passwordsDoNotMatch": "Passwords do not match.",
+        "feature1": "Recognise props from a photo",
+        "feature2": "Props lists for scenes and productions",
+        "feature3": "Checklists and live mode during the show",
+        "feature4": "QR labels and storage map",
+        "showcaseTitle": "The digital backstage for props",
+        "showcaseLead": "Less searching, more performing."
     },
     "ItemsList": {
         "searchPlaceholderSmart": "Describe what you need (e.g. 'vintage suitcase')...",
@@ -1034,5 +1041,54 @@
     "SuggestionTests": {
         "title": "Suggestion Tests",
         "subtitle": "Test suggestion clouds and autocomplete behavior in the editor."
+    },
+    "Showcase": {
+        "eyebrow": "A tool for prop departments",
+        "title": "Your whole prop storage in one place",
+        "lead": "Rekwizytor organises props, productions and show preparation. Take a photo of a shelf and AI drafts the list of items for you.",
+        "ctaLogin": "Sign in",
+        "ctaExplore": "Browse productions",
+        "previewNote": "You are browsing the read-only demo.",
+        "featuresTitle": "What Rekwizytor can do",
+        "features": {
+            "ai": {
+                "title": "Recognition from photos",
+                "desc": "AI recognises objects in a photo and turns them into a props list."
+            },
+            "performances": {
+                "title": "Productions and scenes",
+                "desc": "Props assigned to scenes, acts and specific shows."
+            },
+            "live": {
+                "title": "Live mode",
+                "desc": "Pre-show checklists and a scene view during the performance."
+            },
+            "labels": {
+                "title": "Storage and labels",
+                "desc": "Groups, locations and printable QR code labels."
+            }
+        },
+        "repertoire": "Repertoire",
+        "seeAll": "All",
+        "status": {
+            "active": "In repertoire",
+            "upcoming": "Upcoming",
+            "archived": "Archive"
+        }
+    },
+    "PropsScanner": {
+        "title": "Add props from a photo",
+        "captureHint": "Take a photo of a shelf, table or basket of props. AI recognises the items and drafts a list for you to check.",
+        "openCamera": "Take a photo or choose from gallery",
+        "tip": "Works best in good light, shot from the front.",
+        "analyzing": "Recognising items…",
+        "analyzingHint": "This usually takes a few seconds.",
+        "found": "{count, plural, =0 {No items found} one {Found 1 item} other {Found # items}}",
+        "editHint": "Click a name to correct it.",
+        "addPlaceholder": "Add another item…",
+        "retake": "Another photo",
+        "add": "{count, plural, one {Add 1 prop} other {Add # props}}",
+        "error": "Could not analyse the photo. Try again or add items manually.",
+        "unauthorized": "AI recognition is available after signing in."
     }
 }
