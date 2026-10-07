@@ -1,16 +1,21 @@
 'use server'
 
-import { geminiFlash } from '@/utils/gemini'
+import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { isAIAllowed } from '@/utils/ai/auth'
 import { sanitizeAIOutput } from '@/utils/ai-security'
 
 export async function analyzeGroupImage(imageBase64: string) {
-    if (!geminiFlash) {
+    if (!isAIAvailable()) {
         return { error: 'AI service unavailable' }
+    }
+    if (!(await isAIAllowed())) {
+        return { error: 'Unauthorized' }
     }
 
     try {
         // Remove data URL prefix if present
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
+        const mimeType = /^data:(image\/\w+);base64,/.exec(imageBase64)?.[1] ?? 'image/jpeg'
 
         const prompt = `
         Analyze this image and identify ALL distinct categories of items visible.
@@ -21,54 +26,39 @@ export async function analyzeGroupImage(imageBase64: string) {
         
         Examples of good category names: "Elektronika", "Kable", "Chusteczki higieniczne", "Artykuły biurowe", "Naczynia", "Broń"
         
-        Return ONLY a JSON array:
-        [
-            { "name": "Nazwa Grupy 1", "description": "Krótki opis kategorii" },
-            { "name": "Nazwa Grupy 2", "description": "Krótki opis kategorii" }
-        ]
+        Return ONLY a JSON object:
+        {
+            "groups": [
+                { "name": "Nazwa Grupy 1", "description": "Krótki opis kategorii" },
+                { "name": "Nazwa Grupy 2", "description": "Krótki opis kategorii" }
+            ]
+        }
         
-        If you only see one type of items, return an array with one element.
+        If you only see one type of items, return "groups" with one element.
         `
 
-        const result = await geminiFlash.generateContent([
+        const result = await generateAI({
+            task: 'vision',
             prompt,
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: 'image/jpeg'
-                }
-            }
-        ])
+            images: [{ data: base64Data, mimeType }],
+            json: true
+        })
 
-        const responseText = result.response.text()
-        const usage = result.response.usageMetadata
+        const { createClient } = await import('@/utils/supabase/server')
+        await logAIUsage(await createClient(), result, 'vision_group')
 
-        // Log token usage
-        if (usage) {
-            const { createClient } = await import('@/utils/supabase/server')
-            const supabase = await createClient()
-            await supabase.from('ai_usage_logs').insert({
-                tokens_input: usage.promptTokenCount,
-                tokens_output: usage.candidatesTokenCount,
-                total_tokens: usage.totalTokenCount,
-                model_name: 'gemini-2.0-flash',
-                operation_type: 'vision_group'
-            })
-        }
-
-        // Extract JSON array
-        const jsonMatch = /\[[\s\S]*\]/.exec(responseText)
-        if (!jsonMatch) {
+        type Group = { name: string, description: string }
+        const parsed = parseAIJson<{ groups?: Group[] } | Group[]>(result.text)
+        const groups = Array.isArray(parsed) ? parsed : parsed.groups
+        if (!Array.isArray(groups)) {
             throw new Error('Invalid AI response format')
         }
-
-        const groups: Array<{ name: string, description: string }> = JSON.parse(jsonMatch[0])
 
         // Sanitize each group and limit length
         const sanitizedGroups = groups
             .map(group => ({
-                name: sanitizeAIOutput(group.name),
-                description: sanitizeAIOutput(group.description)
+                name: sanitizeAIOutput(String(group.name ?? '')),
+                description: sanitizeAIOutput(String(group.description ?? ''))
             }))
             .filter(group => group.name.length > 0 && group.name.length <= 100)
             // Remove duplicates (case-insensitive by name)

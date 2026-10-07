@@ -1,20 +1,18 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { geminiFlash } from '@/utils/gemini'
-import { generateEmbedding } from '@/utils/embeddings'
-import { TaskType } from '@google/generative-ai'
+import { generateAI, logAIUsage, parseAIJson, AIImage } from '@/utils/ai/client'
 import { Database } from '@/types/supabase'
 import { sanitizeAIInput, validateAIResponse, AIDescriptionSchema, sanitizeAIOutput } from '@/utils/ai-security'
 
-export async function analyzeItemWithGemini(
+export async function analyzeItemWithAI(
     name: string,
     notes?: string | null,
     imageUrl?: string | null,
     groupsList: string = ''
 ) {
     let prompt = ''
-    let contentParts: (string | { inlineData: { data: string; mimeType: string } })[] = []
+    let images: AIImage[] = []
     let source = 'name' // name, notes, or image
 
     // 1. SANITIZE INPUTS
@@ -47,12 +45,8 @@ export async function analyzeItemWithGemini(
             const base64Data = Buffer.from(arrayBuffer).toString('base64')
             const mimeType = response.headers.get('content-type') || 'image/jpeg'
 
-            contentParts = [
-                prompt + "\n(Załączam też zdjęcie pomocniczo, ale priorytet ma opis tekstowy użytkownika).",
-                { inlineData: { data: base64Data, mimeType } }
-            ]
-        } else {
-            contentParts = [prompt]
+            prompt += "\n(Załączam też zdjęcie pomocniczo, ale priorytet ma opis tekstowy użytkownika)."
+            images = [{ data: base64Data, mimeType }]
         }
 
     }
@@ -79,15 +73,7 @@ export async function analyzeItemWithGemini(
         Output ONLY the JSON object.
         `
 
-        contentParts = [
-            prompt,
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: mimeType
-                }
-            }
-        ]
+        images = [{ data: base64Data, mimeType }]
     }
     // 3. Fallback to Name
     else {
@@ -103,19 +89,15 @@ export async function analyzeItemWithGemini(
 
         Output ONLY the JSON object.
         `
-        contentParts = [prompt]
     }
 
-    if (!geminiFlash) {
-        throw new Error('Gemini AI not available - GEMINI_API_KEY may be missing')
-    }
-
-    const result = await geminiFlash.generateContent(contentParts)
-    const responseText = result.response.text()
-    const usage = result.response.usageMetadata
-
-    const jsonString = responseText.replace(/```json\n?|\n?```/g, '').trim()
-    const rawAnalysis = JSON.parse(jsonString)
+    const result = await generateAI({
+        task: images.length ? 'vision' : 'text',
+        prompt,
+        images,
+        json: true
+    })
+    const rawAnalysis = parseAIJson(result.text)
 
     // 2. VALIDATE OUTPUT
     const validatedAnalysis = validateAIResponse(rawAnalysis, AIDescriptionSchema)
@@ -130,26 +112,16 @@ export async function analyzeItemWithGemini(
         // For now, we assume attributes structure is safe enough as it's JSON.
     }
 
-    return { analysis, usage, source }
+    return { analysis, result, source }
 }
 
 export async function generateItemDescriptions(itemId: string, currentName: string, currentNotes?: string | null, imageUrl?: string | null) {
     const supabase = await createClient()
 
     try {
-        const { analysis, usage, source } = await analyzeItemWithGemini(currentName, currentNotes, imageUrl)
+        const { analysis, result, source } = await analyzeItemWithAI(currentName, currentNotes, imageUrl)
 
-        // Log Token Usage
-        if (usage) {
-            await supabase.from('ai_usage_logs').insert({
-                operation_type: 'generate_description',
-                tokens_input: usage.promptTokenCount,
-                tokens_output: usage.candidatesTokenCount,
-                total_tokens: usage.totalTokenCount,
-                model_name: 'gemini-2.0-flash',
-                details: { itemId, itemName: currentName, source }
-            })
-        }
+        await logAIUsage(supabase, result, 'generate_description', { itemId, itemName: currentName, source })
 
         // Prepare update object (simplified since performance_props has fewer columns)
         const updateData: any = {

@@ -1,65 +1,52 @@
 'use server'
 
-import { geminiFlash } from '@/utils/gemini'
+import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { isAIAllowed } from '@/utils/ai/auth'
 import { sanitizeAIOutput } from '@/utils/ai-security'
 
 export async function analyzePropsImage(imageBase64: string) {
-    if (!geminiFlash) {
+    if (!isAIAvailable()) {
         return { error: 'AI service unavailable' }
+    }
+    if (!(await isAIAllowed())) {
+        return { error: 'Unauthorized' }
     }
 
     try {
         // Remove data URL prefix if present
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
+        const mimeType = /^data:(image\/\w+);base64,/.exec(imageBase64)?.[1] ?? 'image/jpeg'
 
         const prompt = `
         Analyze this image and list ALL visible objects, props, or items.
         Be specific and detailed. Use Polish language.
         Example: instead of "cup" say "Czerwony kubek", instead of "book" say "Stara książka".
         
-        Return ONLY a JSON array of item names:
-        ["Przedmiot 1", "Przedmiot 2", "Przedmiot 3", ...]
+        Return ONLY a JSON object:
+        { "items": ["Przedmiot 1", "Przedmiot 2", "Przedmiot 3", ...] }
         
         Focus on physical objects that could be props for a theatrical performance.
         `
 
-        const result = await geminiFlash.generateContent([
+        const result = await generateAI({
+            task: 'vision',
             prompt,
-            {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: 'image/jpeg'
-                }
-            }
-        ])
+            images: [{ data: base64Data, mimeType }],
+            json: true
+        })
 
-        const responseText = result.response.text()
-        const usage = result.response.usageMetadata
+        const { createClient } = await import('@/utils/supabase/server')
+        await logAIUsage(await createClient(), result, 'vision_props')
 
-        // Log token usage
-        if (usage) {
-            const { createClient } = await import('@/utils/supabase/server')
-            const supabase = await createClient()
-            await supabase.from('ai_usage_logs').insert({
-                tokens_input: usage.promptTokenCount,
-                tokens_output: usage.candidatesTokenCount,
-                total_tokens: usage.totalTokenCount,
-                model_name: 'gemini-2.0-flash',
-                operation_type: 'vision_props'
-            })
-        }
-
-        // Extract JSON array
-        const jsonMatch = /\[[\s\S]*\]/.exec(responseText)
-        if (!jsonMatch) {
+        const parsed = parseAIJson<{ items?: string[] } | string[]>(result.text)
+        const items = Array.isArray(parsed) ? parsed : parsed.items
+        if (!Array.isArray(items)) {
             throw new Error('Invalid AI response format')
         }
 
-        const items: string[] = JSON.parse(jsonMatch[0])
-
         // Sanitize each item and limit length
         const sanitizedItems = items
-            .map(item => sanitizeAIOutput(item))
+            .map(item => sanitizeAIOutput(String(item)))
             .filter(item => item.length > 0 && item.length <= 100)
             // Remove duplicates (case-insensitive)
             .filter((item, index, self) =>

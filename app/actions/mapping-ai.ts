@@ -1,21 +1,17 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import { generateAI, logAIUsage } from '@/utils/ai/client'
+import { isAIAllowed } from '@/utils/ai/auth'
 
 export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
     const supabase = await createClient()
 
+    if (!(await isAIAllowed())) {
+        return { success: false, error: 'Unauthorized' }
+    }
+
     try {
-        // Initialize specific Gemini 3.0 Flash model for mapping
-        const apiKey = process.env.GEMINI_API_KEY
-        if (!apiKey) throw new Error('GEMINI_API_KEY not set')
-
-        const genAI = new GoogleGenerativeAI(apiKey)
-        // User requested specifically "Gemini 3 Flash", which is "gemini-3-flash-preview" in API
-        const mappingModel = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' })
-
-        // Prepare prompt for Gemini
         const prompt = `Analyze this floor plan sketch and generate a clean, professional SVG map using Semantic Grouping.
     
     CRITICAL: RETURN ONLY THE RAW SVG CODE. NO MARKDOWN. START WITH <svg...
@@ -57,7 +53,7 @@ export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
     
     Output nothing but the SVG string.`
 
-        // Fetch image data to pass to Gemini
+        // Fetch image data to pass to the model
         const imageResp = await fetch(imageUrl)
         if (!imageResp.ok) throw new Error('Failed to fetch image from URL')
 
@@ -65,31 +61,16 @@ export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
         const base64Image = Buffer.from(arrayBuffer).toString('base64')
         const mimeType = imageResp.headers.get('content-type') || 'image/jpeg'
 
-        // Call Gemini (mappingModel is strictly initialized above)
-        const result = await mappingModel.generateContent([
+        const result = await generateAI({
+            task: 'vision',
             prompt,
-            {
-                inlineData: {
-                    mimeType: mimeType,
-                    data: base64Image
-                }
-            }
-        ])
+            images: [{ data: base64Image, mimeType }],
+            maxTokens: 16384
+        })
 
-        const usage = result.response.usageMetadata
+        await logAIUsage(supabase, result, 'mapping_ai')
 
-        // Log token usage
-        if (usage) {
-            await supabase.from('ai_usage_logs').insert({
-                tokens_input: usage.promptTokenCount,
-                tokens_output: usage.candidatesTokenCount,
-                total_tokens: usage.totalTokenCount,
-                model_name: 'gemini-3-flash-preview',
-                operation_type: 'mapping_ai'
-            })
-        }
-
-        let svgContent = result.response.text()
+        let svgContent = result.text
 
         // Clean up response if it contains markdown code blocks despite instructions
         svgContent = svgContent.replaceAll(/```svg/g, '').replaceAll(/```xml/g, '').replaceAll(/```/g, '').trim()

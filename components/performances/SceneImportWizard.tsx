@@ -172,7 +172,7 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
                     Import Scenes with AI
                 </div>
             }
-            description="Scan paper breakdowns using Gemini Vision"
+            description="Scan paper breakdowns using AI vision"
             maxWidth="4xl"
         >
             <div className="flex flex-col h-[70vh] relative">
@@ -219,7 +219,7 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
                             {isAnalyzing ? (
                                 <div className="text-center space-y-4">
                                     <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
-                                    <h3 className="text-lg font-medium text-white">Analyzing with Gemini...</h3>
+                                    <h3 className="text-lg font-medium text-white">Analyzing with AI...</h3>
                                     <p className="text-neutral-400">Extracting structure, acts, and names</p>
                                 </div>
                             ) : (

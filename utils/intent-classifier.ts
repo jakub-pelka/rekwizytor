@@ -1,21 +1,21 @@
 import { ruleBasedClassifier, IntentClassificationResult, IntentWeights } from './intent-classifier-rules'
 import { intentLogger } from './intent-pattern-extractor'
-import { geminiFlashLite } from './gemini'
+import { generateAI, isAIAvailable, logAIUsage } from './ai/client'
 import { createClient } from './supabase/server'
 
 /**
  * LLM-based Intent Classifier (fallback when rules are uncertain)
- * Uses Gemini 2.5 Flash-Lite for speed and cost efficiency
+ * Uses the fast text model from the AI client for speed and cost efficiency
  */
 export class LLMIntentClassifier {
     private readonly CONFIDENCE_THRESHOLD = 0.7
 
     /**
-     * Classify using Gemini 2.5 Flash-Lite
+     * Classify using the fast text model
      */
     async classify(query: string): Promise<IntentClassificationResult | null> {
-        if (!geminiFlashLite) {
-            console.warn('Gemini not available for intent classification')
+        if (!isAIAvailable()) {
+            console.warn('AI not available for intent classification')
             return null
         }
 
@@ -37,10 +37,9 @@ Zasady:
 WAŻNE: Odpowiedz TYLKO tym JSON (bez markdown, bez wyjaśnień):
 {"identity": 0.X, "physical": 0.X}`
 
-            const result = await geminiFlashLite.generateContent(prompt)
+            const result = await generateAI({ task: 'text', prompt, json: true, maxTokens: 512 })
             const latencyMs = Date.now() - startTime
-            const usage = result.response.usageMetadata
-            const responseText = result.response.text().trim()
+            const responseText = result.text
 
             // Parse JSON response
             const jsonMatch = /\{[^}]+\}/.exec(responseText)
@@ -64,20 +63,8 @@ WAŻNE: Odpowiedz TYLKO tym JSON (bez markdown, bez wyjaśnień):
             // Log token usage (ONLY in production)
             const isProduction = process.env.NODE_ENV === 'production' && process.env.ENABLE_INTENT_LOGGING === 'true'
 
-            if (isProduction && usage) {
-                try {
-                    const supabase = await createClient()
-                    await supabase.from('ai_usage_logs').insert({
-                        tokens_input: usage.promptTokenCount,
-                        tokens_output: usage.candidatesTokenCount,
-                        total_tokens: usage.totalTokenCount,
-                        model_name: 'gemini-2.5-flash-lite',
-                        operation_type: 'intent_classification',
-                        details: { query, weights } as any
-                    })
-                } catch (logError) {
-                    console.warn('Failed to log AI usage:', logError)
-                }
+            if (isProduction) {
+                await logAIUsage(await createClient(), result, 'intent_classification', { query, weights })
             }
 
             return {
@@ -162,7 +149,7 @@ export class IntentClassifier {
             identityScore: result.identity,
             physicalScore: result.physical,
             source: result.source,
-            modelName: result.source === 'llm' ? 'gemini-2.5-flash-lite' : undefined,
+            modelName: result.source === 'llm' ? 'llm' : undefined,
             latencyMs: result.latencyMs
         })
     }

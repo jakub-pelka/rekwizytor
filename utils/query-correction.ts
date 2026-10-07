@@ -1,7 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
-const apiKey = process.env.GEMINI_API_KEY
+import { generateAI, isAIAvailable, logAIUsage } from '@/utils/ai/client'
 
 /**
  * Try to correct typos in search query using fuzzy search + AI
@@ -30,11 +28,8 @@ export async function correctQueryTypos(query: string): Promise<string> {
 
         // STEP 2: If no fuzzy match, use AI to normalize the query
         // This handles typos that don't match existing data
-        if (apiKey && query.length > 3) {
+        if (isAIAvailable() && query.length > 3) {
             try {
-                const genAI = new GoogleGenerativeAI(apiKey)
-                const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
-
                 const prompt = `Popraw błędy ortograficzne w tym zapytaniu wyszukiwania (jeśli są):
 "${query}"
 
@@ -52,21 +47,10 @@ Przykłady:
 
 Odpowiedź (tylko poprawiony tekst):`
 
-                const result = await model.generateContent(prompt)
-                const usage = result.response.usageMetadata
-                const corrected = result.response.text().trim().replaceAll(/['"]/g, '')
+                const result = await generateAI({ task: 'text', prompt, maxTokens: 512 })
+                const corrected = result.text.replaceAll(/['"]/g, '')
 
-                // Log token usage
-                if (usage) {
-                    await supabase.from('ai_usage_logs').insert({
-                        tokens_input: usage.promptTokenCount,
-                        tokens_output: usage.candidatesTokenCount,
-                        total_tokens: usage.totalTokenCount,
-                        model_name: 'gemini-2.0-flash-exp',
-                        operation_type: 'query_correction',
-                        details: { originalQuery: query, correctedQuery: corrected }
-                    })
-                }
+                await logAIUsage(supabase, result, 'query_correction', { originalQuery: query, correctedQuery: corrected })
 
                 // Only use AI correction if it's different and reasonable
                 if (corrected && corrected !== query && corrected.length < query.length + 5) {

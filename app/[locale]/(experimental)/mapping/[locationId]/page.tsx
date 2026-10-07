@@ -58,7 +58,7 @@ export default async function LocationMappingPage({ params }: { readonly params:
                     <div className="bg-[#1e1e1e] p-6 rounded-lg border border-neutral-800 opacity-50 cursor-not-allowed">
                         <h3 className="font-semibold mb-2">Automatyczna Analiza AI</h3>
                         <p className="text-xs text-neutral-400 mb-4">
-                            Funkcja analizy zdjęć i szkiców (Gemini) będzie dostępna wkrótce.
+                            Funkcja analizy zdjęć i szkiców (AI) będzie dostępna wkrótce.
                         </p>
                     </div>
                 </div>

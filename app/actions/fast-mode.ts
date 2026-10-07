@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-import { geminiFlash } from '@/utils/gemini'
+import { generateAI, logAIUsage, parseAIJson } from '@/utils/ai/client'
 import { sanitizeAIOutput, validateAIResponse, FastModeSchema } from '@/utils/ai-security'
 import { Database } from '@/types/supabase'
 
@@ -37,34 +37,6 @@ function getPublicUrl(supabase: any, filePath: string): string {
     return publicUrl
 }
 
-async function logAIUsage(supabase: any, usage: any, fileName: string): Promise<void> {
-    if (!usage) return
-    await supabase.from('ai_usage_logs').insert({
-        operation_type: 'fast_add',
-        tokens_input: usage.promptTokenCount,
-        tokens_output: usage.candidatesTokenCount,
-        total_tokens: usage.totalTokenCount,
-        model_name: 'gemini-2.0-flash',
-        details: { fileName }
-    })
-}
-
-async function analyzeImageWithAI(image: File): Promise<{ name: string } | null> {
-    if (!geminiFlash) {
-        throw new Error('Gemini AI not available - GEMINI_API_KEY may be missing')
-    }
-
-    const arrayBuffer = await image.arrayBuffer()
-    const base64Data = Buffer.from(arrayBuffer).toString('base64')
-
-    const result = await geminiFlash.generateContent([
-        AI_PROMPT,
-        { inlineData: { data: base64Data, mimeType: image.type } }
-    ])
-
-    return { _result: result } as any
-}
-
 async function createPropInDB(supabase: any, performanceId: string, name: string, imageUrl: string): Promise<any | null> {
     const { data: newProp, error: dbError } = await supabase
         .from('performance_props')
@@ -95,20 +67,16 @@ async function processImageWithAI(
         const arrayBuffer = await image.arrayBuffer()
         const base64Data = Buffer.from(arrayBuffer).toString('base64')
 
-        if (!geminiFlash) {
-            throw new Error('Gemini AI not available - GEMINI_API_KEY may be missing')
-        }
+        const result = await generateAI({
+            task: 'vision',
+            prompt: AI_PROMPT,
+            images: [{ data: base64Data, mimeType: image.type || 'image/jpeg' }],
+            json: true
+        })
 
-        const result = await geminiFlash.generateContent([
-            AI_PROMPT,
-            { inlineData: { data: base64Data, mimeType: image.type } }
-        ])
+        await logAIUsage(supabase, result, 'fast_add', { fileName })
 
-        await logAIUsage(supabase, result.response.usageMetadata, fileName)
-
-        const responseText = result.response.text()
-        const jsonString = responseText.replace(/```json\n?|\n?```/g, '').trim()
-        const rawAnalysis = JSON.parse(jsonString)
+        const rawAnalysis = parseAIJson(result.text)
 
         const validatedAnalysis = validateAIResponse(rawAnalysis, FastModeSchema)
         const analysis = {

@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { generateAI } from './ai/client'
 import { getPerformanceContextForGroup } from './performance-group-linking'
 
 const geminiKey = process.env.GEMINI_API_KEY
@@ -15,12 +16,12 @@ export interface GroupEnrichmentResult {
  * Enrich a group name with AI-generated keywords segments for Multi-Vector Search
  * 
  * @param name - The group name
- * @param enrichmentModel - The AI model to use for enrichment (default: gemini-2.0-flash-exp)
+ * @param enrichmentModel - The AI model to use for enrichment (default: 'default' = shared AI client)
  * @returns Structured enrichment data (identity, physical, context)
  */
 export async function enrichGroupNameForEmbedding(
     name: string,
-    enrichmentModel: string = 'gemini-2.0-flash-exp'
+    enrichmentModel: string = 'default'
 ): Promise<GroupEnrichmentResult> {
     const fallbackResult: GroupEnrichmentResult = {
         identity: name,
@@ -35,7 +36,8 @@ export async function enrichGroupNameForEmbedding(
     const performanceContext = await getPerformanceContextForGroup(name)
 
     // Determine provider from model name
-    const getProvider = (model: string): 'openai' | 'mistral' | 'gemini' => {
+    const getProvider = (model: string): 'default' | 'openai' | 'mistral' | 'gemini' => {
+        if (model === 'default') return 'default'
         if (model.includes('gpt')) return 'openai'
         if (model.includes('mistral')) return 'mistral'
         return 'gemini'
@@ -48,6 +50,12 @@ export async function enrichGroupNameForEmbedding(
 
             // Route to appropriate provider
             switch (provider) {
+                case 'default':
+                    enriched = parseEnrichmentResponse(
+                        (await generateAI({ task: 'text', prompt: buildPrompt(name, performanceContext), json: true })).text,
+                        name
+                    )
+                    break
                 case 'openai':
                     enriched = await enrichWithOpenAI(name, enrichmentModel, performanceContext)
                     break

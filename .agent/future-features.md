@@ -663,6 +663,74 @@ Wprowadzenie mechanizmu Hybrid Upload we wszystkich miejscach, gdzie system pros
 ---
 
 
+## 🔍 Pipeline rozpoznawania v2: detekcja → wycinki → embedding obrazu → LLM
+
+**Data dodania:** 2026-10-03  
+**Priorytet:** Średni  
+**Złożoność:** Średnia  
+
+### Problem
+Obecne rozpoznawanie (vision-props, fast-mode) prosi model o „wymyślenie nazw wszystkiego na zdjęciu”:
+- nazwy są niepowtarzalne między wywołaniami i trzeba je ręcznie dopasowywać do katalogu,
+- każdy rekwizyt dostaje zdjęcie całej półki zamiast własnego kadru,
+- odpowiedź parsowana regexem zamiast schematu JSON.
+
+### Proponowane rozwiązanie (wszystko przez OpenRouter, działa na Vercelu)
+1. **Detekcja przez VLM z groundingiem:** `qwen/qwen3-vl-*` zwraca `{"bbox_2d":[x1,y1,x2,y2],"label"}` w skali 0–1000. Jedno wywołanie = nazwa PL + ramka.
+2. **Wycinki:** `sharp` w funkcji lub `<canvas>` w przeglądarce → każdy rekwizyt ma własne zdjęcie.
+3. **Embedding obrazu wycinka:** OpenRouter `/embeddings` z multimodal input (`google/gemini-embedding-2-preview`, `voyageai/voyage-multimodal-3.5`, `nvidia/llama-nemotron-embed-vl-1b-v2:free`). Na start: deduplikacja; później wyszukiwanie „który to z moich rekwizytów”.
+4. **LLM (opcjonalnie):** mocniejszy model tylko do nazwy/opisu wycinka, jeśli Qwen słabo nazywa po polsku.
+
+Uwagi:
+- Lokalne modele (ONNX, transformers.js) na Vercelu odpadają: brak GPU, limity rozmiaru.
+- Limit body funkcji Vercel ~4.5 MB → zmniejszać zdjęcia w przeglądarce (1600–2000 px).
+- Fallback modeli w OpenRouter (`models: [...]`) chroni przed awarią jednego dostawcy.
+- Plan B, jeśli ramki z VLM za słabe: Roboflow / Replicate / fal.ai (Grounding DINO, SAM), Moondream Cloud `detect`.
+- **Pierwszy krok:** skrypt `scripts/` porównujący 2–3 modele na 10–20 prawdziwych zdjęciach półek (ramki, czas, koszt).
+
+### Oszacowanie czasu
+- Skrypt ewaluacyjny: **2-3h**
+- Detekcja + wycinki + UI potwierdzania: **6-8h**
+- Embeddingi obrazów + deduplikacja: **3-4h**
+
+**Łącznie: ~11-15 godzin pracy**
+
+---
+
+## 🧭 Migracja embeddingów tekstowych z Gemini
+
+**Data dodania:** 2026-10-03  
+**Priorytet:** Średni  
+**Złożoność:** Średnia  
+
+### Problem
+Klucz Gemini unieważniony, a `text-embedding-004` jest wycofywany. Wektory w bazie (768 wym.) są z Gemini, więc wyszukiwanie hybrydowe nie działa i spada do FTS (`executeClassicSearch` w `unified-search.ts`).
+
+### Proponowane rozwiązanie
+Wybrać nowy model (np. przez OpenRouter `/embeddings`), przeliczyć wektory wszystkich encji (istnieje `admin/migrate-embeddings`), zaktualizować wymiar kolumn i funkcje RPC `search_global_hybrid_mv`.
+
+### Oszacowanie czasu
+**4-6h** (w tym przeliczenie i testy jakości na istniejącym systemie testów embeddingów)
+
+---
+
+## 🗺️ Mapowanie: AI zwraca geometrię (JSON), kod generuje SVG
+
+**Data dodania:** 2026-10-03  
+**Priorytet:** Niski  
+**Złożoność:** Średnia  
+
+### Problem
+`mapping-ai.ts` każe modelowi pisać surowy SVG z siatką 10px, co jest kruche w każdym modelu.
+
+### Proponowane rozwiązanie
+Model zwraca `{walls:[...], shelves:[{x,y,w,h}], doors:[...]}` przez schemat JSON, a SVG renderuje deterministyczny kod (snap do siatki po stronie kodu).
+
+### Oszacowanie czasu
+**4-5h**
+
+---
+
 ## 📋 Szablon dla kolejnych pomysłów
 
 ```markdown

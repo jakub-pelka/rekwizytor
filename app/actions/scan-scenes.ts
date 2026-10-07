@@ -1,6 +1,7 @@
 'use server'
 
-import { geminiFlash, geminiFlashLite, isGeminiAvailable } from '@/utils/gemini'
+import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { isAIAllowed } from '@/utils/ai/auth'
 import { createClient } from '@/utils/supabase/server'
 import { randomUUID } from 'crypto'
 
@@ -22,8 +23,11 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
         return { scenes: [], error: 'No file provided' }
     }
 
-    if (!isGeminiAvailable() || !geminiFlash) {
+    if (!isAIAvailable()) {
         return { scenes: [], error: 'AI service not available (API Key missing)' }
+    }
+    if (!(await isAIAllowed())) {
+        return { scenes: [], error: 'Unauthorized' }
     }
 
     try {
@@ -53,56 +57,27 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
         - Use ONLY valid JSON.
         `
 
-        const model = geminiFlashLite || geminiFlash
-        if (!model) {
-            return { scenes: [], error: 'AI service not available' }
-        }
-
-        const result = await model.generateContent({
-            contents: [{
-                role: 'user',
-                parts: [
-                    { text: prompt },
-                    {
-                        inlineData: {
-                            mimeType: file.type || 'image/jpeg',
-                            data: base64Image
-                        }
-                    }
-                ]
-            }],
-            generationConfig: {
-                responseMimeType: "application/json",
-                maxOutputTokens: 2048,
-                temperature: 0.1
-            }
+        const result = await generateAI({
+            task: 'vision',
+            prompt,
+            images: [{ data: base64Image, mimeType: file.type || 'image/jpeg' }],
+            json: true,
+            maxTokens: 8192
         })
 
-        const response = result.response
-        const usage = response.usageMetadata
+        await logAIUsage(supabase, result, 'scan_scenes')
 
-        if (usage) {
-            await supabase.from('ai_usage_logs').insert({
-                tokens_input: usage.promptTokenCount,
-                tokens_output: usage.candidatesTokenCount,
-                total_tokens: usage.totalTokenCount,
-                model_name: geminiFlashLite ? 'gemini-2.5-flash-lite' : 'gemini-2.0-flash',
-                operation_type: 'scan_scenes'
-            })
-        }
-
-        const text = response.text()
-        console.log('Gemini raw response:', text)
+        const text = result.text
 
         try {
-            const data = JSON.parse(text)
+            const data = parseAIJson<{ scenes?: { scene_number: number, act_number: number | null, name: string | null }[] }>(text)
 
             if (!data.scenes || !Array.isArray(data.scenes)) {
                 return { scenes: [], error: 'Invalid AI response structure' }
             }
 
             // Post-process to fit ScannedScene type
-            const scenes: ScannedScene[] = data.scenes.map((s: any) => ({
+            const scenes: ScannedScene[] = data.scenes.map(s => ({
                 _id: randomUUID(),
                 original_number: s.scene_number,
                 scene_number: s.scene_number, // Default to read number, client will re-calc if needed
@@ -113,7 +88,7 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
 
             return { scenes }
         } catch (e) {
-            console.error('Failed to parse Gemini response:', text)
+            console.error('Failed to parse AI response:', text)
             return { scenes: [], error: 'Failed to parse AI response' }
         }
 
