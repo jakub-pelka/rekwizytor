@@ -1,0 +1,18 @@
+<!-- @dsCard group="Rekwizyty" height=450 subtitle="Aparat, arkusz i wybór trybu skanu" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Skaner — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px;color:var(--ink);font-family:var(--font-sans)}
+.cap{font:400 12px/16px var(--font-typewriter);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);margin:0 0 12px}
+.cols{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
+</style></head>
+<body>
+<div class="rk" style="display:flex;flex-direction:column;gap:24px">
+<div class="cols"><div><p class="cap">Aparat i arkusz od dołu</p><div style="position:relative;width:280px;height:360px;border-radius:var(--radius-lg);overflow:hidden"><div class="rk-cam"><div class="rk-cam__top"><button class="rk-btn rk-btn--ghost rk-btn--icon" aria-label="Zamknij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button><button class="rk-btn rk-btn--ghost rk-btn--icon" aria-label="Latarka"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12z"></path><path d="M6 6h12"></path><path d="M12 12v.01"></path></svg></button></div><div class="rk-cam__view"><div class="rk-cam__frame rk-cam__frame--warn" style="width:160px;height:160px"><i></i><i></i><i></i><i></i></div></div></div>
+<div class="rk-sheet" style="padding:20px 16px 20px"><span class="rk-sheet__grip"></span><b>Nie znamy numeru REK-0999</b><button class="rk-btn rk-btn--primary">Skanuj dalej</button></div></div></div><div style="width:340px"><p class="cap">Wybór trybu, rozpoznania trwają w tle</p><div class="rk-choice" role="group" aria-labelledby="sc-q">
+<button class="rk-choice__opt"><span class="rk-choice__ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></svg></span><span><b>Jako grupy przedmiotów</b><small>Podobne rzeczy razem, z przybliżoną liczbą, np. „Kielichy, ok. 12 szt.”. Szybko, bez liczenia sztuk.</small></span></button>
+<button class="rk-choice__opt"><span class="rk-choice__ico rk-choice__ico--item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6H9.5L4 12l5.5 6H20a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Z"></path><path d="M8.5 12h.01"></path><path d="M12.5 10h5"></path><path d="M12.5 14h3"></path></svg></span><span><b>Jako pojedyncze przedmioty</b><small>Każda rzecz osobno, z numerem REK- i etykietą. Dla rzeczy, które grają w spektaklach.</small></span></button>
+</div><div class="rk-scan-status" role="status"><span class="rk-scan-status__row is-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Grupy przedmiotów: gotowe</span><span class="rk-scan-status__row"><span class="rk-bells" aria-hidden="true"><i></i><i></i><i></i></span>Pojedyncze przedmioty: rozpoznaję…</span></div></div></div>
+</div>
+</body>
+</html>

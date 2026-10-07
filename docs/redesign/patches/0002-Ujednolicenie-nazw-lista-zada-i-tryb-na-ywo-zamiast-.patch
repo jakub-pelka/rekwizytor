@@ -1,0 +1,84 @@
+From 10529248281199d89423368f118c6257384de5ef Mon Sep 17 00:00:00 2001
+From: Kuba <kubapelka12@gmail.com>
+Date: Sun, 4 Oct 2026 17:24:59 +0200
+Subject: [PATCH 2/2] =?UTF-8?q?Ujednolicenie=20nazw:=20lista=20zada=C5=84?=
+ =?UTF-8?q?=20i=20tryb=20na=20=C5=BCywo=20zamiast=20Live=20View?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01JEwKMHVjpHXyB4c75U3h5j
+---
+ messages/pl.json | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/messages/pl.json b/messages/pl.json
+index 707bd13..728c514 100644
+--- a/messages/pl.json
++++ b/messages/pl.json
+@@ -294,7 +294,7 @@
+         "scene": "Scena",
+         "props": "Zadania",
+         "acts": "Akty",
+-        "liveView": "Podgląd listy zadań",
++        "liveView": "Lista zadań",
+         "manageScenes": "Zarządzaj Scenami",
+         "editDetails": "Edytuj Szczegóły",
+         "actions": "Akcje",
+@@ -392,7 +392,7 @@
+     },
+     "LivePerformance": {
+         "noUpcomingShows": "Nie znaleziono nadchodzących przedstawień",
+-        "scheduleShow": "Zaplanuj przedstawienie, aby zobaczyć listę kontrolną na żywo.",
++        "scheduleShow": "Zaplanuj przedstawienie, aby śledzić listę zadań na żywo.",
+         "noActiveShows": "Brak aktywnych przedstawień",
+         "allFinished": "Wszystkie zaplanowane na dzisiaj Spektakli już się zakończyły.",
+         "scenes": "Sceny",
+@@ -410,19 +410,19 @@
+         "prev": "Poprzednia",
+         "act": "Akt {number}",
+         "finishAct": "Zakończ Akt",
+-        "cancelLiveViewTitle": "Anulować Live View?",
+-        "cancelLiveViewWarning": "Czy na pewno chcesz anulować? Cały postęp i status gotowości zostaną utracone.",
++        "cancelLiveViewTitle": "Przerwać spektakl na żywo?",
++        "cancelLiveViewWarning": "Czy na pewno chcesz przerwać? Cały postęp i status gotowości zostaną utracone.",
+         "confirmCancel": "Tak, Anuluj",
+         "goBack": "Nie, Wróć",
+-        "startLiveViewTitle": "Rozpocząć Podgląd?",
+-        "startLiveViewDesc": "Wejście w tryb Live View pozwoli na śledzenie postępu spektaklu w czasie rzeczywistym.",
+-        "startLiveViewAction": "Rozpocznij Live View",
++        "startLiveViewTitle": "Rozpocząć spektakl na żywo?",
++        "startLiveViewDesc": "Lista zadań przejdzie w tryb na żywo: wszyscy zobaczą postęp spektaklu w czasie rzeczywistym.",
++        "startLiveViewAction": "Rozpocznij spektakl",
+         "showFinished": "Spektakl Zakończony",
+         "duration": "Czas Trwania",
+         "itemsStaged": "Przedmioty na Scenie",
+         "returnToDashboard": "Powrót do Ekranu Głównego",
+         "cancel": "Anuluj",
+-        "cancelLiveView": "Anuluj Live View",
++        "cancelLiveView": "Przerwij spektakl",
+         "unassigned": "Nieprzypisane",
+         "endOfShow": "Koniec Spektaklu",
+         "startBreak": "Rozpocznij Przerwę",
+@@ -454,7 +454,7 @@
+         "upcoming": "NADCHODZĄCE",
+         "noActiveShows": "Brak aktywnych przedstawień",
+         "noActiveShowsDesc": "Zaplanowane przedstawienia pojawią się tutaj, gdy będą gotowe do rozpoczęcia.",
+-        "manageLiveView": "Zarządzaj Live View",
++        "manageLiveView": "Zarządzaj spektaklem na żywo",
+         "manageLiveViewDesc": "Kontroluj aktywną sesję. Możesz zrestartować spektakl lub całkowicie go zatrzymać dla wszystkich użytkowników.",
+         "restartShow": "Zrestartuj Spektakl",
+         "restartShowDesc": "Zresetuj cały postęp i rozpocznij od Sceny 1.",
+@@ -462,7 +462,7 @@
+         "stopShowDesc": "Natychmiast zatrzymaj spektakl dla wszystkich.",
+         "unknownProduction": "Nieznany Spektakl",
+         "sceneFallback": "Scena {number}",
+-        "openLiveView": "Otwórz Podgląd Na Żywo"
++        "openLiveView": "Otwórz listę zadań na żywo"
+     },
+     "EditPerformanceForm": {
+         "showTitle": "Tytuł Spektaklu",
+-- 
+2.43.0
+

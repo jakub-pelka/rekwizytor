@@ -1,0 +1,183 @@
+{
+ "v": 3,
+ "assetGroups": {
+  "Logos": {
+   "files": {
+    "rekwizytor-znak.svg": {
+     "blob": "13b8b0b91c67864f87de67d2871c4811",
+     "name": "rekwizytor-znak.svg",
+     "size": 383,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-znak-mono-kurtyna.svg": {
+     "blob": "a167fcbb1db036f17aabae795edbc1e7",
+     "name": "rekwizytor-znak-mono-kurtyna.svg",
+     "size": 470,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-znak-mono-czarny.svg": {
+     "blob": "e9e83e113826e76833821aa9303c8edf",
+     "name": "rekwizytor-znak-mono-czarny.svg",
+     "size": 470,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-znak-mono-bialy.svg": {
+     "blob": "9a467c6e383b5ca9eb43e5355c10d319",
+     "name": "rekwizytor-znak-mono-bialy.svg",
+     "size": 470,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-light.svg": {
+     "blob": "8688b3b3433cb9521de844ac44219a42",
+     "name": "rekwizytor-logo-light.svg",
+     "size": 11000,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-dark.svg": {
+     "blob": "f5766ced7e43a66b8ed9ff8a9178c4b3",
+     "name": "rekwizytor-logo-dark.svg",
+     "size": 11000,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-tagline-light.svg": {
+     "blob": "7b74509a13ffc9854625ba80dfe8b4d0",
+     "name": "rekwizytor-logo-tagline-light.svg",
+     "size": 35288,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-tagline-dark.svg": {
+     "blob": "2cfb09df4b3569d9da49ef7acd6b4df2",
+     "name": "rekwizytor-logo-tagline-dark.svg",
+     "size": 35288,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-pion-light.svg": {
+     "blob": "03cc8d60acd0c01e895573345b9818ca",
+     "name": "rekwizytor-logo-pion-light.svg",
+     "size": 35333,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-pion-dark.svg": {
+     "blob": "c34e3f7c7276269ae63aea46774c7469",
+     "name": "rekwizytor-logo-pion-dark.svg",
+     "size": 35333,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-mono-czarny.svg": {
+     "blob": "f144cbb952b36373d5703dacd509e12c",
+     "name": "rekwizytor-logo-mono-czarny.svg",
+     "size": 11087,
+     "type": "image/svg+xml"
+    },
+    "rekwizytor-logo-mono-bialy.svg": {
+     "blob": "a4b7026b2c5093fa5d9a98f243351e30",
+     "name": "rekwizytor-logo-mono-bialy.svg",
+     "size": 11087,
+     "type": "image/svg+xml"
+    },
+    "favicon.svg": {
+     "blob": "42167bc64223ea76f91af541dbc3beac",
+     "name": "favicon.svg",
+     "size": 381,
+     "type": "image/svg+xml"
+    },
+    "logo-icon.png": {
+     "blob": "91bc07ac97fc970880b679ba98ce31f0",
+     "name": "logo-icon.png",
+     "size": 12328,
+     "type": "image/png"
+    },
+    "app-icon-ios.png": {
+     "blob": "dbc9340ef12460b3e41f4acb9e44d162",
+     "name": "app-icon-ios.png",
+     "size": 15602,
+     "type": "image/png"
+    },
+    "app-icon-android-512.png": {
+     "blob": "51cf8a30f1979b4447150f45bb9021a0",
+     "name": "app-icon-android-512.png",
+     "size": 6469,
+     "type": "image/png"
+    },
+    "icon-maskable-512.png": {
+     "blob": "0996bd72a35898b25762c2cc170bb495",
+     "name": "icon-maskable-512.png",
+     "size": 6469,
+     "type": "image/png"
+    },
+    "icon-monochrome-512.png": {
+     "blob": "b9b7c8678b6df7903f7e8dfdd638c590",
+     "name": "icon-monochrome-512.png",
+     "size": 5795,
+     "type": "image/png"
+    },
+    "android-foreground.png": {
+     "blob": "68bbb0c79c66321cf1238efa470f87f3",
+     "name": "android-foreground.png",
+     "size": 5313,
+     "type": "image/png"
+    },
+    "android-background.png": {
+     "blob": "8ff0141e01eeb579c665706f170281a9",
+     "name": "android-background.png",
+     "size": 1294,
+     "type": "image/png"
+    },
+    "android-monochrome.png": {
+     "blob": "d6b349312acc462516d9b4fad8dc63bd",
+     "name": "android-monochrome.png",
+     "size": 4161,
+     "type": "image/png"
+    }
+   },
+   "name": "Logos",
+   "order": [
+    "rekwizytor-znak.svg",
+    "rekwizytor-znak-mono-kurtyna.svg",
+    "rekwizytor-znak-mono-czarny.svg",
+    "rekwizytor-znak-mono-bialy.svg",
+    "rekwizytor-logo-light.svg",
+    "rekwizytor-logo-dark.svg",
+    "rekwizytor-logo-tagline-light.svg",
+    "rekwizytor-logo-tagline-dark.svg",
+    "rekwizytor-logo-pion-light.svg",
+    "rekwizytor-logo-pion-dark.svg",
+    "rekwizytor-logo-mono-czarny.svg",
+    "rekwizytor-logo-mono-bialy.svg",
+    "favicon.svg",
+    "logo-icon.png",
+    "app-icon-ios.png",
+    "app-icon-android-512.png",
+    "icon-maskable-512.png",
+    "icon-monochrome-512.png",
+    "android-foreground.png",
+    "android-background.png",
+    "android-monochrome.png"
+   ],
+   "tile": "l"
+  }
+ },
+ "blobs": {},
+ "createdOnFiles": {
+  "at": "2026-10-03T20:15:15Z",
+  "v": 1
+ },
+ "docs": {
+  "readme": "project/README.md",
+  "sections": []
+ },
+ "groups": [
+  "Logos"
+ ],
+ "lastChange": {
+  "by": "Kuba",
+  "at": "2026-10-07T12:00:00Z",
+  "via": "Claude (Cowork)",
+  "note": "Nowe karty: Magazyn (hierarchia pojemnik/grupa/przedmiot), Porządkowanie, Skaner (aparat, arkusz, wybór trybu), Na żywo; wzorce przeniesione z ekranów"
+ },
+ "layout": "files",
+ "libraries": [],
+ "namespace": "Rekwizytor",
+ "sections": {},
+ "title": "Rekwizytor"
+}

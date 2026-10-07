@@ -1,0 +1,63 @@
+<!-- @dsCard group="Status" height=640 subtitle="Liczby: pigułka, postęp, liczność" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Licznik — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}
+.cap{font:400 12px/16px var(--font-typewriter);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);margin:0 0 12px}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;align-items:start}
+.col{display:flex;flex-direction:column;gap:12px}
+.col h4{margin:0;font:600 14px/20px var(--font-sans)}
+.col p{margin:0;font:400 13px/18px var(--font-sans);color:var(--ink-muted)}
+.demo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px}
+.row{display:flex;align-items:center;gap:12px;font:500 14px/20px var(--font-sans)}
+.row span.grow{flex:1}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.rule{display:flex;flex-direction:column;gap:10px}
+.rule h4{margin:0;font:600 14px/20px var(--font-sans);display:flex;align-items:center;gap:8px}
+.rule h4 svg{width:18px;height:18px;flex:none}
+.yes h4{color:var(--success)} .no h4{color:var(--danger)}
+.rule p{margin:0;font:400 13px/18px var(--font-sans);color:var(--ink-muted)}
+</style></head>
+<body>
+<div class="rk" style="display:flex;flex-direction:column;gap:32px">
+
+<section>
+<p class="cap">Trzy formy · zawsze maszynopis · bez kropki</p>
+<div class="cols">
+<div class="col"><h4>Pigułka <code>.rk-count</code></h4>
+<div class="demo" style="display:flex;flex-direction:column;gap:2px">
+<a class="rk-nav-item" href="#" aria-current="page">Pulpit<span class="rk-nav-item__n">3</span></a>
+<a class="rk-nav-item" href="#">Spektakle<span class="rk-nav-item__n">5</span></a>
+<a class="rk-nav-item" href="#">Listy zadań<span class="rk-nav-item__n rk-nav-item__n--live">1</span></a>
+<a class="rk-nav-item" href="#">Notatki<span class="rk-nav-item__n rk-nav-item__n--new">2</span></a>
+</div>
+<div class="rk-row" style="gap:8px"><span class="rk-count">5</span><span class="rk-count rk-count--new">2</span><span class="rk-count rk-count--live">1</span><span class="rk-count">99+</span></div>
+<p>Ile jest czegoś przy pozycji menu, zakładce albo filtrze. Neutralna: ile jest. <b>Nowe</b> (bordo): ile czeka na ciebie, np. wzmianki. <b>Na żywo</b> (ochra): listy w trakcie spektaklu. Powyżej 99 pisz „99+”, przy zerze nie pokazuj.</p></div>
+<div class="col"><h4>Postęp <code>.rk-fraction</code></h4>
+<div class="demo" style="display:flex;flex-direction:column;gap:12px">
+<div class="row"><span class="grow">Próba</span><span class="rk-fraction is-done">38/38</span></div>
+<div class="row"><span class="grow">Przed spektaklem</span><span class="rk-fraction is-current">31/42</span></div>
+<div class="row"><span class="grow">Przed II aktem</span><span class="rk-fraction">0/12</span></div>
+</div>
+<p>Zrobione z całości. Sam tekst, nigdy w pigułce. Bieżący etap ma kolor <code>kurtyna-text</code>, zamknięty <code>success</code>. Zero pokazujemy, bo mówi, że lista czeka.</p></div>
+<div class="col"><h4>Liczność <code>.rk-tally</code></h4>
+<div class="demo" style="display:flex;flex-direction:column;gap:12px">
+<div class="rk-section-head"><h3>Ten tydzień</h3><span class="rk-tally">5 spektakli</span></div>
+<div class="rk-section-head"><h3>Blokuje gotowość</h3><span class="rk-tally">3 rekwizyty</span></div>
+</div>
+<p>Ile elementów ma sekcja albo lista. Zawsze z rzeczownikiem w dobrej odmianie („1 spektakl”, „3 spektakle”, „5 spektakli”), stoi przy nagłówku.</p></div>
+</div>
+</section>
+
+<section>
+<p class="cap">Badge czy licznik</p>
+<div class="rules">
+<div class="rule yes"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Tak: liczba w badge, gdy opisuje stan</h4><div class="rk-row" style="gap:8px"><span class="rk-badge rk-badge--warning">1 po terminie</span><span class="rk-badge rk-badge--danger">2 zaginione</span></div><p>Badge mówi, w jakim stanie są rzeczy. Liczba może w nim stać, jeśli jest częścią tego zdania.</p></div>
+<div class="rule no"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Nie: badge jako licznik</h4><div class="rk-row" style="gap:8px"><span class="rk-badge rk-badge--brand">2 nowe</span><span class="rk-badge">12</span></div><p>Sama ilość to licznik. Bordo badge jest zarezerwowany dla AI, więc „2 nowe” to <span class="rk-count rk-count--new">2</span>.</p></div>
+<div class="rule no"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Nie: postęp w pigułce</h4><div class="rk-row" style="gap:8px"><span class="rk-count">31/42</span></div><p>Pigułka jest na pojedynczą liczbę. Postęp „x/y” piszemy tekstem, a gdzie jest miejsce, dodajemy pasek.</p></div>
+</div>
+</section>
+
+</div>
+</body>
+</html>

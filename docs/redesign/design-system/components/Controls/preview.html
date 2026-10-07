@@ -1,0 +1,19 @@
+<!-- @dsCard group="Formularze" height=190 subtitle="Checkbox, radio, przełącznik" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Controls — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}</style></head>
+<body>
+<div class="rk">
+<div class="rk-row" style="align-items:flex-start;gap:48px">
+<fieldset class="rk-fieldset"><legend>Checkbox</legend><label class="rk-check"><input type="checkbox" checked><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><svg class="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" style="position:absolute"><path d="M5 12h14"/></svg></span><span>Na miejscu</span></label><label class="rk-check"><input type="checkbox"><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><svg class="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" style="position:absolute"><path d="M5 12h14"/></svg></span><span>Wypożyczone</span></label><label class="rk-check"><input type="checkbox" data-ind><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><svg class="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" style="position:absolute"><path d="M5 12h14"/></svg></span><span>Zaznacz wszystkie</span></label><label class="rk-check"><input type="checkbox" disabled><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg><svg class="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true" style="position:absolute"><path d="M5 12h14"/></svg></span><span>Zarchiwizowane</span></label></fieldset>
+<fieldset class="rk-fieldset"><legend>Animacje</legend>
+<label class="rk-check"><input type="radio" name="mot" checked><span class="rk-dot"></span><span>Automatycznie<small>Dobierane do sprzętu</small></span></label>
+<label class="rk-check"><input type="radio" name="mot"><span class="rk-dot"></span><span>Pełne<small>Premiera</small></span></label>
+<label class="rk-check"><input type="radio" name="mot"><span class="rk-dot"></span><span>Oszczędne<small>Próba czytana</small></span></label></fieldset>
+<fieldset class="rk-fieldset"><legend>Przełącznik</legend>
+<label class="rk-switch"><input type="checkbox" checked><span class="rk-track"></span>Powiadomienia o brakach</label>
+<label class="rk-switch"><input type="checkbox"><span class="rk-track"></span>Pokazuj zarchiwizowane</label></fieldset></div><script>document.querySelectorAll("[data-ind]").forEach(function(i){i.indeterminate=true})</script>
+</div>
+</body>
+</html>

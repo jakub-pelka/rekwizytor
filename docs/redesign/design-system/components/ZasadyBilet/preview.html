@@ -1,0 +1,22 @@
+<!-- @dsCard group="Zasady" height=458 subtitle="Kiedy stosować cień Bilet" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Zasady Bilet — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.rule{display:flex;flex-direction:column;gap:12px}
+.rule h4{margin:0;font:600 14px/20px var(--font-sans);display:flex;align-items:center;gap:8px}
+.rule h4 svg{width:18px;height:18px}
+.yes h4{color:var(--success)} .no h4{color:var(--danger)}
+.rule p{margin:0;font:400 13px/18px var(--font-sans);color:var(--ink-muted)}</style></head>
+<body>
+<div class="rk">
+<div class="rules">
+<div class="rule yes"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Tak: płaska karta, jeden przycisk z pieczątką</h4><div class="rk-card"><div class="rk-card__header"><h3 class="rk-card__title">Wesele</h3><span class="rk-badge rk-badge--info">Dziś</span></div><div class="rk-card__body"><div class="rk-row"><button class="rk-btn rk-btn--primary ">Otwórz listę</button><button class="rk-btn rk-btn--ghost ">Szczegóły</button></div></div></div><p>Karty nigdy nie mają twardego cienia. Pieczątkę nosi tylko główna akcja.</p></div>
+<div class="rule no"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Nie: trzy pieczątki obok siebie</h4><div class="rk-row" style="gap:12px"><button class="rk-btn rk-btn--primary ">Dodaj</button><button class="rk-btn rk-btn--primary ">Drukuj</button><button class="rk-btn rk-btn--primary ">Eksportuj</button></div><p>Jedna akcja primary na widok. Reszta to secondary albo ghost.</p></div>
+<div class="rule yes"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Tak: zaznaczona karta z pieczątką, przyciski w środku płaskie</h4><div class="rk-prop is-selected"><div class="rk-prop__photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg></div><div><span class="rk-id">REK-0142</span><div class="rk-prop__name">Kielich srebrny</div><div class="rk-row" style="gap:8px;margin-top:6px"><button class="rk-btn rk-btn--secondary rk-btn--sm">Przenieś</button><button class="rk-btn rk-btn--ghost rk-btn--sm">Edytuj</button></div></div></div><p>Gdy pieczątkę dostaje kontener (zaznaczenie, przeciąganie), wszystko w nim jest płaskie: sm albo ghost.</p></div>
+<div class="rule no"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Nie: pieczątka w pieczątce</h4><div class="rk-prop is-selected"><div class="rk-prop__photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg></div><div><span class="rk-id">REK-0142</span><div class="rk-prop__name">Kielich srebrny</div><div class="rk-row" style="gap:12px;margin-top:6px"><button class="rk-btn rk-btn--primary ">Przenieś</button><button class="rk-btn rk-btn--secondary ">Edytuj</button></div></div></div><p>Twarde cienie nigdy się nie zagnieżdżają.</p></div>
+</div>
+</div>
+</body>
+</html>

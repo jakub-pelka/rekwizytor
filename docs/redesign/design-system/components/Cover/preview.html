@@ -1,0 +1,47 @@
+<!-- @dsCard height=312 -->
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Rekwizytor</title>
+<style>
+  html, body { margin:0; height:100%; }
+  body { background:var(--bg); color:var(--ink); font-family:var(--font-sans); overflow:hidden; }
+  .cover { position:relative; width:960px; height:312px; overflow:hidden; }
+  .art { position:absolute; top:0; left:0; width:960px; height:136px; }
+  .art svg { display:block; }
+  .night { fill:var(--kurtyna-night); }
+  .k { fill:var(--kurtyna); }
+  .deep { fill:var(--kurtyna-deep); }
+  .tint { fill:var(--kurtyna-text); }
+  .ink { fill:var(--ink); }
+  .disc { rx:var(--radius-full); }
+  .words { position:absolute; left:var(--space-8); bottom:var(--space-6); max-width:900px; }
+  .name { margin:0; line-height:0; } .name img { height:104px; display:block; } .logo-on-light { display:none !important; } [data-theme="light"] .logo-on-dark { display:none !important; } [data-theme="light"] .logo-on-light { display:block !important; }
+  .tag { margin:var(--space-6) 0 0 2px; font-family:var(--font-typewriter); font-size:14px; line-height:20px; color:var(--ink-muted); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 960 136" width="960" height="136">
+<!--
+  blocks      kurtyna 352x112 (largest, the curtain) · kurtyna-night 208x96 · kurtyna-deep 192x112 · kurtyna-text 128x80 (tint vanished on the dark ground) · ink 80x112 bleeding off the right — about 35% of 960x300
+  arrangement top band, a strip of unequal bands like stage drapes hung from the top edge, flush, no gutters
+  pattern     half-round discs from radius-full: a scalloped valance (lambrekin) hanging under the kurtyna block — the one shape every theatre curtain has
+  scales      band heights space-12 multiples (96 = 2x space-12, 112 = space-12 + space-8 + space-6 + space-2), disc 32 = space-8 at a space-8 pitch; corners square except radius-full discs
+-->
+<rect class="night" x="0" y="0" width="208" height="96"/>
+<rect class="k" x="208" y="0" width="352" height="112"/>
+<rect class="k disc" x="208" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="240" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="272" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="304" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="336" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="368" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="400" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="432" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="464" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="496" y="96" width="32" height="32" rx="16"/><rect class="k disc" x="528" y="96" width="32" height="32" rx="16"/>
+<rect class="deep" x="560" y="0" width="192" height="112"/>
+<rect class="tint" x="752" y="0" width="128" height="80"/>
+<rect class="ink" x="880" y="0" width="80" height="112"/>
+</svg>
+</div>
+<div class="words">
+<h1 class="name"><img class="logo-on-dark" src="/_blob/2cfb09df4b3569d9da49ef7acd6b4df2" alt="Rekwizytor, narzędzie dla teatru"><img class="logo-on-light" src="/_blob/7b74509a13ffc9854625ba80dfe8b4d0" alt="Rekwizytor, narzędzie dla teatru"></h1>
+</div>
+</div>
+</body>
+</html>

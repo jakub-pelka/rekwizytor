@@ -1,0 +1,16 @@
+<!-- @dsCard group="Układ" height=660 subtitle="Okno dialogowe" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Modal — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}</style></head>
+<body>
+<div class="rk">
+<div class="rk-stack" style="gap:16px">
+<div class="rk-overlay"><div class="rk-modal" role="dialog" aria-labelledby="m1"><div class="rk-modal__head"><div><h3 class="rk-modal__title" id="m1">Przypisz rekwizyt do sceny</h3><p class="rk-modal__desc">Kielich srebrny · REK-0142</p></div></div>
+<div class="rk-modal__body rk-stack"><label class="rk-field"><span class="rk-label">Spektakl</span><label class="rk-select"><span style="position:absolute;left:-9999px">Spektakl</span><select><option>Wesele</option><option>Dziady</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></label></label><label class="rk-field"><span class="rk-label">Scena</span><label class="rk-select"><span style="position:absolute;left:-9999px">Scena</span><select><option>Akt II, scena 3</option><option>Akt I, scena 1</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></label></label></div>
+<div class="rk-modal__foot"><button class="rk-btn rk-btn--ghost">Anuluj</button><button class="rk-btn rk-btn--primary">Przypisz</button></div></div></div>
+<div class="rk-overlay"><div class="rk-modal rk-modal--confirm" role="alertdialog" aria-labelledby="m2"><div class="rk-modal__head"><span class="rk-modal__icon rk-modal__icon--danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span><div><h3 class="rk-modal__title" id="m2">Usunąć „Kielich srebrny”?</h3><p class="rk-modal__desc">Rekwizyt zniknie z 3 scen spektaklu „Wesele”. Przez 30 dni znajdziesz go w koszu.</p></div></div>
+<div class="rk-modal__foot"><button class="rk-btn rk-btn--ghost">Anuluj</button><button class="rk-btn rk-btn--danger">Usuń rekwizyt</button></div></div></div></div>
+</div>
+</body>
+</html>

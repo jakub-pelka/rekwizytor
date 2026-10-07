@@ -1,0 +1,102 @@
+{
+ "Karta-telefon.html": {
+  "title": "Karta grupy · telefon",
+  "w": 390,
+  "h": 980
+ },
+ "Lista-telefon.html": {
+  "title": "Lista zadań · telefon",
+  "w": 390,
+  "h": 1960
+ },
+ "Lista.html": {
+  "title": "Lista zadań · komputer",
+  "w": 1440,
+  "h": 1800
+ },
+ "Magazyn-szukaj.html": {
+  "title": "Magazyn · wyszukiwanie w miejscu",
+  "w": 1440,
+  "h": 760
+ },
+ "Magazyn-telefon.html": {
+  "title": "Magazyn · telefon",
+  "w": 390,
+  "h": 1060
+ },
+ "Magazyn.html": {
+  "title": "Magazyn · komputer",
+  "w": 1440,
+  "h": 1720
+ },
+ "Main-B.html": {
+  "title": "Pulpit · komputer",
+  "w": 1440,
+  "h": 1300
+ },
+ "Na-zywo-telefon.html": {
+  "title": "Na żywo · telefon (rekwizytor)",
+  "w": 390,
+  "h": 844
+ },
+ "Na-zywo.html": {
+  "title": "Na żywo · komputer (inspicjent)",
+  "w": 1440,
+  "h": 900
+ },
+ "Pierwsze-uruchomienie.html": {
+  "title": "Pierwsze uruchomienie · komputer",
+  "w": 1440,
+  "h": 900
+ },
+ "Porzadkowanie.html": {
+  "title": "Porządkowanie · komputer",
+  "w": 1440,
+  "h": 900
+ },
+ "Pulpit-bez.html": {
+  "title": "Pulpit bez spektaklu · komputer",
+  "w": 1440,
+  "h": 1120
+ },
+ "Skan.html": {
+  "title": "Skan zdjęcia · telefon",
+  "w": 864,
+  "h": 990
+ },
+ "Spektakl-telefon.html": {
+  "title": "Spektakl · telefon",
+  "w": 390,
+  "h": 1760
+ },
+ "Spektakl.html": {
+  "title": "Spektakl · komputer",
+  "w": 1440,
+  "h": 1500
+ },
+ "Spektakle-telefon.html": {
+  "title": "Lista spektakli · telefon",
+  "w": 390,
+  "h": 844
+ },
+ "Spektakle.html": {
+  "title": "Lista spektakli · komputer",
+  "w": 1440,
+  "h": 900
+ },
+ "Stany-bledy.html": {
+  "title": "Błędy · telefon",
+  "w": 2032,
+  "h": 990
+ },
+ "Stany-puste.html": {
+  "title": "Puste stany · telefon",
+  "w": 2032,
+  "h": 990
+ },
+ "Telefon-B.html": {
+  "title": "Pulpit · telefon",
+  "w": 390,
+  "h": 1900
+ }
+}

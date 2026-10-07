@@ -1,0 +1,63 @@
+<!-- @dsCard group="Rekwizyty" height=760 subtitle="Co mocno, jak i gdzie cicho" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Wpis rekwizytu — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}
+.cap{font:400 12px/16px var(--font-typewriter);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);margin:0 0 12px}
+.cols{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:24px;align-items:start}
+.demo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:12px 0;border-top:1px solid var(--border)} .list li:first-child{border-top:0;padding-top:0} .list li:last-child{padding-bottom:0}
+.list .rk-check{display:flex;gap:12px;width:100%} .list .rk-box{width:24px;height:24px;margin-top:0;border-radius:6px}
+.ann{display:flex;flex-direction:column;gap:16px}
+.ann div{display:flex;flex-direction:column;gap:4px}
+.ann b{font:600 14px/20px var(--font-sans);color:var(--ink)} .ann p{margin:0;font:400 13px/18px var(--font-sans);color:var(--ink-muted)}
+.src{margin:0;padding:12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);font:400 14px/20px var(--font-sans);color:var(--ink)}
+.rules{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.rule{display:flex;flex-direction:column;gap:10px}
+.rule h4{margin:0;font:600 14px/20px var(--font-sans);display:flex;align-items:center;gap:8px}
+.rule h4 svg{width:18px;height:18px;flex:none}
+.yes h4{color:var(--success)} .no h4{color:var(--danger)}
+.rule p{margin:0;font:400 13px/18px var(--font-sans);color:var(--ink-muted)}
+</style></head>
+<body>
+<div class="rk" style="display:flex;flex-direction:column;gap:32px">
+
+<section>
+<p class="cap">Lista zadań · trzy warstwy jednego wpisu</p>
+<div class="cols">
+<div class="demo"><ul class="list">
+<li><label class="rk-check"><input type="checkbox"><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="rk-entry"><span class="rk-entry__name">Gazeta</span><span class="rk-entry__how"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg><span>Okładka z magazynu militarnego, złożona na pół</span></span><span class="rk-entry__where"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg><span>Kanapa, prawa strona, pod przykryciem</span></span><span class="rk-entry__from"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="5" x="2" y="3" rx="1"></rect><path d="M4 8v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8"></path><path d="M10 12h4"></path></svg><span>Szafa A, półka 1</span></span></span></label></li>
+<li><label class="rk-check"><input type="checkbox"><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="rk-entry"><span class="rk-entry__name">Świece w lichtarzach × 6</span><span class="rk-entry__how"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg><span>Zapalić 10 minut przed, knoty przycięte</span></span><span class="rk-entry__where"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg><span>Stół weselny, po trzy z każdej strony</span></span></span></label></li>
+<li><label class="rk-check"><input type="checkbox" checked><span class="rk-box"><svg class="i-chk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="rk-entry"><span class="rk-entry__name">Butelka wina × 2</span><span class="rk-entry__how"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg><span>Napełnione sokiem</span></span><span class="rk-entry__where"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg><span>Stół, lewa strona</span></span></span></label></li>
+</ul></div>
+<div class="ann">
+<div><b>Co</b><p>Nazwa, Geist 16/24, 600, kolor <code>ink</code>. Jedyna mocna warstwa: po kilku spektaklach wzrok przelatuje tylko po nazwach.</p></div>
+<div><b>Jak</b><p>Przygotowanie, ikona listy kontrolnej. Zawija się w całości.</p></div>
+<div><b>Gdzie</b><p>Dokładne miejsce, ikona pinezki. Sekcja listy to miejsce ogólne (stół, kulisa), a wiersz doprecyzowuje.</p></div>
+<div><b>Skąd</b><p>Opcjonalnie: miejsce w magazynie, ikona szuflady. Wszystkie trzy linie mają ten sam styl: Geist 13/18, <code>ink-subtle</code>, ikona 14 px.</p></div>
+<div><b>Odhaczone</b><p>Zostaje sama przygaszona nazwa.</p></div>
+</div>
+</div>
+</section>
+
+<section>
+<p class="cap">Wpisywanie · jedno pole, podział robi model</p>
+<div class="cols">
+<p class="src">gazeta z okładką z magazynu militarnego na kanapie pod przykryciem, po prawej stronie kanapy</p>
+<div class="ann"><div><p>Człowiek pisze swobodnie, model dzieli tekst na „jak” i „gdzie”, nic nie dopisuje. Gdy podziału brak, cały opis idzie do „jak”. Miejsca dopasowujemy do już istniejących w spektaklu.</p></div></div>
+</div>
+</section>
+
+<section>
+<p class="cap">Zasady</p>
+<div class="rules">
+<div class="rule yes"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Tak: jedna mocna warstwa</h4><p>Nazwa przedmiotu wyróżnia się, reszta jest cicha. Lista czyta się dobrze i dokładnie, i pobieżnie.</p></div>
+<div class="rule no"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Nie: ucinanie opisu</h4><p>Wielokropek w „jak” albo „gdzie” chowa właśnie tę informację, której nowa osoba potrzebuje najbardziej.</p></div>
+<div class="rule no"><h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Nie: kolor dla szczegółów</h4><p>Pinezka i opis nie dostają bordo ani ochry. Kolor zostaje dla stanów: do naprawy, zaginiony, na żywo.</p></div>
+</div>
+</section>
+
+</div>
+</body>
+</html>

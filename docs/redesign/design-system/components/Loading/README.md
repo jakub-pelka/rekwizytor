@@ -1,0 +1,7 @@
+Wskaźniki ładowania marki: Trzy dzwonki (w obszarze i w przycisku), Trzy światła (pasek bez znanego końca) i Bilety (pasek postępu).
+
+- **Trzy dzwonki** (`rk-bells`): kropki zapalają się po kolei jak dzwonki przed spektaklem, cykl 2 s. W Premierze każda dostaje krótkie uderzenie, ledwie widoczne drgnięcie (poniżej 1 px) i powoli wybrzmiewa: jasność opada stopniowo, jak gasnący dźwięk. W Próbie czytanej ten sam rytm skokowo, bez ruchu. W przycisku dzwonki zastępują etykietę, a przycisk zachowuje szerokość i dostaje `aria-label` („Zapisywanie”).
+- **Podpis maszynopisem** (`rk-caption`) pod dzwonkami po ok. 1 s: teatralny czasownik zmieniany co ok. 2,6 s, od 2 s licznik sekund, po ok. 10 s „To trwa dłużej niż zwykle.” Gdy znamy prawdziwy krok, podpis mówi prawdę.
+- **Bilety** (`rk-tickets`): pasek jak rolka biletów, z perforacją i półokrągłymi wcięciami między biletami (kolor wycięcia `--cut` = tło pod paskiem). Jeden bilet na element, najwyżej 20; przy większej liczbie jeden bilet to kilka elementów. Skasowany bilet `kurtyna`, bieżący pulsuje (w Próbie czytanej miga skokowo). Obok zawsze licznik „7 z 12” i opis bieżącego kroku.
+- Wskaźnik nigdy nie stoi, także w Próbie czytanej. Do treści, która się wczytuje, używaj szkieletu (Skeleton).
+- **Trzy światła** (`rk-lights`, u góry okna `rk-lights--top`, 3 px): przy przejściach między stronami i odświeżaniu w tle. Trzy odcinki zapalają się po kolei w kolorze `kurtyna-text`, cykl 1,5 s. W Próbie czytanej przełączają się skokowo. Pokazuj dopiero po ok. 300 ms, żeby szybkie przejścia nie migały.

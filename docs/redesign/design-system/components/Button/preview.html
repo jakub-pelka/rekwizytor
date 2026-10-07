@@ -1,0 +1,28 @@
+<!-- @dsCard group="Akcje" height=200 subtitle="Przycisk" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Button — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}</style></head>
+<body>
+<div class="rk">
+<div class="rk-stack" style="gap:16px">
+<div class="rk-row" style="gap:16px">
+<button class="rk-btn rk-btn--primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Dodaj rekwizyt</button>
+<button class="rk-btn rk-btn--secondary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>Drukuj etykiety</button>
+<button class="rk-btn rk-btn--ghost">Anuluj</button>
+<button class="rk-btn rk-btn--danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>Usuń</button>
+</div>
+<div class="rk-row" style="gap:16px">
+<span class="rk-id" style="width:96px">hover</span><button class="rk-btn rk-btn--primary is-hover">Dodaj rekwizyt</button><button class="rk-btn rk-btn--secondary is-hover">Drukuj etykiety</button>
+<span class="rk-id" style="width:96px;margin-left:16px">wciśnięty</span><button class="rk-btn rk-btn--primary is-active">Dodaj rekwizyt</button><button class="rk-btn rk-btn--secondary is-active">Drukuj etykiety</button>
+</div>
+<div class="rk-row" style="gap:16px">
+<button class="rk-btn rk-btn--primary rk-btn--lg">Otwórz listę zadań</button>
+<button class="rk-btn rk-btn--secondary rk-btn--icon" aria-label="Szukaj"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+<button class="rk-btn rk-btn--secondary rk-btn--sm">Filtruj</button>
+<button class="rk-btn rk-btn--primary rk-btn--sm">Zapisz</button>
+<button class="rk-btn rk-btn--primary" aria-label="Zapisywanie" style="min-width:132px"><span class="rk-bells" aria-hidden="true"><i></i><i></i><i></i></span></button>
+</div></div>
+</div>
+</body>
+</html>

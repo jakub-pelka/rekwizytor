@@ -1,0 +1,52 @@
+<!-- @dsCard group="Zasady" height=543 subtitle="Premiera i Próba czytana" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Ruch — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px}
+.ms{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.m{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
+.m__head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.m__head p{margin:4px 0 0;font:400 13px/18px var(--font-sans);color:var(--ink-muted)}
+.stage{display:flex;flex-direction:column;gap:14px}
+.lbl{display:block;font:400 12px/16px var(--font-typewriter);color:var(--ink-subtle);margin-bottom:6px}
+.tick{display:inline-flex;align-items:center;gap:10px;font:500 14px/20px var(--font-sans);color:var(--ink)}
+.box{width:28px;height:28px;border-radius:var(--radius-sm);border:2px solid var(--border-strong);background:var(--surface);display:grid;place-items:center;padding:0;cursor:pointer;color:var(--on-kurtyna)}
+.box[aria-pressed="true"]{background:var(--kurtyna);border-color:var(--kurtyna-night)}
+.box svg{width:18px;height:18px}
+.box:focus-visible{outline:2px solid var(--focus);outline-offset:2px}</style></head>
+<body>
+<div class="rk">
+<div class="ms">
+<section class="m" data-motion="full">
+<div class="m__head"><div><span class="rk-id">PREMIERA · PEŁNY RUCH</span><p>Domyślny na współczesnym sprzęcie. Transform i opacity, krzywe z charakterem.</p></div><button class="rk-btn rk-btn--secondary rk-btn--sm" data-play>Odtwórz</button></div>
+<div class="stage">
+<div class="slot"><span class="lbl">Kurtyna · wejście panelu</span><div class="rk-card rk-enter" data-anim><div class="rk-card__body" style="padding:16px"><div class="rk-id">AKT II · SC. 3</div><div style="font:600 15px/22px var(--font-sans);margin-top:4px">Rekwizyty w scenie</div></div></div></div>
+<div class="slot"><span class="lbl">Trzy dzwonki · ładowanie</span><div class="rk-status" style="justify-content:flex-start;color:var(--kurtyna-text)"><span class="rk-bells" aria-hidden="true"><i></i><i></i><i></i></span><span class="rk-caption">Przeglądam magazyn…</span></div></div>
+<div class="slot"><span class="lbl">Odhaczenie · lista zadań</span><label class="tick"><button class="box" data-tick aria-pressed="false" aria-label="Odhacz"></button><span>Kielich srebrny</span></label></div>
+<div class="slot"><span class="lbl">Bilety · postęp</span><div class="rk-tickets"><div class="rk-tix"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i><i></i><i></i></div><div class="rk-tix-meta"><span>Zdjęcie 8: rozpoznaję przedmioty…</span><span><b>7</b> z 12</span></div></div></div>
+<div class="slot"><span class="lbl">Pieczątka · przycisk</span><div><button class="rk-btn rk-btn--primary">Dodaj rekwizyt</button></div></div>
+</div></section>
+<section class="m" data-motion="lite">
+<div class="m__head"><div><span class="rk-id">PRÓBA CZYTANA · OSZCZĘDNY</span><p>Słaby sprzęt, stare przeglądarki, „ogranicz ruch” w systemie. Ruch skokowy: przenikanie, kolor i przeskoki; nigdy nie stoi.</p></div><button class="rk-btn rk-btn--secondary rk-btn--sm" data-play>Odtwórz</button></div>
+<div class="stage">
+<div class="slot"><span class="lbl">Kurtyna · wejście panelu</span><div class="rk-card rk-enter" data-anim><div class="rk-card__body" style="padding:16px"><div class="rk-id">AKT II · SC. 3</div><div style="font:600 15px/22px var(--font-sans);margin-top:4px">Rekwizyty w scenie</div></div></div></div>
+<div class="slot"><span class="lbl">Trzy dzwonki · ładowanie</span><div class="rk-status" style="justify-content:flex-start;color:var(--kurtyna-text)"><span class="rk-bells" aria-hidden="true"><i></i><i></i><i></i></span><span class="rk-caption">Przeglądam magazyn…</span></div></div>
+<div class="slot"><span class="lbl">Odhaczenie · lista zadań</span><label class="tick"><button class="box" data-tick aria-pressed="false" aria-label="Odhacz"></button><span>Kielich srebrny</span></label></div>
+<div class="slot"><span class="lbl">Bilety · postęp</span><div class="rk-tickets"><div class="rk-tix"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i><i></i><i></i></div><div class="rk-tix-meta"><span>Zdjęcie 8: rozpoznaję przedmioty…</span><span><b>7</b> z 12</span></div></div></div>
+<div class="slot"><span class="lbl">Pieczątka · przycisk</span><div><button class="rk-btn rk-btn--primary">Dodaj rekwizyt</button></div></div>
+</div></section>
+</div>
+<script>
+const CHECK='<svg class="rk-check-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+document.querySelectorAll('[data-play]').forEach(b=>b.addEventListener('click',()=>{
+  const m=b.closest('.m');
+  m.querySelectorAll('[data-anim]').forEach(el=>{el.style.animation='none';void el.offsetWidth;el.style.animation='';});
+  m.querySelectorAll('[data-tick]').forEach(t=>{t.setAttribute('aria-pressed','false');t.innerHTML='';setTimeout(()=>{t.setAttribute('aria-pressed','true');t.innerHTML=CHECK;},300);});
+}));
+document.querySelectorAll('[data-tick]').forEach(t=>t.addEventListener('click',()=>{
+  const on=t.getAttribute('aria-pressed')!=='true';t.setAttribute('aria-pressed',on);t.innerHTML=on?CHECK:'';
+}));
+</script>
+</div>
+</body>
+</html>
