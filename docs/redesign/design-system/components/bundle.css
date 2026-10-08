@@ -762,3 +762,83 @@ ul.rk-inv-list > li { display: block; padding: 0; }
 .rk-scan-status .rk-bells { transform: scale(.6); transform-origin: left center; width: 24px; }
 .rk-scan-place { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-3) 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .rk-scan-place__path { flex: 1; font: 600 14px/20px var(--font-sans); color: var(--ink); }
+
+/* ===== Plakat spektaklu (2:3) ===== */
+.rk-poster { flex: none; position: relative; width: 48px; aspect-ratio: 2 / 3; border-radius: var(--radius-sm); overflow: hidden; background: var(--surface-raised); border: 1px solid var(--border); display: grid; place-items: center; }
+.rk-poster > img, .rk-poster > svg { width: 100%; height: 100%; display: block; object-fit: cover; }
+.rk-poster--md { width: 96px; border-radius: var(--radius-md); }
+.rk-poster--lg { width: 144px; border-radius: var(--radius-md); }
+.rk-poster--empty > img, .rk-poster--empty > svg { width: 44%; height: auto; opacity: .45; filter: grayscale(1); }
+
+/* ===== Terminarz: lista dni ===== */
+.rk-agenda { display: flex; flex-direction: column; gap: var(--space-8); }
+.rk-agenda__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.rk-agenda__list > li + li { border-top: 1px solid var(--border); }
+.rk-agenda__row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; color: var(--ink); text-decoration: none; min-width: 0; }
+.rk-agenda__time { flex: none; width: 52px; font: 700 14px/20px var(--font-typewriter); color: var(--ink); }
+.rk-agenda__kind { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--kurtyna); }
+.rk-agenda__kind--rehearsal { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-muted); }
+.rk-agenda__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rk-agenda__main b { font: 600 15px/22px var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk-agenda__main small { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk-agenda__side { flex: none; display: flex; align-items: center; gap: var(--space-2); }
+.rk-agenda__row > svg { flex: none; width: 16px; height: 16px; color: var(--ink-subtle); }
+.rk-agenda__row.is-past { opacity: .55; }
+
+/* ===== Terminarz: miesiąc ===== */
+.rk-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.rk-month__dow { padding: var(--space-2); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); font: 400 11px/14px var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); }
+.rk-month__day { min-height: 104px; min-width: 0; padding: var(--space-2); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: var(--space-1); }
+.rk-month__n { width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--radius-full); font: 700 13px/16px var(--font-typewriter); color: var(--ink-muted); }
+.rk-month__day.is-out .rk-month__n { opacity: .4; }
+.rk-month__day.is-today .rk-month__n { background: var(--kurtyna); color: var(--on-kurtyna); }
+.rk-month__ev { display: block; padding: 2px var(--space-2); border-radius: var(--radius-sm); font: 500 12px/16px var(--font-sans); color: var(--ink); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk-month__ev b { font: 700 11px/16px var(--font-typewriter); margin-right: var(--space-1); }
+.rk-month__ev--show { background: var(--kurtyna-tint); color: var(--kurtyna-text); }
+.rk-month__ev--rehearsal { box-shadow: inset 0 0 0 1px var(--border-strong); color: var(--ink-muted); }
+.rk-month__more { font: 500 12px/16px var(--font-sans); color: var(--ink-muted); padding: 0 var(--space-2); }
+
+/* ===== Ustawienia: wiersz ===== */
+.rk-setting { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); padding: var(--space-4) 0; }
+.rk-setting + .rk-setting { border-top: 1px solid var(--border); }
+.rk-setting__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rk-setting__text b { font: 500 14px/20px var(--font-sans); color: var(--ink); }
+.rk-setting__text small { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.rk-setting__control { flex: none; display: flex; align-items: center; gap: var(--space-2); }
+.rk-setting--stack { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+.rk-setting--stack .rk-setting__control > * { flex: 1; }
+.rk-settings-nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.rk-settings-nav a { display: block; padding: var(--space-1) var(--space-3); border-left: 2px solid transparent; font: 500 14px/20px var(--font-sans); color: var(--ink-muted); text-decoration: none; }
+.rk-settings-nav a[aria-current="true"] { color: var(--ink); border-left-color: var(--kurtyna); }
+.rk-setting--stack .rk-tabs { display: flex; }
+.rk-setting--stack .rk-tab { flex: 1; }
+
+/* ===== Terminarz: oś czasu ===== */
+.rk-tl { --tl-d: 56px; --tl-r: 24px; --tl-g: 12px; display: flex; flex-direction: column; }
+.rk-tl--compact { --tl-d: 40px; --tl-r: 16px; --tl-g: 8px; }
+.rk-tl__day, .rk-tl__sep { position: relative; display: grid; grid-template-columns: var(--tl-d) var(--tl-r) minmax(0, 1fr); column-gap: var(--tl-g); }
+.rk-tl__day { padding-bottom: var(--space-6); }
+.rk-tl__day::before, .rk-tl__sep::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--tl-d) + var(--tl-g) + var(--tl-r) / 2); width: 1px; background: var(--border-strong); }
+.rk-tl__day:first-child::before { top: 10px; }
+.rk-tl__day:last-child::before { bottom: auto; height: 10px; }
+.rk-tl__day.is-later::before, .rk-tl__sep::before { background: repeating-linear-gradient(to bottom, var(--border-strong) 0 4px, transparent 4px 8px); }
+.rk-tl__date { grid-column: 1; display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.rk-tl__date small { font: 400 11px/14px var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); }
+.rk-tl__date b { font: 700 16px/20px var(--font-typewriter); color: var(--ink); }
+.rk-tl__node { grid-column: 2; justify-self: center; position: relative; z-index: 1; width: 11px; height: 11px; margin-top: 4px; border-radius: var(--radius-full); background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--border-strong); }
+.rk-tl__body { grid-column: 3; min-width: 0; display: flex; flex-direction: column; }
+.rk-tl__label { font: 700 11px/20px var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; color: var(--kurtyna-text); }
+.rk-tl__day.is-today .rk-tl__node { background: var(--kurtyna); box-shadow: 0 0 0 4px var(--kurtyna-tint); }
+.rk-tl__day.is-today .rk-tl__date b, .rk-tl__day.is-today .rk-tl__date small { color: var(--kurtyna-text); }
+.rk-tl__day.is-next .rk-tl__node { box-shadow: inset 0 0 0 2px var(--kurtyna-text); }
+.rk-tl__day.is-later .rk-tl__date b { color: var(--ink-muted); }
+.rk-tl__sep { padding-bottom: var(--space-6); align-items: center; }
+.rk-tl__sep > span { grid-column: 3; display: flex; align-items: center; gap: var(--space-3); font: 400 11px/14px var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); }
+.rk-tl__sep > span::after { content: ""; flex: 1; border-top: 1px dashed var(--border-strong); }
+.rk-agenda__list > li.rk-tl__now, .rk-agenda__list > li.rk-tl__now + li { border-top: 0; }
+.rk-tl__now { position: relative; height: 24px; display: flex; align-items: center; }
+.rk-tl__now::before { content: ""; position: absolute; left: calc(-1 * (var(--tl-g) + var(--tl-r) / 2)); right: 0; top: 50%; height: 1px; background: var(--kurtyna); }
+.rk-tl__now::after { content: ""; position: absolute; left: calc(-1 * (var(--tl-g) + var(--tl-r) / 2) - 3px); top: calc(50% - 3px); width: 7px; height: 7px; border-radius: var(--radius-full); background: var(--kurtyna); }
+.rk-tl__now span { position: relative; z-index: 1; padding-right: var(--space-2); background: var(--bg); font: 700 11px/14px var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; color: var(--kurtyna-text); }
+.rk-tl__day--plain .rk-tl__node { margin-top: 26px; }
+.rk-tl__day--plain .rk-tl__date { padding-top: 15px; }

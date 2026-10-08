@@ -1,0 +1,21 @@
+<!-- @dsCard group="Formularze" height=720 subtitle="Wiersz ustawienia i spis sekcji" -->
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Ustawienia — podgląd</title>
+<style>html,body{margin:0} body{background:var(--bg);padding:20px;color:var(--ink);font-family:var(--font-sans)}
+.cap{font:400 12px/16px var(--font-typewriter);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);margin:0 0 12px}
+.meta{font:400 13px/18px var(--font-sans);color:var(--ink-muted)}
+</style></head>
+<body>
+<div class="rk" style="display:flex;flex-direction:column;gap:32px">
+<div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+<div style="flex:0 0 180px"><p class="cap">Spis sekcji</p><ul class="rk-settings-nav"><li><a href="#" aria-current="true">Konto</a></li><li><a href="#">Wygląd i działanie</a></li><li><a href="#">Listy rekwizytów</a></li><li><a href="#">Teatr</a></li><li><a href="#">O aplikacji</a></li></ul></div>
+<section style="flex:1 1 420px;max-width:640px;display:flex;flex-direction:column;gap:16px"><div class="rk-section-head"><h2>Wygląd i działanie</h2></div><div>
+<div class="rk-setting"><div class="rk-setting__text"><b>Motyw</b><small>Ciemny lepiej sprawdza się w kulisach</small></div><div class="rk-setting__control"><div class="rk-select"><select aria-label="Motyw"><option>Ciemny</option><option>Jasny</option><option>Jak w systemie</option></select><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></div></div></div>
+<div class="rk-setting"><div class="rk-setting__text"><b>Format 24-godzinny</b><small>19:00 zamiast 7:00 PM</small></div><div class="rk-setting__control"><label class="rk-switch"><input type="checkbox" checked aria-label="Format 24-godzinny"><span class="rk-track"></span></label></div></div>
+<div class="rk-setting"><div class="rk-setting__text"><b>Hasło</b><small>Zmienione 3 miesiące temu</small></div><div class="rk-setting__control"><button class="rk-btn rk-btn--secondary rk-btn--sm">Zmień hasło</button></div></div>
+<div class="rk-setting"><div class="rk-setting__text"><b>Szczegóły wpisu</b><small>Nowe osoby potrzebują wszystkiego</small></div><div class="rk-setting__control"><div class="rk-tabs" role="radiogroup" aria-label="Szczegóły wpisu"><button class="rk-tab" role="radio" aria-checked="true" aria-selected="true">Wszystko</button><button class="rk-tab" role="radio" aria-checked="false" aria-selected="false">Bez opisu</button><button class="rk-tab" role="radio" aria-checked="false" aria-selected="false">Same nazwy</button></div></div></div></div></section></div>
+<section style="max-width:360px"><p class="cap">Telefon: kontrolka pod opisem, gdy jest szeroka</p><div class="rk-setting rk-setting--stack"><div class="rk-setting__text"><b>Szczegóły wpisu</b><small>Nowe osoby potrzebują wszystkiego</small></div><div class="rk-setting__control"><div class="rk-tabs" role="radiogroup" aria-label="Szczegóły wpisu"><button class="rk-tab" role="radio" aria-checked="true" aria-selected="true">Wszystko</button><button class="rk-tab" role="radio" aria-checked="false" aria-selected="false">Bez opisu</button><button class="rk-tab" role="radio" aria-checked="false" aria-selected="false">Same nazwy</button></div></div></div></section>
+</div>
+</body>
+</html>

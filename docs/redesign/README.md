@@ -8,6 +8,49 @@ Celem najbliższych tygodni jest **pilotaż w jednym–dwóch teatrach na Śląs
 
 **Zasada nadrzędna:** nie wymyślamy wyglądu w kodzie. Jeśli czegoś brakuje w design systemie, najpierw zapisujemy to w systemie, potem w kodzie.
 
+## Aktualizacja 8 października: Kalendarz, Spektakle z plakatem, Ustawienia
+
+Ta sekcja ma pierwszeństwo przed starszymi fragmentami tego pliku, jeśli coś się kłóci. Odpowiada też na punkt audytu o starych ekranach Spektaklu i Listy spektakli na komputerze.
+
+### Decyzje
+
+1. **Nowe menu.**
+   - Komputer: Pulpit · Spektakle · Kalendarz · *Magazyn:* Magazyn · Etykiety QR · *Zespół:* Notatki.
+   - Telefon (pasek dolny): Pulpit · Magazyn · Skanuj · Spektakle · Kalendarz.
+   - „Listy zadań” znikają z menu (lista należy do terminu, wchodzi się do niej z Kalendarza). „Rekwizyty” i „Grupy” łączą się w „Magazyn” (konsolidację prowadzi Kuba osobno).
+   - Gość w trybie demo widzi ten sam sidebar co zalogowany, po polsku, tylko bez akcji edycji.
+2. **Spektakle** to lista produkcji z plakatem (karta „Plakat”, `.rk-poster`).
+   - Plakat z istniejącego pola obrazka spektaklu; gdy go nie ma, `.rk-poster--empty` ze znakiem kurtyny.
+   - Sekcje „Grane w tym sezonie” i „W przygotowaniu”, filtr sceny (chipy) i sezonu (select). W wierszu: plakat 48 px, tytuł, metryka, najbliższy termin, stan, strzałka.
+   - Zastępuje stary widok listy na komputerze.
+3. **Nagłówek spektaklu**: plakat 96 px (`.rk-poster--md`) obok tytułu na komputerze, 64 px na telefonie. Reszta ekranu Spektakl bez zmian względem `ekrany/png/Spektakl.png`.
+4. **Kalendarz** to terminy: spektakle i próby (karta „Kalendarz”).
+   - Widoki: **Lista** (domyślna, z osią czasu `.rk-tl`) i **Miesiąc** (`.rk-month`, tylko komputer). Filtr: Wszystko / Spektakle / Próby. Nawigacja: poprzedni / następny tydzień albo miesiąc i „Dziś”.
+   - Oś czasu: dziś (wypełnione kółko, etykieta „Dziś”), najbliższy dzień z terminami (obrys, „Najbliższy”), kreska „teraz” z godziną tylko w dniu dzisiejszym (odświeżana co minutę), podział „Dalej w tym tygodniu” / „W przyszłym tygodniu”, dalsze dni szare z przerywaną osią, minione terminy przygaszone.
+   - Wiersz terminu prowadzi do jego listy zadań (obecne ekrany list zadań zostają, zmienia się tylko wejście). Po prawej stan listy (`31/42`). Próby bez rekwizytów nie mają listy.
+   - Dane: terminy spektakli już są. Próby wymagają rozróżnienia rodzaju terminu (spektakl / próba). **Zanim zmienisz bazę, sprawdź obecny model i zaproponuj Kubie minimalną zmianę.**
+5. **Ustawienia** (karta „Ustawienia”, `.rk-setting`): jedna kolumna sekcji, na komputerze spis sekcji po lewej, bez kart i kolorowych ikon, wszystko po polsku.
+   - Konto: imię i nazwisko, e-mail, hasło, wyloguj na wszystkich urządzeniach.
+   - Wygląd i działanie: motyw (ciemny / jasny / jak w systemie), animacje, język, format 24-godzinny.
+   - Listy rekwizytów: szczegóły wpisu (Wszystko / Bez opisu / Same nazwy), akty na telefonie (rozwinięte / zwinięte), zwijanie odhaczonych wpisów. To preferencje każdej osoby, zapisywane per użytkownik.
+   - Teatr (tylko administrator): nazwa teatru, zespół i zaproszenia, eksport danych, zużycie rozpoznawania ze zdjęć (obecne statystyki AI jako „Szczegóły”).
+   - O aplikacji: wersja, polityka prywatności, regulamin wersji testowej. Na końcu „Wyloguj się”.
+
+### Kolejność pracy
+
+1. Nawigacja: sidebar i pasek dolny (wszystkie ekrany w `ekrany/png` mają już nowe menu).
+2. Spektakle i nagłówek spektaklu na komputerze.
+3. Kalendarz: lista z osią czasu (telefon i komputer).
+4. Ustawienia.
+5. Kalendarz: widok miesiąca.
+
+Po każdym kroku zrzut ekranu dla Kuby i czekanie na uwagi, jak wcześniej.
+
+### Nowe i zmienione pliki
+
+- `ekrany/png`: `Spektakle`, `Spektakle-telefon`, `Spektakl`, `Spektakl-telefon`, `Kalendarz`, `Kalendarz-miesiac`, `Kalendarz-telefon`, `Ustawienia`, `Ustawienia-telefon` (pozostałe ekrany odświeżone tylko o nowe menu).
+- `design-system/components`: nowe karty `Plakat`, `Kalendarz`, `Ustawienia`; zmienione `Sidebar`, `MobileNav`, `Licznik`; nowe klasy na końcu `bundle.css` (`.rk-poster`, `.rk-agenda`, `.rk-tl`, `.rk-month`, `.rk-setting`, `.rk-settings-nav`).
+
 ## Co jest w folderze
 
 ```

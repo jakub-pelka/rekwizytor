@@ -117,6 +117,12 @@ Znak to **kurtyna idąca w górę**: otwór sceny w bordowej ramie, a nad nim tr
 - Etykiety są zawsze czarne na białym, niezależnie od motywu. **Drukujemy tylko to, co się nie zmienia**: numer, nazwę, kod QR i znak. Lokalizacja i stan żyją w aplikacji, a kod QR otwiera aktualne dane.
 - Rodzaje: **rekwizyt** (48,5 × 25,4 mm, numer największy), **mini** dla bardzo małych przedmiotów, **flaga** owijana wokół nitki, gdy na przedmiocie nie można nic przykleić, **grupa** (kufer, pudło; 105 × 57 mm, nazwa w Boldonse) i **miejsce** (półka, szafa; 105 × 57 mm, czarny pas). Rozmiary odpowiadają gotowym arkuszom samoprzylepnym A4, więc nic się nie wycina. Przeniesienie to dwa skany: przedmiot, potem miejsce. Kod QR ma minimum 20 mm boku (mini 16 mm). Szczegóły: karta „InventoryLabel”.
 
+## Spektakle, kalendarz, ustawienia
+
+- **Spektakle** to lista produkcji z plakatem (`.rk-poster`, karta „Plakat”). **Kalendarz** to terminy: spektakle i próby, w widoku listy albo miesiąca (karta „Kalendarz”). Lista zadań należy do terminu, więc w menu nie ma osobnej pozycji „Listy zadań”.
+- Menu: Pulpit · Spektakle · Kalendarz · Magazyn · Etykiety QR · Notatki. Na telefonie: Pulpit · Magazyn · Skanuj · Spektakle · Kalendarz.
+- **Ustawienia** to jedna kolumna wierszy `.rk-setting` w sekcjach, bez kart i kolorowych ikon (karta „Ustawienia”).
+
 ## Gdzie co jest
 
 - **Opis marki** (ta strona): język, kolor, typografia, odstępy, logo, ikony.

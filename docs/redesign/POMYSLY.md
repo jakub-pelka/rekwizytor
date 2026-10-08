@@ -233,3 +233,14 @@ Dwie ścieżki.
 - Wysyłanie zdjęć z kadrowaniem.
 - Komponenty React dla ikon nawigacji, ikon rekwizytów i awatarów z design systemu (ścieżki w `icons/rekwizytor-icons.json`).
 - Aparat ze skanerem i arkusz wysuwany z dołu są już w design systemie (karta „Skaner”: `.rk-cam`, `.rk-sheet`).
+
+## 17. Kalendarz zamiast „Listy zadań” w menu (P1)
+
+- **Co:** jedno miejsce z terminami (spektakle i próby), z którego wchodzi się do listy zadań danego terminu. Szczegóły w `README.md`, sekcja „Aktualizacja 8 października”.
+- **Dlaczego:** lista zadań zawsze należy do konkretnego terminu; osobna pozycja w menu dublowała wejście. Rekwizytor myśli „co jest dziś i co zaraz”, więc lista z osią czasu i kreską „teraz”.
+- **Otwarte:** rozróżnienie próba / spektakl w danych; czy próby mogą mieć własną, krótszą listę rekwizytów (np. tylko akt I).
+
+## 18. Ustawienia osobiste i teatru (P2)
+
+- **Co:** ustawienia w jednej kolumnie, z nowymi preferencjami listy (szczegóły wpisu, zwijanie aktów i odhaczonych) i sekcją Teatr dla administratora.
+- **Dlaczego:** nowe osoby potrzebują pełnych opisów, doświadczone tylko nazw; jedna aplikacja ma obsłużyć obie grupy bez osobnych trybów.

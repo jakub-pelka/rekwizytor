@@ -23,10 +23,11 @@ a { color: inherit; } a:hover { color: inherit; }
 <div style="flex: 1; min-height: 0; padding: 8px 16px 32px; display: flex; flex-direction: column; gap: 24px;">
 
 <div style="display: flex; flex-direction: column; gap: 16px;">
-<div style="display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; gap: 16px; align-items: flex-end;"><span class="rk-poster" style="width: 64px;"><svg viewBox="0 0 200 300" aria-hidden="true"><rect width="200" height="300" fill="#22301f"/><g stroke="#d9a441" stroke-width="3" fill="none" stroke-linecap="round"><path d="M100 70v150"/><path d="M100 90c-20 30-40 60-52 110"/><path d="M100 90c20 30 40 60 52 110"/><path d="M100 110c-10 30-22 60-30 96"/><path d="M100 110c10 30 22 60 30 96"/><path d="M84 70h32"/></g><text x="100" y="268" text-anchor="middle" font-family="Boldonse, Impact, sans-serif" font-size="26" fill="#f1e6c8" letter-spacing="2">WESELE</text></svg></span><div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
 <h1 class="pl-show-title" style="font-size: 32px; line-height: 44px;">Wesele</h1>
-<span class="rk-tally">Duża scena · 2 akty · 14 scen · 42 rekwizyty</span>
-</div>
+<span class="rk-tally">Duża scena · 2 akty</span>
+<span class="rk-tally">14 scen · 42 rekwizyty</span>
+</div></div>
 <a class="rk-btn rk-btn--primary rk-btn--lg" href="#" style="width: 100%; box-sizing: border-box; text-decoration: none;">Otwórz listę zadań</a>
 <div class="rk-tabs" role="tablist" aria-label="Widok spektaklu" style="align-self: stretch; display: flex;">
 <button class="rk-tab" role="tab" aria-selected="true" style="flex: 1;">Sceny</button>
@@ -78,10 +79,10 @@ a { color: inherit; } a:hover { color: inherit; }
 
 <nav class="rk-tabbar" aria-label="Menu główne">
 <a class="rk-tab-item" href="#"><span class="rk-tab-item__pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path><path d="M3 8.5a3 3 0 0 0 6 0a3 3 0 0 0 6 0a3 3 0 0 0 6 0"></path><path d="M8 17v-2"></path><path d="M12 17v-4"></path><path d="M16 17v-3"></path></svg></span>Pulpit</a>
-<a class="rk-tab-item" href="#"><span class="rk-tab-item__pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6H9.5L4 12l5.5 6H20a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1Z"></path><path d="M8.5 12h.01"></path><path d="M12.5 10h5"></path><path d="M12.5 14h3"></path></svg></span>Rekwizyty</a>
+<a class="rk-tab-item" href="#"><span class="rk-tab-item__pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21V10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v11"></path><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8.35a2 2 0 0 1 1.26-1.86l8-3.2a2 2 0 0 1 1.48 0l8 3.2A2 2 0 0 1 22 8.35Z"></path><path d="M6 13h12"></path><path d="M6 17h12"></path></svg></span>Magazyn</a>
 <span class="rk-tab-scan"><button class="rk-btn rk-btn--primary" aria-label="Skanuj"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg></button>Skanuj</span>
 <a class="rk-tab-item" href="#" aria-current="page"><span class="rk-tab-item__pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3.5h18"></path><path d="M4 3.5h7c0 4-2.5 7-5 8.5 1.8 1.6 3 4.6 3 9H4Z"></path><path d="M20 3.5h-7c0 4 2.5 7 5 8.5-1.8 1.6-3 4.6-3 9h5Z"></path></svg></span>Spektakle</a>
-<a class="rk-tab-item" href="#"><span class="rk-tab-item__pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 17 2 2 4-4"></path><path d="m3 7 2 2 4-4"></path><path d="M13 6h8"></path><path d="M13 12h8"></path><path d="M13 18h8"></path></svg></span>Listy</a>
+<a class="rk-tab-item" href="#"><span class="rk-tab-item__pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg></span>Kalendarz</a>
 </nav>
 
 </div>
