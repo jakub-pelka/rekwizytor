@@ -8,6 +8,8 @@ Magazyn jako pliki i foldery. Trzy role zamiast sztywnych poziomów:
 
 Najwyżej jest zawsze pomieszczenie (albo „Nieprzypisane”).
 
+- **Pomieszczenia rozróżniamy automatycznie** (od 8.10). Na liście pomieszczeń każdy kafelek ma ikonę wynikającą z nazwy (rekwizytornia: korona, pracownia: młotek, garderoba: koszula, scena: maski, strych: domek, korytarz: drzwi, sala: fotel, schowek: klucz, magazyn: hala, szafa i regał: archiwum; bez dopasowania: pudełko) i kolor z kolejności założenia, wzięty z palety awatarów bez bordo (bordo to kolor marki i status „alarm”). Ikona jest biała, bez obramowania. Nikt tego nie wybiera, bo chodzi o to, żeby oko znajdowało pomieszczenie samo, a nie o ozdobę. Reguły: `lib/room-style.ts`, kafelek: `components/storage/RoomTile.tsx`.
+
 - **Poziomy pośrednie są opcjonalne.** Rzecz może leżeć w pomieszczeniu, w szafie, na półce albo w pudle na półce. Ścieżka pokazuje tylko istniejące poziomy.
 - **Widok przeglądania:**
   - bezpośrednie pojemniki bieżącego poziomu to sekcje (nagłówek z linią, rodzaj i numer maszynopisem, „Otwórz”);

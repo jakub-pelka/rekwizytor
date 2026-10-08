@@ -4,7 +4,7 @@ import type { GroupStatus } from './performance-structure'
 
 type Client = SupabaseClient<Database>
 
-export type StorageLocation = { id: string; name: string; kind: string; code: string | null; parentId: string | null; sortOrder: number }
+export type StorageLocation = { id: string; name: string; kind: string; code: string | null; parentId: string | null; sortOrder: number; createdAt: string | null }
 export type StorageItem = { id: string; groupId: string | null; locationId: string | null; name: string; code: string | null; status: GroupStatus; statusNote: string | null }
 export type StorageGroup = {
     id: string
@@ -30,7 +30,7 @@ export type StorageData = {
 
 export async function loadStorage(supabase: Client): Promise<StorageData> {
     const [locationsResult, groupsResult, itemsResult, usageResult] = await Promise.all([
-        supabase.from('locations').select('id, name, kind, code, belongs_to, sort_order').is('deleted_at', null),
+        supabase.from('locations').select('id, name, kind, code, belongs_to, sort_order, created_at').is('deleted_at', null),
         supabase.from('groups').select('id, name, code, description, approx_count, location_id, sort_order, status, status_note').is('deleted_at', null),
         supabase.from('group_items').select('id, group_id, location_id, name, code, status, status_note, sort_order').is('deleted_at', null).order('sort_order').order('created_at'),
         supabase.from('performance_props').select('group_id, item_id, performance:performances!inner(id, title, deleted_at)')
@@ -51,7 +51,7 @@ export async function loadStorage(supabase: Client): Promise<StorageData> {
     return {
         looseItems: items.filter(i => !i.groupId),
         locations: (locationsResult.data ?? []).map(l => ({
-            id: l.id, name: l.name, kind: l.kind, code: l.code, parentId: l.belongs_to, sortOrder: l.sort_order,
+            id: l.id, name: l.name, kind: l.kind, code: l.code, parentId: l.belongs_to, sortOrder: l.sort_order, createdAt: l.created_at,
         })),
         groups: (groupsResult.data ?? []).map(g => ({
             id: g.id,

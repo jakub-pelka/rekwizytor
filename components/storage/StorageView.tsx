@@ -6,6 +6,8 @@ import { Box, Camera, ChevronDown, ChevronRight, Layers, Plus, QrCode, Search, S
 import { useSearchParams } from 'next/navigation'
 import { Link, useRouter } from '@/i18n/routing'
 import { ContainerDialog } from './ContainerDialog'
+import { RoomTile } from './RoomTile'
+import { roomColors } from '@/lib/room-style'
 import { ActionMenu } from '@/components/rk/ActionMenu'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
@@ -56,6 +58,8 @@ export function StorageView({ data, roomId, canEdit }: Props) {
         .map(l => ({ id: l.id, label: locationPath(locations, l.id).map(p => p.name).join(' › ') }))
         .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
 
+    // Kolory pomieszczeń z kolejności ich założenia (stałe, nie przemalowują się po dodaniu nowego).
+    const colors = useMemo(() => roomColors(locations.filter(l => !l.parentId)), [locations])
     const children = (parentId: string | null) => sortLocations(locations.filter(l => l.parentId === parentId))
     const performances = useMemo(() => {
         const map = new Map<string, string>()
@@ -410,7 +414,7 @@ export function StorageView({ data, roomId, canEdit }: Props) {
                                         return (
                                             <li key={r.id} className="relative">
                                                 <Link className="rk-inv-row rk-inv-row--box" href={`/groups?room=${r.id}`}>
-                                                    <span className="rk-inv-ico rk-inv-ico--box"><Box /></span>
+                                                    <RoomTile name={r.name} color={colors.get(r.id) ?? '#2B3A5A'} />
                                                     <span className="rk-inv-text">
                                                         <b>{r.name}</b>
                                                         <small><span>{[plural(children(r.id).length, ['pojemnik', 'pojemniki', 'pojemników']), plural(count, ['grupa', 'grupy', 'grup'])].join(' · ')}</span></small>
