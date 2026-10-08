@@ -78,6 +78,13 @@ export function ScheduledShowDetailsModal({ isOpen, onClose, showDate, shows, pr
 
             if (error) throw error
 
+            // Ten sam termin w nowym modelu (kalendarz i listy zadań): bez tego zostałby w kalendarzu „duch”.
+            if (firstShow.performance_id) {
+                await supabase.from('show_lists').delete()
+                    .eq('performance_id', firstShow.performance_id)
+                    .eq('show_date', firstShow.show_date)
+            }
+
             notify.success(t('deleteSuccess'))
             onClose()
             router.refresh()

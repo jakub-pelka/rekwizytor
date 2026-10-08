@@ -21,3 +21,18 @@ export function GroupStatusIcon({ status }: { status: GroupStatus }) {
     const { tone } = GROUP_STATUS[status]
     return <span className={`pl-ico pl-ico--${tone}`}>{tone === 'danger' ? <CircleX /> : <TriangleAlert />}</span>
 }
+
+const COUNT_FORMS: Record<Exclude<GroupStatus, 'available'>, [string, string, string]> = {
+    in_repair: ['do naprawy', 'do naprawy', 'do naprawy'],
+    loaned: ['wypożyczony', 'wypożyczone', 'wypożyczonych'],
+    missing: ['zaginiony', 'zaginione', 'zaginionych'],
+}
+
+/** Stan z liczbą w poprawnej polskiej odmianie: „1 zaginiony”, „2 zaginione”, „5 zaginionych”. */
+export function statusCountLabel(status: Exclude<GroupStatus, 'available'>, n: number) {
+    const [one, few, many] = COUNT_FORMS[status]
+    const mod10 = n % 10
+    const mod100 = n % 100
+    const form = n === 1 ? one : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? few : many
+    return `${n} ${form}`
+}

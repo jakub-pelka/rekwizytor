@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Ellipsis } from 'lucide-react'
+import { ChevronDown, Ellipsis } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 
 export type ActionMenuItem =
@@ -11,7 +11,8 @@ export type ActionMenuItem =
 
 // Menu akcji pod „…” (karta ActionMenu, .rk-menu). Strzałki przesuwają fokus,
 // Esc zamyka i wraca fokusem na przycisk.
-export function ActionMenu({ label, items }: { label: string; items: ActionMenuItem[] }) {
+// Z `text` wyzwalacz to `secondary` „Więcej” ze strzałką (zasada przycisków, karta Button), bez niego ikona „…”.
+export function ActionMenu({ label, items, text }: { label: string; items: ActionMenuItem[]; text?: string }) {
     const [open, setOpen] = useState(false)
     const triggerRef = useRef<HTMLButtonElement>(null)
     const menuRef = useRef<HTMLDivElement>(null)
@@ -39,13 +40,13 @@ export function ActionMenu({ label, items }: { label: string; items: ActionMenuI
         <div className="relative">
             <button
                 ref={triggerRef}
-                className="rk-btn rk-btn--ghost rk-btn--icon"
-                aria-label={label}
+                className={text ? 'rk-btn rk-btn--secondary' : 'rk-btn rk-btn--ghost rk-btn--icon'}
+                aria-label={text ? undefined : label}
                 aria-haspopup="menu"
                 aria-expanded={open}
                 onClick={() => setOpen(o => !o)}
             >
-                <Ellipsis />
+                {text ? <>{text}<ChevronDown /></> : <Ellipsis />}
             </button>
             {open && (
                 <div ref={menuRef} role="menu" className="rk-menu absolute right-0 top-full z-50 mt-1" onKeyDown={onKeyDown}>

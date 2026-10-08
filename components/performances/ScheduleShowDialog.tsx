@@ -232,6 +232,17 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
                     console.error('Update failed:', updateError)
                     throw updateError
                 }
+
+                // Aktualizacja w show_lists (zadanie H)
+                await supabase
+                    .from('show_lists')
+                    .update({
+                        show_date: dateTime,
+                        cast: item.cast
+                    })
+                    .eq('performance_id', performanceId)
+                    .eq('show_date', editData.originalDate)
+
                 console.log('Update successful')
 
             } else {
@@ -261,6 +272,18 @@ export function ScheduleShowDialog({ isOpen, onClose, performanceId, performance
                         })
 
                     if (insertError) throw insertError
+
+                    // Zapis do nowego modelu show_lists (zadanie H)
+                    const { error: showListError } = await supabase
+                        .from('show_lists')
+                        .upsert({
+                            performance_id: performanceId,
+                            show_date: dateTime,
+                            kind: 'show',
+                            cast: item.cast
+                        }, { onConflict: 'performance_id,show_date', ignoreDuplicates: true })
+
+                    if (showListError) throw showListError
                 }
             }
 

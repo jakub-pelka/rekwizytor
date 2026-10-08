@@ -98,43 +98,8 @@ export function GroupDetailsDialog({
         ? format(new Date(group.created_at), 'd MMMM yyyy, HH:mm', { locale: pl })
         : '-'
 
-    const handlePrintLabel = async () => {
-        const generatePromise = (async () => {
-            // Use the rasterizeIcon utility
-            const iconPng = await rasterizeIcon(group.icon || 'Folder', group.color || '#000000')
-
-            const response = await fetch('/api/generate-labels', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    groups: [{
-                        id: group.id,
-                        name: group.name,
-                        locationName: group.locations?.name,
-                        iconImage: iconPng // Use iconImage as expected by the API
-                    }]
-                })
-            })
-
-            if (!response.ok) throw new Error('Label generation failed')
-
-            const blob = await response.blob()
-            const url = globalThis.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `label_${group.name.replaceAll(/[^a-z0-9]/gi, '_')}.pdf`
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            globalThis.URL.revokeObjectURL(url)
-        })()
-
-        setIsGeneratingLabel(true)
-        notify.promise(generatePromise, {
-            loading: t('labels.generating'),
-            success: t('labels.success'),
-            error: t('labels.error')
-        }, 'pdf').finally(() => setIsGeneratingLabel(false))
+    const handlePrintLabel = () => {
+        window.open(`/labels?kind=group&ids=${group.id}`, '_blank')
     }
 
     return (

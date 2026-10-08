@@ -16,6 +16,7 @@ import {
 } from '@/lib/performance-structure'
 import { castLabel, dayMonth, duration, isSameDay, plural, relativeDay, time, weekdayShort } from '@/lib/rk-format'
 import { useListChecks, type ListCheck } from './useListChecks'
+import { useListPrefs, type ListDetail } from '@/lib/use-list-prefs'
 import { SyncBanner } from './SyncBanner'
 
 export type { ListCheck }
@@ -23,6 +24,7 @@ export type { ListCheck }
 type ListInfo = { id: string; showDate: string; kind: string; cast: string | null }
 type Filter = 'todo' | 'done' | 'all'
 type Grouping = 'area' | 'scene'
+type Detail = ListDetail
 export type CrewMember = { id: string; name: string; role: string | null; count: number }
 
 type Props = {
@@ -59,6 +61,10 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
     const [stage, setStage] = useState<Stage>(firstOpen)
     const [filter, setFilter] = useState<Filter>('todo')
     const [grouping, setGrouping] = useState<Grouping>('area')
+    // Szczegóły wpisu i zwijanie odhaczonych to ustawienia osoby (konto, POMYSLY 6); przełącznik też jest tutaj.
+    const { prefs, update: updatePrefs } = useListPrefs()
+    const detail = prefs.detail
+    const chooseDetail = (d: Detail) => { void updatePrefs({ detail: d }) }
     const [showDone, setShowDone] = useState(false)
 
     const current = stageProps(stage)
@@ -122,7 +128,18 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
                     disabled={!canEdit}
                 />
                 <span className="rk-box"><Check className="i-chk" /></span>
-                <PropEntry name={p.name} how={p.how} where={p.where} from={p.from} />
+                {/* Przy wyłączonym zwijaniu wpis stoi w opakowaniu, więc reguła „odhaczone zwija się do nazwy” go nie obejmuje. */}
+                {(() => {
+                    const entry = (
+                        <PropEntry
+                            name={p.name}
+                            how={detail === 'all' ? p.how : null}
+                            where={detail !== 'names' ? p.where : null}
+                            from={detail === 'all' ? p.from : null}
+                        />
+                    )
+                    return prefs.collapseDone ? entry : <span className="flex min-w-0 flex-1">{entry}</span>
+                })()}
                 <span className="ls-scene">{grouping === 'scene' ? p.area : p.code}</span>
             </label>
         </li>
@@ -151,9 +168,9 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
     return (
         <div>
             <div className="sticky top-0 z-20"><SyncBanner sync={sync} onRetry={retry} /></div>
-            <MobileTop back={{ href: '/lists', label: t('back') }} title={performance.title} anchorId="list-title" />
+            <MobileTop back={{ href: '/calendar', label: t('back') }} title={performance.title} anchorId="list-title" />
             <div className="mx-auto max-w-[1136px] px-4 pt-2 pb-8 md:px-12 md:pt-8 md:pb-12">
-                <Link href="/lists" className="pl-back mb-4 hidden md:inline-flex">
+                <Link href="/calendar" className="pl-back mb-4 hidden md:inline-flex">
                     <ChevronLeft />{t('back')}
                 </Link>
 
@@ -240,6 +257,14 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
                                         </button>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="rk-tabs self-start" role="tablist" aria-label={t('detail')}>
+                                {(['all', 'where', 'names'] as const).map(d => (
+                                    <button key={d} className="rk-tab" role="tab" aria-selected={detail === d} onClick={() => chooseDetail(d)}>
+                                        {t(`detail_${d}`)}
+                                    </button>
+                                ))}
                             </div>
 
                             {list.cast && (skippedToday.length > 0 || onlyToday.length > 0) && (

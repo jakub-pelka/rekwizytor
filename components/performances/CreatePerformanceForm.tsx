@@ -162,6 +162,12 @@ export function CreatePerformanceForm() {
             })
 
             await supabase.from('scene_checklists').insert(checklists)
+
+            // Każdy termin ma też listę zadań w nowym modelu (kalendarz, lista zadań, tryb na żywo).
+            await supabase.from('show_lists').upsert(
+                [...new Set(upcomingDates)].map(date => ({ performance_id: performanceId, show_date: date, kind: 'show' })),
+                { onConflict: 'performance_id,show_date', ignoreDuplicates: true },
+            )
         }
     }
 

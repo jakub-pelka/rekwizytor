@@ -16,7 +16,10 @@ export default async function Home() {
     const { data: { user } } = await supabase.auth.getUser()
     const t = await getTranslations('DashboardB')
 
-    const data = await loadDashboard(supabase, user?.id ?? null)
+    const [data, theatre] = await Promise.all([
+        loadDashboard(supabase, user?.id ?? null),
+        supabase.from('app_settings').select('value').eq('key', 'theatre_name').maybeSingle(),
+    ])
     const today = theatreNow()
 
     return (
@@ -39,7 +42,7 @@ export default async function Home() {
                     </>
                 }
             />
-            <DashboardView data={data} now={theatreNowNaive()} canEdit={!!user} />
+            <DashboardView data={data} now={theatreNowNaive()} canEdit={!!user} theatreName={theatre.data?.value ?? undefined} />
         </>
     )
 }

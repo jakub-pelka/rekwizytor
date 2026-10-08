@@ -1,20 +1,21 @@
-import { Camera, Check, ChevronRight, FileText, Mail, Plus, ScanLine } from 'lucide-react'
+import { Camera, Check, ChevronRight, FileText, Mail, Plus } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
 import { ShowTitle } from '@/components/rk/ShowTitle'
-import { GROUP_STATUS, GroupStatusBadge, GroupStatusIcon } from '@/components/rk/GroupStatus'
+import { GROUP_STATUS, statusCountLabel } from '@/components/rk/GroupStatus'
 import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { EmptyState } from '@/components/rk/EmptyState'
+import { BlockingList } from './BlockingList'
 import type { DashboardData, DashboardHero } from '@/lib/dashboard'
 import type { StageProgress } from '@/lib/performance-structure'
 import {
     dayMonth, duration, isSameDay, longDate, plural, relativeDay, theatreDate, time, weekdayShort, whenShort,
 } from '@/lib/rk-format'
 
-type Props = { data: DashboardData; now: string; canEdit: boolean }
+type Props = { data: DashboardData; now: string; canEdit: boolean; theatreName?: string }
 
 // Pulpit („Main-B”, „Pulpit-bez”, „Telefon-B”): najbliższy spektakl, ten tydzień, magazyn, zmiany i wzmianki.
-export async function DashboardView({ data, now, canEdit }: Props) {
+export async function DashboardView({ data, now, canEdit, theatreName }: Props) {
     const t = await getTranslations('DashboardB')
     const nowDate = new Date(now)
     const { hero, isToday, week, storage, activity, mentions } = data
@@ -24,14 +25,12 @@ export async function DashboardView({ data, now, canEdit }: Props) {
         <div className="mx-auto flex max-w-[1184px] flex-col gap-6 px-4 pt-2 pb-8 md:gap-8 md:px-12 md:pt-8 md:pb-12">
             <header className="rk-page-header hidden flex-wrap items-center border-b-0 pb-0 md:flex">
                 <div>
-                    <p className="rk-page-header__eyebrow">{longDate(nowDate)}</p>
+                    <p className="rk-page-header__eyebrow">{theatreName ? t('eyebrowTheatre', { date: longDate(nowDate), theatre: theatreName }) : longDate(nowDate)}</p>
                     <h1 className="rk-page-header__title">{t('title')}</h1>
                 </div>
                 {canEdit && (
-                    <div className="flex flex-wrap gap-3">
-                        <Link className="rk-btn rk-btn--secondary" href="/scan/label"><ScanLine />{t('scanLabel')}</Link>
-                        <Link className="rk-btn rk-btn--primary" href="/scan"><Plus />{t('addProp')}</Link>
-                    </div>
+                    // Na komputerze bez skanowania (zasada przycisków, karta Button): skanuje się telefonem.
+                    <Link className="rk-btn rk-btn--primary" href="/groups?create=1"><Plus />{t('addProp')}</Link>
                 )}
             </header>
 
@@ -74,7 +73,7 @@ export async function DashboardView({ data, now, canEdit }: Props) {
                                             {premiere ? <span className="rk-badge rk-badge--plain">{t('premiere')}</span>
                                                 : firstBlocking && firstBlocking.status !== 'available' && w.done === 0 && !isSameDay(d, nowDate)
                                                     ? <span className={`rk-badge rk-badge--${GROUP_STATUS[firstBlocking.status].tone}`}>
-                                                        {`${w.blocking.length} ${GROUP_STATUS[firstBlocking.status].label.toLocaleLowerCase('pl')}`}
+                                                        {statusCountLabel(firstBlocking.status, w.blocking.length)}
                                                     </span>
                                                     : <span className="pl-stage__n">{w.done}/{w.total}</span>}
                                         </li>
@@ -158,7 +157,7 @@ function Hero({ hero, isToday, now, t }: { hero: DashboardHero; isToday: boolean
     }
 
     return (
-        <section className="pl-hero max-md:!gap-6 max-md:!p-4 md:flex-[2_1_560px]" aria-labelledby="db-next">
+        <section className="pl-hero !gap-6 max-md:!p-4 md:flex-[2_1_560px]" aria-labelledby="db-next">
             <div className="flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 id="db-next" className="pl-count m-0">
@@ -206,31 +205,19 @@ function Hero({ hero, isToday, now, t }: { hero: DashboardHero; isToday: boolean
             </div>
 
             {blockingCount > 0 ? (
-                <div className="flex flex-col gap-3">
-                    <span className="pl-count">{t('blocking', { count: blockingCount })}</span>
-                    <ul className="pl-list pl-list--media">
-                        {hero.blocking.map(p => p.group && p.group.status !== 'available' && (
-                            <li key={p.id}>
-                                <GroupStatusIcon status={p.group.status} />
-                                <span className="pl-main">
-                                    <b>{p.name}</b>
-                                    <small>
-                                        <span className="md:hidden">{[GROUP_STATUS[p.group.status].label, p.group.statusNote].filter(Boolean).join(' · ')}</span>
-                                        <span className="hidden md:inline">{[p.from, p.group.statusNote, p.code].filter(Boolean).join(' · ')}</span>
-                                    </small>
-                                </span>
-                                <span className="hidden md:inline-flex"><GroupStatusBadge status={p.group.status} /></span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <BlockingList
+                    items={hero.blocking.flatMap(p => (p.group && p.group.status !== 'available'
+                        ? [{ id: p.id, name: p.name, status: p.group.status, statusNote: p.group.statusNote, from: p.from, code: p.code }]
+                        : []))}
+                />
             ) : (
                 <p className="text-ink-muted" style={{ font: '400 16px/24px var(--font-sans)' }}>{t('nothingBlocking')}</p>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-8 max-md:border-0 max-md:pt-0">
+            {/* Przyciski zawsze po prawej; zespół w kulisach (gdy ktoś jest) po lewej. Bez kreski i dodatkowego odstępu. */}
+            <div className="flex flex-wrap items-center justify-end gap-4">
                 {hero.crew.length > 0 && (
-                    <div className="hidden items-center gap-3 md:flex">
+                    <div className="mr-auto hidden items-center gap-3 md:flex">
                         <span className="pl-team">{hero.crew.slice(0, 4).map(c => <RkAvatar key={c.id} name={avatarFor(c.id)} size={32} />)}</span>
                         <span className="pl-team-label">{isToday ? t('crewToday', { names: crewNames }) : t('crewOn', { day: relativeDay(d, now).toLocaleLowerCase('pl'), names: crewNames })}</span>
                     </div>

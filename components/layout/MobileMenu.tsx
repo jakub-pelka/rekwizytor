@@ -1,116 +1,237 @@
 'use client'
 
-import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
-import { X, Settings, LogOut, NotebookPen, Search } from 'lucide-react'
-
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { clsx } from 'clsx'
+import { useEffect, useRef, useState } from 'react'
+import { LogIn, LogOut, NotebookPen, Settings } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { Link, useRouter } from '@/i18n/routing'
 import { createClient } from '@/utils/supabase/client'
+import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 
 type Props = {
     isOpen: boolean
     onClose: () => void
 }
 
+type Profile = {
+    id: string
+    name: string
+    role: string | null
+}
+
+// Menu konta na telefonie (arkusz od dołu .rk-sheet, otwierany z AccountMenuButton w MobileTop).
 export function MobileMenu({ isOpen, onClose }: Props) {
     const t = useTranslations('Navigation')
     const router = useRouter()
-    const supabase = createClient()
-    const pathname = usePathname() // Import needed! Wait, import is missing.
+    const [profile, setProfile] = useState<Profile | null | undefined>(undefined)
+    const sheetRef = useRef<HTMLDivElement>(null)
 
-    const menuItems = [
-        // Spektakle, rekwizyty i listy są w dolnym menu (TabBar); tu reszta i konto.
-        { name: t('notes'), href: '/notes', icon: NotebookPen },
-        { name: t('search'), href: '/search', icon: Search },
-        { name: t('settings'), href: '/settings', icon: Settings },
-    ]
+    // Pobranie danych profilu (identycznie jak w Sidebar.tsx)
+    useEffect(() => {
+        if (!isOpen) return
+        const supabase = createClient()
+        let active = true
+
+        void (async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!active) return
+
+                if (user) {
+                    const { data } = await supabase
+                        .from('profiles')
+                        .select('full_name, role')
+                        .eq('id', user.id)
+                        .single()
+                    if (!active) return
+
+                    setProfile({
+                        id: user.id,
+                        name: data?.full_name || user.email?.split('@')[0] || '',
+                        role: data?.role ?? null,
+                    })
+                } else {
+                    setProfile(null)
+                }
+            } catch {
+                if (active) setProfile(null)
+            }
+        })()
+
+        return () => {
+            active = false
+        }
+    }, [isOpen])
+
+    // Blokada przewijania strony pod spodem
+    useEffect(() => {
+        if (!isOpen) return
+        const prevOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        return () => {
+            document.body.style.overflow = prevOverflow
+        }
+    }, [isOpen])
+
+    // Zarządzanie fokusem i obsługa klawisza Escape
+    useEffect(() => {
+        if (!isOpen) return
+        const prevFocus = document.activeElement as HTMLElement | null
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault()
+                onClose()
+            }
+        }
+
+        document.addEventListener('keydown', onKeyDown)
+
+        const timer = setTimeout(() => {
+            const first = sheetRef.current?.querySelector<HTMLElement>(
+                'a, button, [tabindex]:not([tabindex="-1"])'
+            )
+            first?.focus()
+        }, 0)
+
+        return () => {
+            document.removeEventListener('keydown', onKeyDown)
+            clearTimeout(timer)
+            prevFocus?.focus()
+        }
+    }, [isOpen, onClose])
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut()
+        onClose()
+        await createClient().auth.signOut()
         router.push('/login')
         router.refresh()
     }
 
+    const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+        const items = sheetRef.current?.querySelectorAll<HTMLElement>(
+            '.rk-menu__item, .rk-btn'
+        )
+        if (!items || items.length === 0) return
+        const list = Array.from(items)
+        const idx = list.indexOf(document.activeElement as HTMLElement)
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            const next = idx === -1 ? 0 : (idx + 1) % list.length
+            list[next]?.focus()
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            const prev = idx === -1 ? list.length - 1 : (idx - 1 + list.length) % list.length
+            list[prev]?.focus()
+        }
+    }
+
+    if (!isOpen) return null
+
+    const ROLE: Record<string, string> = {
+        admin: t('roleAdmin'),
+        manager: t('roleManager'),
+        user: t('roleUser'),
+    }
+
     return (
-        <Transition show={isOpen}>
-            <Dialog as="div" className="relative z-50 md:hidden" onClose={onClose}>
-                <TransitionChild
-                    enter="ease-in-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in-out duration-300"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <div className="fixed inset-0 bg-black/80 transition-opacity" />
-                </TransitionChild>
+        <div
+            className="rk-overlay fixed inset-0 z-50 md:hidden !p-0 overflow-hidden"
+            onClick={e => {
+                if (e.target === e.currentTarget) {
+                    onClose()
+                }
+            }}
+        >
+            <div
+                ref={sheetRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={t('more')}
+                className="rk-sheet rk-enter w-full max-h-[85vh] overflow-y-auto"
+                style={{
+                    animation: 'rk-curtain-in var(--dur-curtain) var(--ease-curtain) both',
+                    paddingBottom: 'calc(var(--space-8) + env(safe-area-inset-bottom))',
+                }}
+                onClick={e => e.stopPropagation()}
+                onKeyDown={handleMenuKeyDown}
+            >
+                <span className="rk-sheet__grip" aria-hidden="true" />
+                <h2 className="sr-only">{t('more')}</h2>
 
-                <div className="fixed inset-0 z-10 overflow-y-auto">
-                    <div className="flex min-h-full items-end justify-center text-center sm:items-center sm:p-0">
-                        <TransitionChild
-                            enter="transform transition ease-in-out duration-300"
-                            enterFrom="translate-y-full"
-                            enterTo="translate-y-0"
-                            leave="transform transition ease-in-out duration-300"
-                            leaveFrom="translate-y-0"
-                            leaveTo="translate-y-full"
-                        >
-                            <DialogPanel className="relative w-full transform overflow-hidden rounded-t-2xl bg-[#1a1a1a] px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6">
-                                <div className="absolute right-4 top-4">
-                                    <button
-                                        type="button"
-                                        className="rounded-md text-neutral-400 hover:text-white focus:outline-none"
-                                        onClick={onClose}
-                                    >
-                                        <X className="h-6 w-6" aria-hidden="true" />
-                                    </button>
-                                </div>
-
-                                <div className="mt-3">
-                                    <DialogTitle as="h3" className="text-lg font-semibold leading-6 text-white mb-6">
-                                        {t('more')}
-                                    </DialogTitle>
-                                    <div className="grid grid-cols-1 gap-2">
-                                        {menuItems.map((item) => {
-                                            const isActive = pathname === item.href || pathname.startsWith(item.href) && item.href !== '/settings'
-
-                                            // Handle settings specifically if needed, or general logic
-                                            return (
-                                                <Link
-                                                    key={item.name}
-                                                    href={item.href}
-                                                    onClick={onClose}
-                                                    className={clsx(
-                                                        'flex items-center gap-3 rounded-lg p-3 transition-colors',
-                                                        isActive
-                                                            ? 'bg-neutral-800 text-white'
-                                                            : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white'
-                                                    )}
-                                                >
-                                                    <item.icon className={clsx("h-5 w-5", isActive ? "text-white" : "text-neutral-500")} />
-                                                    <span className="font-medium whitespace-nowrap">{item.name}</span>
-                                                </Link>
-                                            )
-                                        })}
-
-                                        <div className="my-2 border-t border-neutral-800" />
-
-                                        <button
-                                            onClick={handleSignOut}
-                                            className="flex w-full items-center gap-3 rounded-lg p-3 text-red-400 hover:bg-red-900/20 transition-colors"
-                                        >
-                                            <LogOut className="h-5 w-5" />
-                                            <span className="font-medium">{t('signOut')}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </DialogPanel>
-                        </TransitionChild>
+                {profile ? (
+                    <div className="flex items-center gap-3">
+                        <RkAvatar name={avatarFor(profile.id)} size={40} />
+                        <div className="min-w-0 flex-1">
+                            <b className="block truncate font-medium text-sm text-[var(--ink)]">
+                                {profile.name}
+                            </b>
+                            {profile.role && (
+                                <small className="block text-xs text-[var(--ink-muted)]">
+                                    {ROLE[profile.role] ?? profile.role}
+                                </small>
+                            )}
+                        </div>
                     </div>
+                ) : profile === null ? (
+                    <Link
+                        href="/login"
+                        onClick={onClose}
+                        className="rk-btn rk-btn--primary w-full"
+                    >
+                        <LogIn />
+                        <span>{t('signIn')}</span>
+                    </Link>
+                ) : (
+                    <div className="flex items-center gap-3">
+                        <div className="rk-skel rounded-md" style={{ width: 40, height: 40 }} />
+                        <div className="min-w-0 flex-1 space-y-1">
+                            <div className="rk-skel rk-skel--line" style={{ width: '60%' }} />
+                            <div className="rk-skel rk-skel--line" style={{ width: '40%' }} />
+                        </div>
+                    </div>
+                )}
+
+                <div role="menu" className="flex flex-col">
+                    <Link
+                        role="menuitem"
+                        href="/notes"
+                        onClick={onClose}
+                        className="rk-menu__item"
+                        style={{ minHeight: 44, height: 44 }}
+                    >
+                        <NotebookPen />
+                        <span>{t('notes')}</span>
+                    </Link>
+
+                    <Link
+                        role="menuitem"
+                        href="/settings"
+                        onClick={onClose}
+                        className="rk-menu__item"
+                        style={{ minHeight: 44, height: 44 }}
+                    >
+                        <Settings />
+                        <span>{t('settings')}</span>
+                    </Link>
+
+                    {profile && (
+                        <>
+                            <div className="rk-menu__sep" role="separator" />
+                            <button
+                                type="button"
+                                role="menuitem"
+                                onClick={handleSignOut}
+                                className="rk-menu__item w-full"
+                                style={{ minHeight: 44, height: 44 }}
+                            >
+                                <LogOut />
+                                <span>{t('signOut')}</span>
+                            </button>
+                        </>
+                    )}
                 </div>
-            </Dialog>
-        </Transition>
+            </div>
+        </div>
     )
 }

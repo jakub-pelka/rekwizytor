@@ -39,34 +39,110 @@ export function LabelScanner() {
     useEffect(() => {
         let stopped = false
         let timer: ReturnType<typeof setTimeout>
+        let hintTimer: ReturnType<typeof setTimeout>
+
         void (async () => {
-            if (!window.BarcodeDetector) { setHint('unsupported'); setManual(true) }
             try {
-                stream.current = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                stream.current = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: 'environment' } },
+                })
                 if (stopped || !video.current) return
                 video.current.srcObject = stream.current
-                await video.current.play()
+                await video.current.play().catch(() => {})
             } catch {
                 setHint('noCamera')
                 setManual(true)
                 return
             }
-            if (!window.BarcodeDetector) return
-            const detector = new window.BarcodeDetector({ formats: ['qr_code'] })
+
+            if (stopped || !video.current) return
+
+            // Gdy przez kilka sekund nie widać kodu, ramka robi się ochrowa z podpowiedzią.
+            hintTimer = setTimeout(() => !stopped && setHint(h => (h === 'none' ? 'notFound' : h)), 6000)
+
+            if (window.BarcodeDetector) {
+                try {
+                    const detector = new window.BarcodeDetector({ formats: ['qr_code'] })
+                    const tick = async () => {
+                        if (stopped || !video.current) return
+                        if (paused.current) { timer = setTimeout(tick, 500); return }
+                        try {
+                            const found = await detector.detect(video.current)
+                            if (found[0]) {
+                                await open(found[0].rawValue)
+                                if (stopped) return
+                                if (paused.current) { timer = setTimeout(tick, 500); return }
+                                return
+                            }
+                        } catch { /* klatka jeszcze niegotowa */ }
+                        timer = setTimeout(tick, 300)
+                    }
+                    void tick()
+                    return
+                } catch {
+                    // W razie błędu BarcodeDetector przejdź do fallbacku jsQR
+                }
+            }
+
+            // Fallback jsQR dla Safari na iOS i przeglądarek bez BarcodeDetector
+            const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null
+            const ctx = canvas?.getContext('2d', { willReadFrequently: true })
+            if (!canvas || !ctx) {
+                setHint('unsupported')
+                setManual(true)
+                return
+            }
+
+            let jsQR: typeof import('jsqr').default | null = null
+            try {
+                const mod = await import('jsqr')
+                jsQR = mod.default || (mod as unknown as typeof import('jsqr').default)
+            } catch {
+                // brak możliwości załadowania jsqr
+            }
+
+            if (!jsQR) {
+                setHint('unsupported')
+                setManual(true)
+                return
+            }
+
             const tick = async () => {
                 if (stopped || !video.current) return
                 if (paused.current) { timer = setTimeout(tick, 500); return }
                 try {
-                    const found = await detector.detect(video.current)
-                    if (found[0]) { await open(found[0].rawValue); return }
+                    const vw = video.current.videoWidth
+                    const vh = video.current.videoHeight
+                    if (vw && vh) {
+                        const scale = Math.min(1, 640 / Math.max(vw, vh))
+                        const width = Math.round(vw * scale)
+                        const height = Math.round(vh * scale)
+                        if (canvas.width !== width) canvas.width = width
+                        if (canvas.height !== height) canvas.height = height
+                        ctx.drawImage(video.current, 0, 0, width, height)
+                        const imageData = ctx.getImageData(0, 0, width, height)
+                        const result = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'dontInvert',
+                        })
+                        if (result?.data) {
+                            await open(result.data)
+                            if (stopped) return
+                            if (paused.current) { timer = setTimeout(tick, 500); return }
+                            return
+                        }
+                    }
                 } catch { /* klatka jeszcze niegotowa */ }
-                timer = setTimeout(tick, 300)
+                timer = setTimeout(tick, 250)
             }
             void tick()
-            // Gdy przez kilka sekund nie widać kodu, ramka robi się ochrowa z podpowiedzią.
-            setTimeout(() => !stopped && setHint(h => (h === 'none' ? 'notFound' : h)), 6000)
         })()
-        return () => { stopped = true; clearTimeout(timer); stream.current?.getTracks().forEach(tr => tr.stop()) }
+
+        return () => {
+            stopped = true
+            clearTimeout(timer)
+            clearTimeout(hintTimer)
+            stream.current?.getTracks().forEach(tr => tr.stop())
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
@@ -84,7 +160,7 @@ export function LabelScanner() {
                     <span className="w-11" />
                 </div>
                 <div className="rk-cam__view">
-                    <video ref={video} className="absolute inset-0 h-full w-full object-cover" playsInline muted />
+                    <video ref={video} className="absolute inset-0 h-full w-full object-cover" playsInline muted autoPlay />
                     <div className={`rk-cam__frame ${hint === 'notFound' ? 'rk-cam__frame--warn' : ''}`}><i /><i /><i /><i /></div>
                     {hint !== 'none' && (
                         <div className="rk-cam__hint">

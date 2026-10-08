@@ -231,6 +231,18 @@ export default function ScheduleShowPage({ params }: Props) {
                         if (itemsError) throw itemsError
                     }
                 }
+
+                // Zapis do nowego modelu show_lists (zadanie H)
+                const { error: showListError } = await supabase
+                    .from('show_lists')
+                    .upsert({
+                        performance_id: id,
+                        show_date: dateTime,
+                        kind: 'show',
+                        cast: item.cast
+                    }, { onConflict: 'performance_id,show_date', ignoreDuplicates: true })
+
+                if (showListError) throw showListError
             }
 
             router.push(`/performances/${id}`)

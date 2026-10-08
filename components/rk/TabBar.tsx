@@ -2,7 +2,7 @@
 
 import { Link } from '@/i18n/routing'
 import { usePathname } from 'next/navigation'
-import { Camera, ListChecks } from 'lucide-react'
+import { Calendar, Camera, Warehouse } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { RkIcon } from './RkIcon'
 
@@ -32,13 +32,13 @@ export function TabBar() {
             aria-label={t('mainNavigation')}
         >
             {item('/', t('home'), <RkIcon name="scena-wykres" />)}
-            {item('/groups', t('items'), <RkIcon name="metka" />)}
+            {item('/groups', t('storage'), <Warehouse />)}
             <Link className="rk-tab-scan" href="/scan">
                 <span className="rk-btn rk-btn--primary"><Camera /></span>
                 {t('scan')}
             </Link>
             {item('/performances', t('productions'), <RkIcon name="scena-kotary" />)}
-            {item('/lists', t('lists'), <ListChecks />, ['/checklists'])}
+            {item('/calendar', t('calendar'), <Calendar />, ['/lists', '/checklists'])}
         </nav>
     )
 }

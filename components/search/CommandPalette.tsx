@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
-import { Box, Camera, Layers, ListChecks, MapPin, NotebookPen, ScanLine, Search, Sparkles } from 'lucide-react'
+import { Box, Calendar, Camera, Layers, MapPin, NotebookPen, QrCode, ScanLine, Search, Sparkles } from 'lucide-react'
 import { useRouter } from '@/i18n/routing'
 import { RkIcon } from '@/components/rk/RkIcon'
 import { unifiedSearch, type SearchResult } from '@/app/actions/unified-search'
@@ -57,9 +57,10 @@ export function CommandPalette({ isOpen, onClose, initialContext }: { isOpen: bo
     const actions: Entry[] = useMemo(() => [
         { key: 'scan', label: t('addFromPhoto'), icon: <Camera />, href: '/scan' },
         { key: 'label', label: t('scanLabel'), icon: <ScanLine />, href: '/scan/label' },
+        { key: 'printLabels', label: t('printLabels'), icon: <QrCode />, href: '/labels' },
         { key: 'home', label: t('goHome'), icon: <RkIcon name="scena-wykres" />, href: '/' },
         { key: 'shows', label: t('goShows'), icon: <RkIcon name="scena-kotary" />, href: '/performances' },
-        { key: 'lists', label: t('goLists'), icon: <ListChecks />, href: '/lists' },
+        { key: 'calendar', label: t('goCalendar'), icon: <Calendar />, href: '/calendar' },
         { key: 'storage', label: t('goStorage'), icon: <RkIcon name="metka" />, href: '/groups' },
         { key: 'notes', label: t('goNotes'), icon: <NotebookPen />, href: '/notes' },
     ], [t])

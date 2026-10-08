@@ -8,7 +8,6 @@ import { DropdownAction } from '@/components/ui/DropdownAction'
 import { GroupScannerDialog } from '@/components/groups/GroupScannerDialog'
 import { EditGroupDialog } from '@/components/groups/EditGroupDialog'
 import { GroupImportDialog } from '@/components/groups/GroupImportDialog'
-import { rasterizeIcon } from '@/utils/icon-rasterizer'
 import { notify } from '@/utils/notify'
 import { Database } from '@/types/supabase'
 
@@ -23,7 +22,6 @@ interface GroupsHeaderActionsProps {
 }
 
 export function GroupsHeaderActions({ groups, currentParentId }: GroupsHeaderActionsProps) {
-    const [isGenerating, setIsGenerating] = useState(false)
     // „Skanuj” w dolnym menu prowadzi tu z ?scan=1 i od razu otwiera skaner.
     const [isScannerOpen, setIsScannerOpen] = useState(useSearchParams().get('scan') === '1')
     const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -43,60 +41,13 @@ export function GroupsHeaderActions({ groups, currentParentId }: GroupsHeaderAct
     )).map(s => JSON.parse(s))
 
 
-    const handleGenerateAllLabels = async () => {
-        const generateLabelsPromise = (async () => {
-            // Sort groups by location name, then by group name
-            const sortedGroups = [...groups].sort((a, b) => {
-                const locA = a.locations?.name || 'Unassigned'
-                const locB = b.locations?.name || 'Unassigned'
-
-                if (locA !== locB) {
-                    if (locA === 'Unassigned') return 1
-                    if (locB === 'Unassigned') return -1
-                    return locA.localeCompare(locB)
-                }
-                return a.name.localeCompare(b.name)
-            })
-
-            const allGroups = await Promise.all(sortedGroups.map(async (g) => ({
-                id: g.id,
-                name: g.name,
-                locationName: g.locations?.name,
-                iconImage: await rasterizeIcon(g.icon || 'Folder', g.color || '#000000')
-            })))
-
-            // Call backend API
-            const apiUrl = `${globalThis.location.origin}/api/generate-labels`
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ groups: allGroups })
-            })
-
-            if (!response.ok) {
-                throw new Error('Failed to generate PDF')
-            }
-
-            // Download PDF
-            const blob = await response.blob()
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `labels_${new Date().toISOString().split('T')[0]}.pdf`
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            URL.revokeObjectURL(url)
-        })()
-
-        setIsGenerating(true)
-        notify.promise(generateLabelsPromise, {
-            loading: 'Generowanie etykiet...',
-            success: 'Etykiety wygenerowane!',
-            error: 'Błąd generowania etykiet'
-        }, 'pdf').finally(() => setIsGenerating(false))
+    const handleGenerateAllLabels = () => {
+        const ids = groups.map(g => g.id).filter(Boolean).join(',')
+        if (!ids) {
+            notify.error('Brak grup do wydruku')
+            return
+        }
+        window.open(`/labels?kind=group&ids=${ids}`, '_blank')
     }
 
     return (
@@ -122,19 +73,14 @@ export function GroupsHeaderActions({ groups, currentParentId }: GroupsHeaderAct
                         <div className="bg-neutral-800 h-px my-1 mx-2" />
 
                         <button
-                            onClick={(e) => {
+                            onClick={() => {
                                 handleGenerateAllLabels()
                                 close()
                             }}
-                            disabled={isGenerating}
-                            className="group flex w-full items-center px-3 py-2.5 text-sm rounded-lg transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="group flex w-full items-center px-3 py-2.5 text-sm rounded-lg transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800"
                         >
-                            {isGenerating ? (
-                                <div className="mr-3 h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-white" />
-                            ) : (
-                                <QrCode className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-white" />
-                            )}
-                            <span className="font-medium leading-none">Generuj etykiety</span>
+                            <QrCode className="mr-3 h-4 w-4 text-neutral-400 group-hover:text-white" />
+                            <span className="font-medium leading-none">Drukuj etykiety</span>
                         </button>
                     </>
                 )}

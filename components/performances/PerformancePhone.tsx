@@ -9,6 +9,7 @@ import { ShowTitle } from '@/components/rk/ShowTitle'
 import { PropEntry } from '@/components/rk/PropEntry'
 import { GroupStatusBadge } from '@/components/rk/GroupStatus'
 import { ActionMenu } from '@/components/rk/ActionMenu'
+import { useListPrefs } from '@/lib/use-list-prefs'
 import { PropEditDialog, type GroupOption } from './PropEditDialog'
 import type { PerformanceStructure, StructuredProp, StructuredScene } from '@/lib/performance-structure'
 import { castLabel, dayMonth, isSameDay, plural, relativeDay, roman, time, weekdayShort } from '@/lib/rk-format'
@@ -42,6 +43,9 @@ export function PerformancePhone({ performance, structure, lists, currentListId,
     const [tab, setTab] = useState<Tab>('scenes')
     const [openScene, setOpenScene] = useState<string | null>(null)
     const [expandedActs, setExpandedActs] = useState<number[]>([])
+    // Ustawienie osoby „Akty na telefonie”: zwinięte i otwierane dotknięciem nagłówka (POMYSLY 6).
+    const { prefs } = useListPrefs()
+    const [openActs, setOpenActs] = useState<number[]>([])
     const [editing, setEditing] = useState<Editing | null>(null)
     const nowDate = new Date(now)
 
@@ -125,7 +129,31 @@ export function PerformancePhone({ performance, structure, lists, currentListId,
                 const tally = act.scenes.length > 0
                     ? `${plural(act.scenes.length, ['scena', 'sceny', 'scen'])} · ${act.propCount}`
                     : plural(act.propCount, ['rekwizyt', 'rekwizyty', 'rekwizytów'])
-                return section(`sp-act-${act.act}`, t('act', { act: roman(act.act) }), tally, (
+                const collapsed = prefs.actsCollapsed && !openActs.includes(act.act)
+                const title = t('act', { act: roman(act.act) })
+                if (prefs.actsCollapsed) {
+                    // Nagłówek jako przycisk: dotknięcie otwiera i zwija akt.
+                    return (
+                        <section className="pl-sect" aria-labelledby={`sp-act-${act.act}`} key={`sp-act-${act.act}`}>
+                            <button
+                                type="button"
+                                className="pl-sect-head pl-sect-head--rule w-full text-left"
+                                aria-expanded={!collapsed}
+                                onClick={() => setOpenActs(a => (a.includes(act.act) ? a.filter(x => x !== act.act) : [...a, act.act]))}
+                            >
+                                <h2 className="pl-h2" id={`sp-act-${act.act}`}>{title}</h2>
+                                <span className="rk-tally inline-flex items-center gap-2">{tally}{collapsed ? <ChevronRight /> : <ChevronDown />}</span>
+                            </button>
+                            {!collapsed && (
+                                <>
+                                    {act.actProps.length > 0 && <ul className="sp-props" style={{ marginLeft: 0 }}>{act.actProps.map(propItem)}</ul>}
+                                    {act.scenes.length > 0 && <ul className="pl-list sp-scenes">{act.scenes.map(sceneRow)}</ul>}
+                                </>
+                            )}
+                        </section>
+                    )
+                }
+                return section(`sp-act-${act.act}`, title, tally, (
                     <>
                         {act.actProps.length > 0 && <ul className="sp-props" style={{ marginLeft: 0 }}>{act.actProps.map(propItem)}</ul>}
                         {act.scenes.length > 0 && <ul className="pl-list sp-scenes">{visible.map(sceneRow)}</ul>}

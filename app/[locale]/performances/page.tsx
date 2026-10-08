@@ -1,103 +1,85 @@
 import { createClient } from '@/utils/supabase/server'
-import { Plus, Layers } from 'lucide-react'
-import Link from 'next/link'
-import { PerformancesList } from '@/components/performances/PerformancesList'
-import { getTranslations } from 'next-intl/server'
-import { PageHeader } from '@/components/ui/PageHeader'
-
-import { PerformancesListActions } from '@/components/performances/PerformancesListActions'
-import { buttonVariants } from '@/components/ui/button-variants'
-import { PerformancesPhone, type PhonePerformance } from '@/components/performances/PerformancesPhone'
+import { PerformancesView, type ListedPerformance } from '@/components/performances/PerformancesView'
+import type { GroupStatus } from '@/lib/performance-structure'
 import { seasonOf, theatreNow, theatreNowNaive } from '@/lib/rk-format'
 
 type Props = {
-    readonly searchParams: Promise<{ season?: string }>
+    readonly searchParams: Promise<{ season?: string; venue?: string }>
 }
 
+// Lista spektakli z plakatem (README, aktualizacja 8.10): telefon i komputer z jednego widoku.
 export default async function PerformancesPage({ searchParams }: Props) {
+    const params = await searchParams
+    const archive = params.season === 'archive'
     const supabase = await createClient()
-    const t = await getTranslations('Performances')
-    const archive = (await searchParams).season === 'archive'
+    const nowNaive = theatreNowNaive()
 
-    // Parallel queries for better performance
-    const [performancesResult, scheduledShowsResult, upcomingListsResult, userResult] = await Promise.all([
+    const [performancesResult, listsResult, scenesResult, propsResult, userResult] = await Promise.all([
         supabase
             .from('performances')
-            .select('id, title, status, premiere_date, thumbnail_url, image_url, color, deleted_at, venue')
+            .select('id, title, status, premiere_date, thumbnail_url, image_url, venue, deleted_at')
             .is('deleted_at', null)
             .order('premiere_date', { ascending: false }),
-        supabase
-            .from('scene_checklists')
-            .select(`
-                id,
-                show_date,
-                type,
-                cast,
-                performance:performances (
-                    title
-                )
-            `)
-            .order('show_date', { ascending: true }),
-        // Najbliższy termin każdego spektaklu (lista na telefonie).
-        supabase
-            .from('show_lists')
-            .select('performance_id, show_date, kind')
-            .gte('show_date', theatreNowNaive().slice(0, 10))
-            .order('show_date', { ascending: true }),
+        // select('*'): działa także przed migracją z kolumnami prób (note).
+        supabase.from('show_lists').select('*').gte('show_date', nowNaive.slice(0, 10)).order('show_date', { ascending: true }),
+        supabase.from('scenes').select('performance_id, act_number, type'),
+        supabase.from('performance_props').select('performance_id, group_id, cast_only'),
         supabase.auth.getUser(),
     ])
 
-    const performances = performancesResult.data
-    const allScheduledShows = scheduledShowsResult.data
+    const performances = (performancesResult.data ?? []).filter(p => (archive ? p.status === 'archived' : p.status !== 'archived'))
+    const scenes = scenesResult.data ?? []
+    const props = propsResult.data ?? []
 
-    // Terminy z dzisiejszego dnia zostają na liście do końca dnia („Dziś 19:00”).
-    const nextShowByPerformance = new Map<string, { date: string; kind: string }>()
-    for (const list of upcomingListsResult.data ?? []) {
-        if (!nextShowByPerformance.has(list.performance_id)) {
-            nextShowByPerformance.set(list.performance_id, { date: list.show_date, kind: list.kind })
-        }
+    const groupIds = [...new Set(props.map(p => p.group_id).filter((id): id is string => !!id))]
+    const { data: groups } = groupIds.length
+        ? await supabase.from('groups').select('id, status').in('id', groupIds)
+        : { data: [] as { id: string; status: string }[] }
+    const statusOf = new Map((groups ?? []).map(g => [g.id, g.status as GroupStatus]))
+
+    type ListRow = { performance_id: string; show_date: string; kind: string; cast: string | null; note?: string | null }
+    const nextByPerformance = new Map<string, ListRow>()
+    for (const l of (listsResult.data ?? []) as ListRow[]) {
+        if (!nextByPerformance.has(l.performance_id)) nextByPerformance.set(l.performance_id, l)
     }
 
-    const phonePerformances: PhonePerformance[] = (performances ?? [])
-        .filter(p => (archive ? p.status === 'archived' : p.status !== 'archived'))
-        .map(p => ({
+    const listed: ListedPerformance[] = performances.map(p => {
+        const own = scenes.filter(s => s.performance_id === p.id && s.type !== 'intermission' && s.type !== 'preparation' && (s.act_number ?? 0) > 0)
+        const ownProps = props.filter(x => x.performance_id === p.id)
+        const next = archive ? undefined : nextByPerformance.get(p.id)
+        // Stan z magazynu, który zablokuje gotowość najbliższego terminu (bez rekwizytów innej obsady).
+        const blocking = ownProps
+            .filter(x => !(x.cast_only && next?.cast && x.cast_only !== next.cast))
+            .map(x => (x.group_id ? statusOf.get(x.group_id) : undefined))
+            .filter((s): s is Exclude<GroupStatus, 'available'> => !!s && s !== 'available')
+        const worst = blocking.includes('missing') ? 'missing' : blocking.includes('loaned') ? 'loaned' : blocking[0]
+        return {
             id: p.id,
             title: p.title,
             status: p.status,
-            premiere_date: p.premiere_date,
+            premiereDate: p.premiere_date,
             venue: p.venue,
-            nextShow: archive ? null : nextShowByPerformance.get(p.id) ?? null,
-        }))
+            poster: p.thumbnail_url || p.image_url,
+            acts: new Set(own.map(s => s.act_number)).size,
+            scenes: own.length,
+            props: ownProps.length,
+            nextShow: next ? { date: next.show_date, kind: next.kind, cast: next.cast, note: next.note ?? null } : null,
+            alert: worst ? { status: worst, count: blocking.filter(s => s === worst).length } : null,
+        }
+    })
+
+    const venues = [...new Set(listed.map(p => p.venue).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, 'pl'))
+    const venue = params.venue && venues.includes(params.venue) ? params.venue : null
 
     return (
-        <>
-            <PerformancesPhone
-                performances={phonePerformances}
-                seasonLabel={seasonOf(theatreNow()).label}
-                archive={archive}
-                canEdit={!!userResult.data.user}
-            />
-            <div className="hidden md:block p-4 md:p-10 space-y-6 max-w-7xl mx-auto text-white">
-                <PageHeader
-                    title={t('title')}
-                    subtitle={t('subtitle')}
-                    icon={<Layers className="h-6 w-6" />}
-                    iconColor="text-purple-400"
-                >
-                    <div className="grid grid-cols-2 w-full md:flex md:w-auto gap-2 md:gap-2 justify-end">
-                        <PerformancesListActions scheduledShows={allScheduledShows || []} performances={performances || []} />
-                        <Link
-                            href="/performances/new"
-                            className={buttonVariants({ variant: "glassy-primary", className: "w-full justify-center md:w-auto md:min-w-[140px]" })}
-                        >
-                            <Plus className="sm:mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">{t('addProduction')}</span>
-                        </Link>
-                    </div>
-                </PageHeader>
-
-                <PerformancesList performances={performances || []} />
-            </div>
-        </>
+        <PerformancesView
+            performances={listed}
+            venues={venues}
+            venue={venue}
+            seasonLabel={seasonOf(theatreNow()).label}
+            archive={archive}
+            canEdit={!!userResult.data.user}
+            now={nowNaive}
+        />
     )
 }

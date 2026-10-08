@@ -3,7 +3,7 @@
 import { Link, useRouter } from '@/i18n/routing'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Command, ListChecks, LogIn, LogOut, NotebookPen, PanelLeftClose, PanelLeftOpen, QrCode, Settings2, Tag, Settings } from 'lucide-react'
+import { Calendar, Command, QrCode, Warehouse, LogIn, LogOut, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings2, Settings } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { useGlobalSearch } from '@/components/search/GlobalSearchProvider'
@@ -123,11 +123,12 @@ export function Sidebar() {
             <nav className="rk-sidebar__nav">
                 {item('/', t('home'), <RkIcon name="scena-wykres" />)}
                 {item('/performances', t('productions'), <RkIcon name="scena-kotary" />, { value: counts.weekShows })}
-                {item('/lists', t('checklists'), <ListChecks />, { value: counts.todayLists, tone: 'live' }, ['/checklists'])}
+                {/* Lista zadań należy do terminu, więc wchodzi się do niej z Kalendarza (README, aktualizacja 8.10). */}
+                {item('/calendar', t('calendar'), <Calendar />, { value: counts.todayLists, tone: 'live' }, ['/lists', '/checklists'])}
                 {!rail && <span className="rk-sidebar__label">{t('groupStorage')}</span>}
-                {item('/groups', t('items'), <RkIcon name="metka" />, undefined, undefined, true)}
-                {item('/groups/manage', t('groups'), <Tag />)}
-                {item('/settings/qr-codes', t('qrLabels'), <QrCode />)}
+                {/* „Rekwizyty” i „Grupy” połączone w jeden „Magazyn”. */}
+                {item('/groups', t('storage'), <Warehouse />, undefined, ['/scan'])}
+                {item('/labels', t('qrLabels'), <QrCode />)}
                 {!rail && <span className="rk-sidebar__label">{t('groupTeam')}</span>}
                 {item('/notes', t('notes'), <NotebookPen />, { value: counts.mentions, tone: 'new' })}
             </nav>

@@ -2,8 +2,7 @@
 
 import * as React from 'react'
 import { useTranslations } from 'next-intl'
-import { FileText, Printer, Copy, RotateCcw, Monitor, Type, AlignLeft, AlertCircle } from 'lucide-react'
-import { notify } from '@/utils/notify'
+import { FileText, Printer, Copy, Monitor, Type, AlignLeft, AlertCircle } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
 export function LabelGeneratorForm() {
@@ -15,7 +14,6 @@ export function LabelGeneratorForm() {
     const [labelSize, setLabelSize] = React.useState<'a4' | 'a5' | 'a6' | 'small'>('a6')
     const [copies, setCopies] = React.useState(1)
     const [fillPage, setFillPage] = React.useState(false)
-    const [loading, setLoading] = React.useState(false)
 
     // Calculate max copies based on size if fillPage is false
     const getMaxOnPage = (size: string) => {
@@ -34,43 +32,9 @@ export function LabelGeneratorForm() {
         }
     }, [fillPage, labelSize])
 
-    const handleGenerate = async (e: React.FormEvent) => {
+    const handleGenerate = (e: React.FormEvent) => {
         e.preventDefault()
-
-        const generatePromise = (async () => {
-            const response = await fetch('/api/generate-standalone-labels', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title,
-                    description,
-                    labelSize,
-                    copies: fillPage ? getMaxOnPage(labelSize) : copies
-                })
-            })
-
-            if (!response.ok) {
-                const data = await response.json().catch(() => ({}))
-                throw new Error(data.details || 'Generation failed')
-            }
-
-            const blob = await response.blob()
-            const url = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `labels_${labelSize}_${new Date().toISOString().slice(0, 10)}.pdf`
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            window.URL.revokeObjectURL(url)
-        })()
-
-        setLoading(true)
-        notify.promise(generatePromise, {
-            loading: 'Generowanie etykiet...',
-            success: 'Etykiety wygenerowane!',
-            error: (err: any) => `Błąd: ${err.message}`
-        }, 'pdf').finally(() => setLoading(false))
+        window.open('/labels?kind=group', '_blank')
     }
 
     return (
@@ -187,11 +151,10 @@ export function LabelGeneratorForm() {
 
                     <button
                         type="submit"
-                        disabled={loading || !title}
-                        className="w-full py-4 rounded-xl bg-accent-main text-white font-bold text-lg shadow-lg shadow-accent-main/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-3"
+                        className="w-full py-4 rounded-xl bg-accent-main text-white font-bold text-lg shadow-lg shadow-accent-main/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                     >
-                        {loading ? <RotateCcw className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
-                        Generate PDF
+                        <Printer className="w-5 h-5" />
+                        Otwórz ekran drukowania etykiet
                     </button>
                 </form>
             </div>

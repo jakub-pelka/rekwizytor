@@ -2,15 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
-import { Box, Camera, ChevronDown, ChevronRight, Layers, Plus, QrCode, ScanLine, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Box, Camera, ChevronDown, ChevronRight, Layers, Plus, QrCode, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { Link, useRouter } from '@/i18n/routing'
 import { ContainerDialog } from './ContainerDialog'
+import { ActionMenu } from '@/components/rk/ActionMenu'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
 import { MobileTop, MobileBrand } from '@/components/rk/MobileTop'
 import { RkIcon } from '@/components/rk/RkIcon'
-import { GROUP_STATUS } from '@/components/rk/GroupStatus'
+import { GROUP_STATUS, statusCountLabel } from '@/components/rk/GroupStatus'
 import { EmptyState } from '@/components/rk/EmptyState'
 import {
     groupAlert, locationPath, sortGroups, sortLocations, subtreeIds,
@@ -83,8 +84,7 @@ export function StorageView({ data, roomId, canEdit }: Props) {
     const alertBadge = (g: StorageGroup) => {
         const a = groupAlert(g)
         if (!a) return null
-        const label = GROUP_STATUS[a.status].label.toLocaleLowerCase('pl')
-        return <span className={`rk-badge rk-badge--${GROUP_STATUS[a.status].tone}`}>{`${a.count} ${label}`}</span>
+        return <span className={`rk-badge rk-badge--${GROUP_STATUS[a.status].tone}`}>{statusCountLabel(a.status, a.count)}</span>
     }
 
     const groupMeta = (g: StorageGroup, withPath = false) => (
@@ -251,12 +251,22 @@ export function StorageView({ data, roomId, canEdit }: Props) {
     const shownContainers = jump && jump !== 'unassigned' ? roomContainers.filter(c => c.id === jump) : roomContainers
     const title = room?.name ?? t('title')
 
+    // Zasada przycisków (karta Button): jedna akcja główna i „Więcej” z resztą. Na komputerze bez skanowania,
+    // bo etykiety i zdjęcia skanuje się telefonem (na telefonie skan jest w górnym wierszu i dolnym menu).
     const actions = canEdit && (
-        <div className="flex flex-wrap gap-3">
-            {room && <button type="button" className="rk-btn rk-btn--ghost" onClick={() => setAddingContainer(true)}><Plus />{t('addContainer')}</button>}
-            <Link className="rk-btn rk-btn--ghost" href={room ? `/groups/organize?room=${room.id}` : '/groups/organize'}><SlidersHorizontal />{t('organize')}</Link>
-            <Link className="rk-btn rk-btn--secondary" href="/scan/label"><ScanLine />{t('scan')}</Link>
-            <Link className="rk-btn rk-btn--primary" href={room ? `/scan?in=${room.id}` : '/scan'}><Camera />{t('addFromPhoto')}</Link>
+        <div className="flex flex-wrap items-center gap-3">
+            <ActionMenu
+                label={t('more')}
+                text={t('more')}
+                items={[
+                    { label: t('addFromPhoto'), href: room ? `/scan?in=${room.id}` : '/scan', icon: <Camera /> },
+                    ...(room ? [{ type: 'button' as const, label: t('addContainer'), onSelect: () => setAddingContainer(true), icon: <Box /> }] : []),
+                    { type: 'separator' as const },
+                    { label: t('organize'), href: room ? `/groups/organize?room=${room.id}` : '/groups/organize', icon: <SlidersHorizontal /> },
+                    { label: t('labels'), href: '/labels', icon: <QrCode /> },
+                ]}
+            />
+            <Link className="rk-btn rk-btn--primary" href="/groups?create=1"><Plus />{t('addGroup')}</Link>
         </div>
     )
 
@@ -273,23 +283,24 @@ export function StorageView({ data, roomId, canEdit }: Props) {
             <div className="mx-auto flex max-w-[1184px] flex-col gap-6 px-4 pt-2 pb-8 md:px-12 md:pt-8 md:pb-12">
                 <header className="rk-page-header flex-wrap items-center border-b-0 pb-0 max-md:!block">
                     <div>
-                        <p className="rk-page-header__eyebrow hidden md:block">{t('eyebrow')}</p>
-                        <h1 className="rk-page-header__title">{room ? <span className="hidden md:inline">{title}</span> : title}{room && <span className="md:hidden">{t('title')}</span>}</h1>
+                        {/* Okruszki w miejscu nadtytułu: jedna nawigacja zamiast powtarzania „Magazyn”. */}
+                        {room && (
+                            <nav className="rk-inv-crumbs mb-2" aria-label={t('crumbs')}>
+                                <Link className="rk-inv-crumb" href="/groups">{t('storage')}</Link>
+                                {locationPath(locations, room.id).slice(0, -1).map(l => (
+                                    <span key={l.id} className="contents">
+                                        <span><ChevronRight /></span>
+                                        <Link className="rk-inv-crumb" href={`/groups?room=${l.id}`}>{l.name}</Link>
+                                    </span>
+                                ))}
+                            </nav>
+                        )}
+                        <h1 className="rk-page-header__title">{title}</h1>
                     </div>
                     <div className="hidden md:block">{actions}</div>
                 </header>
 
                 <div className="flex flex-col gap-4">
-                    <nav className="rk-inv-crumbs" aria-label={t('crumbs')}>
-                        {room ? (
-                            <>
-                                <Link className="rk-inv-crumb" href="/groups">{t('storage')}</Link>
-                                <span><ChevronRight /></span>
-                                <span className="rk-inv-crumb is-current">{room.name}</span>
-                            </>
-                        ) : <span className="rk-inv-crumb is-current">{t('storage')}</span>}
-                    </nav>
-
                     <div className="flex gap-3">
                         <label className="rk-find flex-1">
                             <Search />

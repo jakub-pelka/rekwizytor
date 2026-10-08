@@ -33,7 +33,6 @@ import {
 import * as LucideIcons from 'lucide-react'
 import type { SearchResult } from '@/app/actions/unified-search'
 import { notify } from '@/utils/notify'
-import { rasterizeIcon } from '@/utils/icon-rasterizer'
 import { useTranslations } from 'next-intl'
 import { ScheduleShowDialog } from '@/components/performances/ScheduleShowDialog'
 import { DEFAULT_GROUP_COLOR } from '@/utils/constants/colors'
@@ -168,7 +167,7 @@ const getEntityActions = (item: SearchResult, t: any, onOpenSchedule?: (performa
                 },
                 {
                     id: 'labels',
-                    label: 'Generuj etykietę',
+                    label: 'Drukuj etykietę',
                     shortLabel: 'Etykieta',
                     icon: QrCode,
                     handler: (i) => {
@@ -185,6 +184,15 @@ const getEntityActions = (item: SearchResult, t: any, onOpenSchedule?: (performa
                     icon: ExternalLink,
                     handler: (i) => {
                         window.open(`/groups?jumpToLocation=${encodeURIComponent(i.name)}`, '_blank')
+                    }
+                },
+                {
+                    id: 'labels',
+                    label: 'Drukuj etykietę',
+                    shortLabel: 'Etykieta',
+                    icon: QrCode,
+                    handler: (i) => {
+                        window.open(`/labels?kind=place&ids=${i.id}`, '_blank')
                     }
                 },
                 {

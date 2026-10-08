@@ -134,6 +134,12 @@ export async function refreshSinglePerformance(performanceId: string, sourceUrl:
         return { success: false, error: error.message }
     }
 
+    // Terminy trafiają też do nowego modelu (kalendarz i listy zadań).
+    await supabase.from('show_lists').upsert(
+        newDates.map(dateStr => ({ performance_id: performanceId, show_date: dateStr, kind: 'show' })),
+        { onConflict: 'performance_id,show_date', ignoreDuplicates: true },
+    )
+
     return { success: true, added: newDates.length }
 }
 

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { QrCode, Ticket } from 'lucide-react'
+import { QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { rasterizeIcon } from '@/utils/icon-rasterizer'
 import { notify } from '@/utils/notify'
+import { createClient } from '@/utils/supabase/client'
 
 interface PerformanceLabelButtonProps {
     performanceId: string
@@ -15,47 +15,30 @@ interface PerformanceLabelButtonProps {
 export function PerformanceLabelButton({ performanceId, performanceTitle, premiereDate, variant = 'icon' }: PerformanceLabelButtonProps & { variant?: 'icon' | 'menu' }) {
     const [isGenerating, setIsGenerating] = useState(false)
 
-
-
     const handleGenerateLabel = async (e: React.MouseEvent) => {
         e.preventDefault() // Prevent navigation if inside a link
         e.stopPropagation() // Prevent bubbling
 
-        const generatePromise = (async () => {
-            const response = await fetch('/api/generate-performance-labels', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    performances: [{
-                        id: performanceId,
-                        title: performanceTitle,
-                        premiereDate: premiereDate ? new Date(premiereDate).toLocaleDateString('pl-PL') : undefined,
-                        iconImage: await rasterizeIcon('Ticket')
-                    }]
-                }),
-            })
+        try {
+            setIsGenerating(true)
+            const supabase = createClient()
+            const { data } = await supabase
+                .from('groups')
+                .select('id')
+                .eq('performance_id', performanceId)
+                .is('deleted_at', null)
 
-            if (!response.ok) throw new Error('Failed to generate label')
-
-            const blob = await response.blob()
-            const url = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `label_${performanceTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            window.URL.revokeObjectURL(url)
-        })()
-
-        setIsGenerating(true)
-        notify.promise(generatePromise, {
-            loading: 'Generowanie etykiety...',
-            success: 'Etykieta wygenerowana!',
-            error: 'Błąd generowania etykiety'
-        }, 'pdf').finally(() => setIsGenerating(false))
+            const groupIds = (data ?? []).map(g => g.id)
+            if (groupIds.length > 0) {
+                window.open(`/labels?kind=group&ids=${groupIds.join(',')}`, '_blank')
+            } else {
+                notify.error('Brak grup rekwizytów do wydruku dla tego spektaklu')
+            }
+        } catch {
+            notify.error('Błąd otwierania etykiet')
+        } finally {
+            setIsGenerating(false)
+        }
     }
 
     if (variant === 'menu') {
@@ -68,7 +51,7 @@ export function PerformanceLabelButton({ performanceId, performanceTitle, premie
                 isLoading={isGenerating}
                 leftIcon={!isGenerating && <QrCode className="w-4 h-4" />}
             >
-                Generuj etykietę
+                Drukuj etykiety
             </Button>
         )
     }
@@ -81,7 +64,7 @@ export function PerformanceLabelButton({ performanceId, performanceTitle, premie
             size="icon"
             className="rounded-full text-neutral-400 hover:text-white hover:bg-neutral-800"
             isLoading={isGenerating}
-            title="Generuj etykietę"
+            title="Drukuj etykiety"
         >
             {!isGenerating && <QrCode className="w-4 h-4" />}
         </Button>
