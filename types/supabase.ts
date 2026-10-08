@@ -50,6 +50,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: []
+      }
       group_items: {
         Row: {
           code: string | null
@@ -57,8 +75,8 @@ export type Database = {
           deleted_at: string | null
           description: string | null
           group_id: string | null
-          location_id: string | null
           id: string
+          location_id: string | null
           name: string
           sort_order: number
           status: string
@@ -70,8 +88,8 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           group_id?: string | null
-          location_id?: string | null
           id?: string
+          location_id?: string | null
           name: string
           sort_order?: number
           status?: string
@@ -83,8 +101,8 @@ export type Database = {
           deleted_at?: string | null
           description?: string | null
           group_id?: string | null
-          location_id?: string | null
           id?: string
+          location_id?: string | null
           name?: string
           sort_order?: number
           status?: string
@@ -98,13 +116,19 @@ export type Database = {
             referencedRelation: "groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "group_items_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       groups: {
         Row: {
-          code: string | null
           approx_count: number | null
-          sort_order: number
+          code: string | null
           color: string | null
           created_at: string | null
           deleted_at: string | null
@@ -118,13 +142,13 @@ export type Database = {
           name: string
           performance_id: string | null
           short_id: string | null
+          sort_order: number
           status: string
           status_note: string | null
         }
         Insert: {
-          code?: string | null
           approx_count?: number | null
-          sort_order?: number
+          code?: string | null
           color?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -138,13 +162,13 @@ export type Database = {
           name: string
           performance_id?: string | null
           short_id?: string | null
+          sort_order?: number
           status?: string
           status_note?: string | null
         }
         Update: {
-          code?: string | null
           approx_count?: number | null
-          sort_order?: number
+          code?: string | null
           color?: string | null
           created_at?: string | null
           deleted_at?: string | null
@@ -158,6 +182,7 @@ export type Database = {
           name?: string
           performance_id?: string | null
           short_id?: string | null
+          sort_order?: number
           status?: string
           status_note?: string | null
         }
@@ -213,45 +238,45 @@ export type Database = {
       }
       locations: {
         Row: {
-          kind: string
-          code: string | null
-          sort_order: number
           belongs_to: string | null
+          code: string | null
           created_at: string | null
           deleted_at: string | null
           description: string | null
           embedding: string | null
           id: string
+          kind: string
           map_image_url: string | null
           name: string
+          sort_order: number
           type: Database["public"]["Enums"]["location_type_enum"]
         }
         Insert: {
-          kind?: string
-          code?: string | null
-          sort_order?: number
           belongs_to?: string | null
+          code?: string | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
           embedding?: string | null
           id?: string
+          kind?: string
           map_image_url?: string | null
           name: string
+          sort_order?: number
           type?: Database["public"]["Enums"]["location_type_enum"]
         }
         Update: {
-          kind?: string
-          code?: string | null
-          sort_order?: number
           belongs_to?: string | null
+          code?: string | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
           embedding?: string | null
           id?: string
+          kind?: string
           map_image_url?: string | null
           name?: string
+          sort_order?: number
           type?: Database["public"]["Enums"]["location_type_enum"]
         }
         Relationships: [
@@ -345,8 +370,6 @@ export type Database = {
       }
       performance_props: {
         Row: {
-          item_id: string | null
-          handler: string | null
           act_number: number | null
           area: string | null
           cast_only: string | null
@@ -354,8 +377,10 @@ export type Database = {
           created_at: string | null
           description: string | null
           group_id: string | null
+          handler: string | null
           id: string
           is_checked: boolean | null
+          item_id: string | null
           item_name: string
           order: number | null
           performance_id: string
@@ -368,8 +393,6 @@ export type Database = {
           structured_at: string | null
         }
         Insert: {
-          item_id?: string | null
-          handler?: string | null
           act_number?: number | null
           area?: string | null
           cast_only?: string | null
@@ -377,8 +400,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           group_id?: string | null
+          handler?: string | null
           id?: string
           is_checked?: boolean | null
+          item_id?: string | null
           item_name: string
           order?: number | null
           performance_id: string
@@ -391,8 +416,6 @@ export type Database = {
           structured_at?: string | null
         }
         Update: {
-          item_id?: string | null
-          handler?: string | null
           act_number?: number | null
           area?: string | null
           cast_only?: string | null
@@ -400,8 +423,10 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           group_id?: string | null
+          handler?: string | null
           id?: string
           is_checked?: boolean | null
+          item_id?: string | null
           item_name?: string
           order?: number | null
           performance_id?: string
@@ -419,6 +444,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_props_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "group_items"
             referencedColumns: ["id"]
           },
           {
@@ -492,6 +524,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          acts_collapsed: boolean
+          collapse_done: boolean
+          list_detail: string
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -501,6 +536,9 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          acts_collapsed?: boolean
+          collapse_done?: boolean
+          list_detail?: string
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -510,6 +548,9 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          acts_collapsed?: boolean
+          collapse_done?: boolean
+          list_detail?: string
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -755,54 +796,6 @@ export type Database = {
           },
         ]
       }
-      show_list_reports: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          message: string
-          performance_prop_id: string | null
-          resolved_at: string | null
-          scene_number: number | null
-          show_list_id: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          message: string
-          performance_prop_id?: string | null
-          resolved_at?: string | null
-          scene_number?: number | null
-          show_list_id: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          message?: string
-          performance_prop_id?: string | null
-          resolved_at?: string | null
-          scene_number?: number | null
-          show_list_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "show_list_reports_show_list_id_fkey"
-            columns: ["show_list_id"]
-            isOneToOne: false
-            referencedRelation: "show_lists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "show_list_reports_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       show_list_checks: {
         Row: {
           done_at: string
@@ -852,41 +845,115 @@ export type Database = {
           },
         ]
       }
+      show_list_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          performance_prop_id: string | null
+          resolved_at: string | null
+          scene_number: number | null
+          show_list_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          performance_prop_id?: string | null
+          resolved_at?: string | null
+          scene_number?: number | null
+          show_list_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          performance_prop_id?: string | null
+          resolved_at?: string | null
+          scene_number?: number | null
+          show_list_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_list_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_list_reports_performance_prop_id_fkey"
+            columns: ["performance_prop_id"]
+            isOneToOne: false
+            referencedRelation: "performance_props"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_list_reports_show_list_id_fkey"
+            columns: ["show_list_id"]
+            isOneToOne: false
+            referencedRelation: "show_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       show_lists: {
         Row: {
-          live_act_started_at: string | null
-          live_scene_number: number | null
-          live_updated_by: string | null
+          note: string | null
+          title: string | null
+          venue: string | null
+          with_props: boolean
           cast: string | null
           created_at: string
           id: string
           kind: string
+          live_act_started_at: string | null
+          live_scene_number: number | null
+          live_updated_by: string | null
           performance_id: string
           show_date: string
         }
         Insert: {
-          live_act_started_at?: string | null
-          live_scene_number?: number | null
-          live_updated_by?: string | null
+          note?: string | null
+          title?: string | null
+          venue?: string | null
+          with_props?: boolean
           cast?: string | null
           created_at?: string
           id?: string
           kind?: string
+          live_act_started_at?: string | null
+          live_scene_number?: number | null
+          live_updated_by?: string | null
           performance_id: string
           show_date: string
         }
         Update: {
-          live_act_started_at?: string | null
-          live_scene_number?: number | null
-          live_updated_by?: string | null
+          note?: string | null
+          title?: string | null
+          venue?: string | null
+          with_props?: boolean
           cast?: string | null
           created_at?: string
           id?: string
           kind?: string
+          live_act_started_at?: string | null
+          live_scene_number?: number | null
+          live_updated_by?: string | null
           performance_id?: string
           show_date?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "show_lists_live_updated_by_fkey"
+            columns: ["live_updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "show_lists_performance_id_fkey"
             columns: ["performance_id"]
