@@ -19,6 +19,11 @@ export interface AIRequest {
     maxTokens?: number
     /** Lista modeli OpenRouter dla tego wywołania (pierwszy próbowany najpierw); nadpisuje domyślne. */
     models?: string[]
+    /**
+     * Limit czasu jednej próby. Po jego przekroczeniu próbujemy kolejnego modelu z listy (OpenRouter sam przełącza
+     * się tylko przy błędzie, a nie przy zbyt wolnej odpowiedzi). Bez limitu wywołanie czeka bez końca.
+     */
+    timeoutMs?: number
 }
 
 export interface AIResponse {
@@ -61,7 +66,7 @@ export function isAIAvailable(): boolean {
     return getProvider() !== null
 }
 
-export async function generateAI({ task, prompt, images = [], json = false, maxTokens = 4096, models: modelsOverride }: AIRequest): Promise<AIResponse> {
+export async function generateAI({ task, prompt, images = [], json = false, maxTokens = 4096, models: modelsOverride, timeoutMs }: AIRequest): Promise<AIResponse> {
     const config = getProvider()
     if (!config) throw new Error('AI not configured - set OPENROUTER_API_KEY or OPENAI_API_KEY')
 
@@ -82,23 +87,41 @@ export async function generateAI({ task, prompt, images = [], json = false, maxT
     }
 
     if (provider === 'openrouter') {
-        body.model = models[0]
-        if (models.length > 1) body.models = models
         body.reasoning = { effort: 'low' }
     } else {
-        body.model = models[0]
         body.reasoning_effort = 'low'
     }
 
-    const response = await fetch(PROVIDERS[provider].url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-            ...(provider === 'openrouter' && { 'X-Title': 'Rekwizytor' }),
-        },
-        body: JSON.stringify(body),
-    })
+    const send = async (modelList: string[]) => {
+        body.model = modelList[0]
+        if (provider === 'openrouter' && modelList.length > 1) body.models = modelList
+        else delete body.models
+        return fetch(PROVIDERS[provider].url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+                ...(provider === 'openrouter' && { 'X-Title': 'Rekwizytor' }),
+            },
+            body: JSON.stringify(body),
+            ...(timeoutMs && { signal: AbortSignal.timeout(timeoutMs) }),
+        })
+    }
+
+    // Za wolna odpowiedź pierwszego modelu: próbujemy następnego z listy zamiast czekać dalej.
+    let remaining = models
+    let response: Response
+    for (;;) {
+        try {
+            response = await send(remaining)
+            break
+        } catch (error) {
+            const timedOut = error instanceof DOMException && error.name === 'TimeoutError'
+            if (!timedOut || remaining.length < 2) throw error
+            console.warn(`AI: ${remaining[0]} nie odpowiedział w ${timeoutMs} ms, próbuję ${remaining[1]}`)
+            remaining = remaining.slice(1)
+        }
+    }
 
     if (!response.ok) {
         const errorText = await response.text()
