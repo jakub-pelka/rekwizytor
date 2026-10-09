@@ -25,13 +25,16 @@ export default async function Home() {
     return (
         <>
             {user ? <PendingUsersAlert /> : (
-                <StatusBanner
-                    tone="readonly"
-                    icon={<Eye />}
-                    side={<Link className="rk-btn rk-btn--ghost rk-btn--sm" href="/login">{t('signIn')}</Link>}
-                >
-                    {t('readonly')}
-                </StatusBanner>
+                // Te same odstępy co treść pulpitu (DashboardView: px-4, na komputerze md:px-12).
+                <div className="mx-auto w-full max-w-[1184px] px-4 pt-4 md:px-12 md:pt-8">
+                    <StatusBanner
+                        tone="readonly"
+                        icon={<Eye />}
+                        side={<Link className="rk-btn rk-btn--ghost rk-btn--sm" href="/login">{t('signIn')}</Link>}
+                    >
+                        {t('readonly')}
+                    </StatusBanner>
+                </div>
             )}
             <MobileTop
                 brand={<MobileBrand date={`${weekdayShort(today)} · ${dayMonth(today)}`} />}
