@@ -2,15 +2,13 @@
 
 import { LegalFooter } from '@/components/rk/LegalFooter'
 import { checkSignupAllowed } from '@/app/actions/auth-check'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { Eye, ScanLine, Layers, ClipboardCheck, QrCode } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
-import LightRays from '@/components/ui/LightRays'
+import { lowerCurtain } from '@/components/rk/CurtainReveal'
 import { Link } from '@/i18n/routing'
 
 export default function LoginPage() {
@@ -22,6 +20,9 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<string | null>(null)
     const [isSignUp, setIsSignUp] = useState(false)
+    const [showPassword, setShowPassword] = useState(false)
+    const stageRef = useRef<HTMLElement>(null)
+    const videoRef = useRef<HTMLVideoElement>(null)
     const router = useRouter()
     const supabase = createClient()
 
@@ -80,6 +81,10 @@ export default function LoginPage() {
             if (error) {
                 setError(error.message)
             } else {
+                // Lewy panel rozsuwa się na cały ekran, dopiero wtedy przechodzimy na pulpit, a kurtyna idzie w górę,
+                // gdy pulpit jest już na miejscu (CurtainReveal w layoucie, ekran Logowanie-przejscie).
+                router.prefetch('/')
+                await lowerCurtain(stageRef.current, videoRef.current)
                 router.push('/')
                 router.refresh()
             }
@@ -89,234 +94,113 @@ export default function LoginPage() {
 
 
 
-    const features = [
-        { icon: ScanLine, label: t('feature1') },
-        { icon: Layers, label: t('feature2') },
-        { icon: ClipboardCheck, label: t('feature3') },
-        { icon: QrCode, label: t('feature4') },
-    ]
+    const toggleMode = () => {
+        setIsSignUp(v => !v)
+        setError(null)
+        setMessage(null)
+    }
 
     return (
-        <div className="flex min-h-screen bg-neutral-950 text-neutral-200 relative overflow-hidden">
-            <LightRays
-                raysOrigin="top-center"
-                raysColor="#cfcfcf"
-                raysSpeed={0.2}
-                lightSpread={2.0}
-                rayLength={1.0}
-                followMouse={true}
-                mouseInfluence={0.1}
-                noiseAmount={0.1}
-                distortion={0}
-                className="opacity-40"
-            />
-
-            {/* Showcase panel (desktop) */}
-            <aside className="hidden lg:flex lg:w-1/2 relative z-10 flex-col justify-between p-12 xl:p-16 border-r border-white/5 bg-linear-to-br from-burgundy-extra-dark/60 via-neutral-950/40 to-transparent">
-                <div className="relative h-16 w-48">
-                    <Image src="/brand/rekwizytor-logo-dark.svg" alt="Rekwizytor" fill className="object-contain object-left" priority />
+        <div className="lg">
+            <section className="ld-stage" aria-hidden="true" ref={stageRef}>
+                <video ref={videoRef} autoPlay muted loop playsInline preload="auto" poster="/media/logowanie/kurtyna-tlo-poster.jpg">
+                    <source src="/media/logowanie/kurtyna-tlo.webm" type="video/webm" />
+                    <source src="/media/logowanie/kurtyna-tlo.mp4" type="video/mp4" />
+                </video>
+                <div className="ld-words">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/brand/rekwizytor-logo-mono-bialy.svg" alt="Rekwizytor" />
+                    <p className="lg-tag">{t('showcaseLead')}</p>
                 </div>
+            </section>
 
-                <div className="max-w-lg space-y-8">
-                    <div className="space-y-4">
-                        <h2 className="text-4xl xl:text-5xl text-white leading-tight">{t('showcaseTitle')}</h2>
-                        <p className="font-courier text-lg text-neutral-400">{t('showcaseLead')}</p>
-                    </div>
-                    <ul className="space-y-4">
-                        {features.map(({ icon: Icon, label }) => (
-                            <li key={label} className="flex items-center gap-4">
-                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-burgundy-light/20 bg-burgundy-main/15 text-burgundy-light">
-                                    <Icon className="h-5 w-5" />
-                                </span>
-                                <span className="text-neutral-300">{label}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-
-                <p className="font-courier text-xs text-neutral-600">Rekwizytor · {new Date().getFullYear()}</p>
-            </aside>
-
-            {/* Form panel */}
-            <main className="flex flex-1 flex-col items-center justify-center p-4 sm:p-8 relative z-10">
-                <div className="w-full max-w-md space-y-8">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="mb-6 relative h-28 w-72 lg:hidden">
-                            <Image
-                                src="/brand/rekwizytor-logo-pion-dark.svg"
-                                alt="Rekwizytor"
-                                fill
-                                className="object-contain"
-                                priority
-                            />
-                        </div>
-                        <h1 className="hidden lg:block text-2xl text-white mb-2">
-                            {isSignUp ? t('signUp') : t('signIn')}
-                        </h1>
-                        <p className="text-sm text-neutral-400">
-                            {isSignUp ? t('subtitleSignUp') : t('subtitleSignIn')}
-                        </p>
+            <div className="lg-form-wrap">
+                <form className="lg-form" onSubmit={handleAuth} aria-labelledby="lg-h">
+                    <div>
+                        <h1 id="lg-h">{isSignUp ? t('signUp') : t('signIn')}</h1>
+                        <p className="lg-sub">{isSignUp ? t('subtitleSignUp') : t('signInLead')}</p>
                     </div>
 
-                    <form onSubmit={handleAuth} className="space-y-6">
-                        <div className="space-y-4">
-                            {isSignUp && (
-                                <div>
-                                    <label
-                                        htmlFor="name"
-                                        className="block text-sm font-medium text-neutral-300 mb-1"
-                                    >
-                                        {t('name')}
-                                    </label>
-                                    <Input
-                                        id="name"
-                                        name="name"
-                                        type="text"
-                                        required
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="John Doe"
-                                        className="mt-1 border-neutral-800 bg-neutral-900/80 backdrop-blur-sm"
-                                    />
-                                </div>
-                            )}
-
-                            <div>
-                                <label
-                                    htmlFor="email"
-                                    className="block text-sm font-medium text-neutral-300 mb-1"
-                                >
-                                    {t('email')}
-                                </label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="inspector@theater.com"
-                                    className="mt-1 border-neutral-800 bg-neutral-900/80 backdrop-blur-sm"
-                                />
+                    <div className="lg-fields">
+                        {isSignUp && (
+                            <label className="rk-field">
+                                <span className="rk-label">{t('name')}</span>
+                                <input className="rk-input" id="name" name="name" type="text" required autoComplete="name" value={name} onChange={e => setName(e.target.value)} />
+                            </label>
+                        )}
+                        <label className="rk-field">
+                            <span className="rk-label">{t('emailLabel')}</span>
+                            <input className="rk-input" id="email" name="email" type="email" required autoComplete="email" placeholder={t('emailPlaceholder')} value={email} onChange={e => setEmail(e.target.value)} />
+                        </label>
+                        <div className="rk-field">
+                            <div className="lg-labelrow">
+                                <label className="rk-label" htmlFor="password">{t('password')}</label>
+                                <Link href="/forgot-password">{t('forgotShort')}</Link>
                             </div>
-
-                            <div>
-                                <div className="flex justify-between items-center mb-1">
-                                    <label
-                                        htmlFor="password"
-                                        className="block text-sm font-medium text-neutral-300"
-                                    >
-                                        {t('password')}
-                                    </label>
-                                    <Link href="/forgot-password" className="text-xs text-neutral-400 hover:text-white transition-colors">
-                                        {t('forgotPassword')}
-                                    </Link>
-                                </div>
-                                <Input
+                            <div className="lg-pass">
+                                <input
+                                    className="rk-input"
                                     id="password"
                                     name="password"
-                                    type="password"
-                                    autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                                    type={showPassword ? 'text' : 'password'}
                                     required
+                                    autoComplete={isSignUp ? 'new-password' : 'current-password'}
                                     value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="mt-1 border-neutral-800 bg-neutral-900/80 backdrop-blur-sm"
+                                    onChange={e => setPassword(e.target.value)}
                                 />
-                                {isSignUp && password && (
-                                    <div className="mt-2 flex gap-1">
-                                        {[1, 2, 3, 4].map((level) => (
-                                            <div
-                                                key={level}
-                                                className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength >= level
-                                                    ? passwordStrength >= 3
-                                                        ? 'bg-green-500'
-                                                        : passwordStrength >= 2
-                                                            ? 'bg-yellow-500'
-                                                            : 'bg-red-500'
-                                                    : 'bg-neutral-800'
-                                                    }`}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
+                                <button type="button" className="rk-btn rk-btn--ghost rk-btn--icon rk-btn--sm" aria-label={showPassword ? t('hidePassword') : t('showPassword')} aria-pressed={showPassword} onClick={() => setShowPassword(v => !v)}>
+                                    {showPassword ? <EyeOff /> : <Eye />}
+                                </button>
                             </div>
-                        </div>
-
-                        {error && (
-                            <div className="rounded-md bg-red-900/20 p-3 text-sm text-red-400 border border-red-900/50 backdrop-blur-sm">
-                                {error}
-                            </div>
-                        )}
-
-                        {message && (
-                            <div className="rounded-md bg-green-900/20 p-3 text-sm text-green-400 border border-green-900/50 backdrop-blur-sm">
-                                {message}
-                            </div>
-                        )}
-
-                        <div className="flex flex-col gap-3">
-                            <Button
-                                type="submit"
-                                variant="glassy-primary"
-                                isLoading={loading}
-                                className="w-full"
-                            >
-                                {isSignUp ? t('signUp') : t('signIn')}
-                            </Button>
-
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-neutral-800"></div>
+                            {isSignUp && password && (
+                                <div className="mt-2 flex gap-1" aria-hidden="true">
+                                    {[1, 2, 3, 4].map(level => (
+                                        <div
+                                            key={level}
+                                            className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength >= level
+                                                ? passwordStrength >= 3 ? 'bg-success' : passwordStrength >= 2 ? 'bg-warning' : 'bg-danger'
+                                                : 'bg-border'}`}
+                                        />
+                                    ))}
                                 </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-neutral-950 px-2 text-neutral-500">
-                                        {t('or')}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <Link href="/" className="block">
-                                <Button
-                                    type="button"
-                                    variant="glassy-secondary"
-                                    className="w-full"
-                                >
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    {t('browseWithoutLogin')}
-                                </Button>
-                            </Link>
+                            )}
                         </div>
-                    </form>
-
-                    <div className="text-center">
-                        <Button
-                            type="button"
-                            variant="link"
-                            onClick={() => {
-                                setIsSignUp(!isSignUp)
-                                setError(null)
-                                setMessage(null)
-                            }}
-                            className="text-neutral-400 hover:text-white underline-offset-4"
-                        >
-                            {isSignUp ? t('alreadyHaveAccount') : t('dontHaveAccount')}
-                        </Button>
                     </div>
 
-                    {/* Feature list (mobile) */}
-                    <ul className="lg:hidden grid grid-cols-2 gap-2 pt-4 border-t border-neutral-800/60">
-                        {features.map(({ icon: Icon, label }) => (
-                            <li key={label} className="flex items-start gap-2 text-xs text-neutral-400">
-                                <Icon className="h-4 w-4 shrink-0 text-burgundy-light mt-0.5" />
-                                <span>{label}</span>
-                            </li>
-                        ))}
-                    </ul>
+                    {error && <p className="lg-msg lg-msg--error" role="alert">{error}</p>}
+                    {message && <p className="lg-msg lg-msg--ok" role="status">{message}</p>}
 
-                    <LegalFooter className="pt-6" />
-                </div>
-            </main>
+                    <Button type="submit" size="lg" className="w-full" isLoading={loading}>
+                        {isSignUp ? t('signUp') : t('signIn')}
+                    </Button>
+
+                    <p className="pl-meta" style={{ margin: 0, textAlign: 'center' }}>
+                        {isSignUp ? (
+                            <button type="button" className="pl-link lg-link" onClick={toggleMode}>{t('alreadyHaveAccount')}</button>
+                        ) : (
+                            <>{t('noAccount')} <button type="button" className="pl-link lg-link" onClick={toggleMode}>{t('askAccess')}</button></>
+                        )}
+                    </p>
+
+                    <div className="lg-demo">
+                        <p>{t('demoPrompt')}</p>
+                        <Link
+                            className="pl-link"
+                            href="/"
+                            onClick={async e => {
+                                // Ta sama kurtyna co po zalogowaniu, tylko wolniejsza: 1,5 s w bok, 1 s w górę.
+                                e.preventDefault()
+                                router.prefetch('/')
+                                await lowerCurtain(stageRef.current, videoRef.current, { slow: true })
+                                router.push('/')
+                            }}
+                        >
+                            {t('demoLink')}<ArrowRight />
+                        </Link>
+                    </div>
+                </form>
+                <LegalFooter />
+            </div>
         </div>
     )
 }

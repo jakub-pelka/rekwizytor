@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CurtainReveal } from '@/components/rk/CurtainReveal';
 import { Geist, Courier_Prime } from "next/font/google";
 import localFont from "next/font/local";
 import "../globals.css";
@@ -59,6 +60,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider messages={messages}>
             <MotionProvider>
               <AppShell>{children}</AppShell>
+              <CurtainReveal />
             </MotionProvider>
           </NextIntlClientProvider>
         </ErrorBoundary>

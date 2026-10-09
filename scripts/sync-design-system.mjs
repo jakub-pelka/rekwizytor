@@ -65,7 +65,7 @@ writeFileSync(join(outDir, 'components.css'), HEADER + bundle)
 // (st-head, st-row, st-fig, st-cap, st-phone, st-body, st-toast). Zostają st-title, st-text i st-steps.
 const screensSrc = readFileSync(join(root, 'docs/redesign/ekrany/html/rk-theme.css'), 'utf8')
 const screens = screensSrc
-    .replace(/^\.rk-th[\s\S]*?\n\}\n/gm, '')
+    .replace(/^\.rk-th(?:\[data-theme=\"light\"\])? \{\n[\s\S]*?\n\}\n/gm, '')
     .split('\n')
     .filter(line => !/^\.(st-(head|row|fig|cap|phone|body|toast)|rk-th)\b/.test(line))
     .join('\n')
