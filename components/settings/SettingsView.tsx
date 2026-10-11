@@ -207,6 +207,7 @@ export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreN
                         </>, <span className="rk-badge rk-badge--plain">{t('adminTag')}</span>)}
 
                         {section('about', t('nav_about'), <>
+                            {row('trash', t('trash'), t('trashHint'), <Link className="pl-link" href="/trash">{t('open')}<ChevronRight /></Link>)}
                             {row('version', t('version'), `${version} · ${t('testVersion')}`, null)}
                             {row('privacy', t('privacy'), t('privacyHint'), <Link className="pl-link" href="/privacy">{t('open')}<ChevronRight /></Link>)}
                             {row('terms', t('terms'), null, <Link className="pl-link" href="/terms">{t('open')}<ChevronRight /></Link>)}

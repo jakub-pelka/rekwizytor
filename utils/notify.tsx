@@ -104,6 +104,25 @@ export const notify = {
     },
 
     /**
+     * Skutek akcji z jedną akcją tekstową, np. „Cofnij” (karta Toast). Znika po 6 s.
+     */
+    undo: (message: string, actionLabel: string, onAction: () => void, id?: string) => {
+        return toast.custom((t) => (
+            <div className={`${TOAST_OPTIONS.success.className} flex items-center gap-4 min-w-[300px] max-w-md p-3 pointer-events-auto`}>
+                <span className="shrink-0 flex items-center justify-center min-w-[20px]">{TOAST_OPTIONS.success.icon}</span>
+                <span className="grow text-sm">{message}</span>
+                <button
+                    type="button"
+                    className="pl-link shrink-0"
+                    onClick={() => { toast.dismiss(t.id); onAction() }}
+                >
+                    {actionLabel}
+                </button>
+            </div>
+        ), { id, duration: 6000 })
+    },
+
+    /**
      * Show an error toast
      */
     error: (message: string, id?: string) => {

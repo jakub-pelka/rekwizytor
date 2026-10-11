@@ -6,7 +6,7 @@ import { useRouter } from '@/i18n/routing'
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { notify } from '@/utils/notify'
-import { deletePerformanceProp, savePerformanceProp } from '@/app/actions/save-performance-prop'
+import { deletePerformanceProp, revertPerformanceProp, savePerformanceProp } from '@/app/actions/save-performance-prop'
 import type { PerformanceStructure, StructuredProp } from '@/lib/performance-structure'
 import { roman } from '@/lib/rk-format'
 
@@ -30,6 +30,8 @@ export function PropEditDialog({ performanceId, structure, groups, prop, default
     const [pending, startTransition] = useTransition()
     const [confirmDelete, setConfirmDelete] = useState(false)
     const nameRef = useRef<HTMLInputElement>(null)
+    const descRef = useRef<HTMLTextAreaElement>(null)
+    const startInDescription = useRef(!!prop)
 
     const initialPlace = prop
         ? prop.scene != null ? `s:${prop.scene}` : prop.act != null ? `a:${prop.act}` : ''
@@ -43,14 +45,19 @@ export function PropEditDialog({ performanceId, structure, groups, prop, default
     const [area, setArea] = useState(prop?.area ?? '')
     const [nameError, setNameError] = useState<string | null>(null)
 
+    // Nowy rekwizyt zaczyna od nazwy; przy edycji kursor stoi w opisie (na końcu tekstu), bo po to zwykle się tu wchodzi,
+    // a nazwę łatwo byłoby nadpisać niechcący. Nazwę zmienia się też wprost w wierszu.
     useEffect(() => {
-        nameRef.current?.focus()
+        const desc = descRef.current
+        if (startInDescription.current && desc) { desc.focus(); desc.setSelectionRange(desc.value.length, desc.value.length) }
+        else nameRef.current?.focus()
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
         document.addEventListener('keydown', onKey)
         return () => document.removeEventListener('keydown', onKey)
     }, [onClose])
 
-    const save = () => {
+    // „Zapisz i dodaj następny” (tylko przy nowym): scena i miejsce zostają, reszta się czyści, kursor wraca do nazwy.
+    const save = (andNext = false) => {
         if (!name.trim()) {
             setNameError(t('nameRequired'))
             nameRef.current?.focus()
@@ -74,7 +81,22 @@ export function PropEditDialog({ performanceId, structure, groups, prop, default
                 return
             }
             router.refresh()
-            onClose()
+            // Zmiana istniejącego rekwizytu: „Cofnij” przywraca poprzednią wersję w całości.
+            const previous = result.previous
+            if (previous) {
+                notify.undo(t('updated', { name: name.trim() }), t('undo'), async () => {
+                    const reverted = await revertPerformanceProp(previous)
+                    if (!reverted.ok) { notify.error(reverted.error ?? t('undoFailed')); return }
+                    router.refresh()
+                }, `prop-edit-${previous.id}`)
+            }
+            if (!andNext) { onClose(); return }
+            notify.success(t('saved', { name: name.trim() }))
+            setName('')
+            setDescription('')
+            setGroupId('')
+            setCastOnly('')
+            nameRef.current?.focus()
         })
     }
 
@@ -139,6 +161,7 @@ export function PropEditDialog({ performanceId, structure, groups, prop, default
                     <label className="rk-field">
                         <span className="rk-label">{t('description')}</span>
                         <textarea
+                            ref={descRef}
                             className="rk-textarea"
                             value={description}
                             onChange={e => setDescription(e.target.value)}
@@ -208,6 +231,7 @@ export function PropEditDialog({ performanceId, structure, groups, prop, default
                         <Button variant="ghost" className="mr-auto" onClick={() => setConfirmDelete(true)}>{t('deleteEllipsis')}</Button>
                     )}
                     <Button variant="ghost" onClick={onClose}>{t('cancel')}</Button>
+                    {!prop && <Button variant="secondary" onClick={() => save(true)} disabled={pending}>{t('saveNext')}</Button>}
                     <Button type="submit" form="prop-edit-form" isLoading={pending}>{t('save')}</Button>
                 </div>
             </div>

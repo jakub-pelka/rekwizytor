@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { useRouter } from '@/i18n/routing'
-import { Loader2, Save, Calendar, Trash2, Upload, X } from 'lucide-react'
+import { Link, useRouter } from '@/i18n/routing'
+import { ChevronDown, ChevronLeft, Trash2, Upload, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { VenueSelect } from '@/components/performances/VenueSelect'
 import { compressImage, createThumbnail } from '@/utils/image-processing'
 import { extractTopColors } from '@/utils/colors'
-import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { refreshSearchIndex } from '@/app/actions/unified-search'
+import { restorePerformance, trashPerformance } from '@/app/actions/performance-trash'
+import { notify } from '@/utils/notify'
 
 type Performance = {
     id: string
@@ -27,17 +29,22 @@ type Performance = {
 
 type Props = {
     performance: Performance
+    venues: string[]
 }
 
-export function EditPerformanceForm({ performance }: Props) {
+export function EditPerformanceForm({ performance, venues }: Props) {
     const t = useTranslations('EditPerformanceForm')
     const [title, setTitle] = useState(performance.title)
-    const [premiereDate, setPremiereDate] = useState(performance.premiere_date ? new Date(performance.premiere_date).toISOString().split('T')[0] : '')
+    const [premiereDate, setPremiereDate] = useState(
+        performance.premiere_date ? new Date(performance.premiere_date).toISOString().split('T')[0] : '',
+    )
     const [notes, setNotes] = useState(performance.notes || '')
     const [sourceUrl, setSourceUrl] = useState(performance.source_url || '')
     const [status, setStatus] = useState<Performance['status']>(performance.status)
     const [venue, setVenue] = useState(performance.venue ?? '')
-    const [structure, setStructure] = useState(performance.structure === 'acts_only' ? 'acts_only' : 'acts_scenes')
+    const [structure, setStructure] = useState<'acts_scenes' | 'acts_only'>(
+        performance.structure === 'acts_only' ? 'acts_only' : 'acts_scenes',
+    )
     const [imageFile, setImageFile] = useState<File | null>(null)
     const [imagePreview, setImagePreview] = useState<string | null>(performance.image_url)
     const [extractedColors, setExtractedColors] = useState<string[]>([])
@@ -45,25 +52,28 @@ export function EditPerformanceForm({ performance }: Props) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [isDragging, setIsDragging] = useState(false)
+    const [confirmDelete, setConfirmDelete] = useState(false)
+    const [deleting, startDeleteTransition] = useTransition()
 
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
     const supabase = createClient()
 
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && confirmDelete) setConfirmDelete(false)
+        }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [confirmDelete])
+
     const processFile = async (file: File) => {
         try {
-            // Create preview immediately
             const previewUrl = URL.createObjectURL(file)
             setImagePreview(previewUrl)
-
-            // Extract colors from preview
             const colors = await extractTopColors(previewUrl)
             setExtractedColors(colors)
-            if (colors.length > 0) {
-                setSelectedColor(colors[0])
-            } else {
-                setSelectedColor(null)
-            }
-
+            setSelectedColor(colors.length > 0 ? colors[0] : null)
             setImageFile(file)
         } catch (err) {
             console.error('Error processing image:', err)
@@ -89,7 +99,6 @@ export function EditPerformanceForm({ performance }: Props) {
     const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault()
         setIsDragging(false)
-
         if (e.dataTransfer.files && e.dataTransfer.files[0]) {
             const file = e.dataTransfer.files[0]
             if (file.type.startsWith('image/')) {
@@ -104,12 +113,11 @@ export function EditPerformanceForm({ performance }: Props) {
         setError(null)
 
         try {
-
             let imageUrl = performance.image_url
             let thumbnailUrl = performance.thumbnail_url
 
             if (imageFile) {
-                const fileExt = imageFile.name.split('.').pop()
+                const fileExt = imageFile.name.split('.').pop() || 'jpeg'
                 const fileName = `${Math.random()}.${fileExt}`
                 const thumbnailName = `thumb_${fileName}`
 
@@ -125,40 +133,40 @@ export function EditPerformanceForm({ performance }: Props) {
                 const { error: uploadError } = await supabase.storage
                     .from('posters')
                     .upload(fileName, compressedFile)
-
                 if (uploadError) throw uploadError
 
                 // Upload thumbnail
                 const { error: thumbError } = await supabase.storage
                     .from('posters')
                     .upload(thumbnailName, thumbnailFile)
-
                 if (thumbError) throw thumbError
 
                 // Get public URLs
                 const { data: { publicUrl: publicImgUrl } } = supabase.storage
                     .from('posters')
                     .getPublicUrl(fileName)
-
                 const { data: { publicUrl: publicThumbUrl } } = supabase.storage
                     .from('posters')
                     .getPublicUrl(thumbnailName)
 
                 imageUrl = publicImgUrl
                 thumbnailUrl = publicThumbUrl
+            } else if (!imagePreview) {
+                imageUrl = null
+                thumbnailUrl = null
             }
 
             const { error: updateError } = await supabase
                 .from('performances')
                 .update({
-                    title,
+                    title: title.trim(),
                     premiere_date: premiereDate || null,
-                    notes: notes || null,
+                    notes: notes.trim() || null,
                     status,
                     image_url: imageUrl,
                     thumbnail_url: thumbnailUrl,
                     color: selectedColor,
-                    source_url: sourceUrl || null,
+                    source_url: sourceUrl.trim() || null,
                     venue: venue.trim() || null,
                     structure,
                 })
@@ -166,7 +174,6 @@ export function EditPerformanceForm({ performance }: Props) {
 
             if (updateError) throw updateError
 
-            // Refresh search index
             try {
                 await refreshSearchIndex()
             } catch (e) {
@@ -186,177 +193,140 @@ export function EditPerformanceForm({ performance }: Props) {
         }
     }
 
-    const handleDelete = async () => {
-        if (!confirm(t('deleteConfirmation'))) return
-
-        setLoading(true)
-        try {
-            const { error: deleteError } = await supabase
-                .from('performances')
-                .update({ deleted_at: new Date().toISOString() })
-                .eq('id', performance.id)
-
-            if (deleteError) throw deleteError
-
-            // Refresh search index
-            try {
-                await refreshSearchIndex()
-            } catch (e) {
-                console.error('Failed to refresh search index:', e)
+    const handleDelete = () => {
+        startDeleteTransition(async () => {
+            const result = await trashPerformance(performance.id)
+            if (!result.ok) {
+                setError(result.error ?? t('unknownError'))
+                setConfirmDelete(false)
+                return
             }
-
             router.push('/performances')
-            router.refresh()
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                setError(err.message)
-            } else {
-                setError(t('unknownError'))
-            }
-            setLoading(false)
-        }
+            notify.undo(
+                `Przeniesiono „${performance.title}” do kosza.`,
+                'Cofnij',
+                async () => {
+                    const restored = await restorePerformance(performance.id)
+                    if (!restored.ok) {
+                        notify.error(restored.error ?? 'Nie udało się przywrócić.')
+                        return
+                    }
+                    router.push(`/performances/${performance.id}`)
+                },
+            )
+        })
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8 max-w-3xl">
-            <div className="space-y-8 bg-neutral-900/50 p-6 md:p-8 rounded-2xl border border-white/5 shadow-2xl backdrop-blur-sm">
-                <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-neutral-300">
-                        {t('showTitle')} <span className="text-red-500">*</span>
-                    </label>
+        <main className="mx-auto flex w-full max-w-[760px] flex-col gap-8 px-4 pt-6 pb-12 md:px-12 md:pt-8">
+            <header className="flex flex-col gap-4">
+                <Link className="pl-back" href={`/performances/${performance.id}`}>
+                    <ChevronLeft className="w-4 h-4" />
+                    {performance.title}
+                </Link>
+                <div className="flex flex-col gap-1">
+                    <h1 className="st-title">{t('showTitle')}</h1>
+                    <p className="text-ink-muted text-sm">{performance.title}</p>
+                </div>
+            </header>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                <label className="rk-field">
+                    <span className="rk-label">
+                        {t('showTitle')} <span className="text-danger">*</span>
+                    </span>
                     <input
                         type="text"
-                        id="title"
                         required
+                        className="rk-input"
                         value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="mt-2 block w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-neutral-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-inner transition-all sm:text-sm"
+                        onChange={e => setTitle(e.target.value)}
                     />
-                </div>
+                </label>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label htmlFor="premiereDate" className="block text-sm font-medium text-neutral-300">
-                            {t('premiereDate')}
-                        </label>
-                        <div className="relative mt-2">
-                            <input
-                                type="date"
-                                id="premiereDate"
-                                value={premiereDate}
-                                onChange={(e) => {
-                                    const newDate = e.target.value
-                                    setPremiereDate(newDate)
+                <div className="grid gap-6 sm:grid-cols-2">
+                    <VenueSelect
+                        value={venue}
+                        onChange={setVenue}
+                        venues={venues}
+                        label={t('venue')}
+                        noneLabel={t('venueNone')}
+                        otherLabel={t('venueOther')}
+                        placeholder={t('venuePlaceholder')}
+                    />
 
-                                    if (newDate) {
-                                        const date = new Date(newDate)
-                                        const today = new Date()
-                                        today.setHours(0, 0, 0, 0)
-
-                                        if (date > today) {
-                                            setStatus('upcoming')
-                                        } else {
-                                            // If it was upcoming, move to active. 
-                                            // If it was archived, maybe keep it archived? 
-                                            // User said: "if equal or after [today/past] then it can only be active or archive"
-                                            // Let's default to 'active' if it was 'upcoming', otherwise leave it be (user might have manually set archive)
-                                            if (status === 'upcoming') {
-                                                setStatus('active')
-                                            }
-                                        }
+                    <label className="rk-field">
+                        <span className="rk-label">{t('premiereDate')}</span>
+                        <input
+                            type="date"
+                            className="rk-input"
+                            value={premiereDate}
+                            onChange={e => {
+                                const newDate = e.target.value
+                                setPremiereDate(newDate)
+                                if (newDate) {
+                                    const date = new Date(newDate)
+                                    const today = new Date()
+                                    today.setHours(0, 0, 0, 0)
+                                    if (date > today) {
+                                        setStatus('upcoming')
+                                    } else if (status === 'upcoming') {
+                                        setStatus('active')
                                     }
-                                }}
-                                className="block w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-neutral-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-inner transition-all sm:text-sm pl-10 scheme-dark"
-                            />
-                            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500" />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label htmlFor="status" className="block text-sm font-medium text-neutral-300">
-                            {t('status')}
-                        </label>
-                        <select
-                            id="status"
-                            value={status}
-                            onChange={(e) => setStatus(e.target.value as Performance['status'])}
-                            className="mt-2 block w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-neutral-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-inner transition-all sm:text-sm"
-                        >
-                            <option value="upcoming">{t('statuses.upcoming')}</option>
-                            <option value="active">{t('statuses.active')}</option>
-                            <option value="archived">{t('statuses.archived')}</option>
-                        </select>
-                    </div>
+                                }
+                            }}
+                        />
+                    </label>
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2">
                     <label className="rk-field">
-                        <span className="rk-label">{t('venue')}</span>
-                        <input className="rk-input" value={venue} onChange={e => setVenue(e.target.value)} placeholder={t('venuePlaceholder')} />
+                        <span className="rk-label">{t('status')}</span>
+                        <span className="rk-select">
+                            <select
+                                value={status}
+                                onChange={e => setStatus(e.target.value as Performance['status'])}
+                            >
+                                <option value="upcoming">{t('statuses.upcoming')}</option>
+                                <option value="active">{t('statuses.active')}</option>
+                                <option value="archived">{t('statuses.archived')}</option>
+                            </select>
+                            <ChevronDown className="w-4 h-4" />
+                        </span>
                     </label>
+
                     <label className="rk-field">
                         <span className="rk-label">{t('structure')}</span>
                         <span className="rk-select">
-                            <select value={structure} onChange={e => setStructure(e.target.value)}>
+                            <select
+                                value={structure}
+                                onChange={e => setStructure(e.target.value as 'acts_scenes' | 'acts_only')}
+                            >
                                 <option value="acts_scenes">{t('structureScenes')}</option>
                                 <option value="acts_only">{t('structureActs')}</option>
                             </select>
+                            <ChevronDown className="w-4 h-4" />
                         </span>
                         <span className="rk-hint">{t('structureHint')}</span>
                     </label>
                 </div>
 
-                <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-neutral-300">
-                        {t('notes')}
-                    </label>
-                    <textarea
-                        id="notes"
-                        rows={3}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        className="mt-2 block w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-neutral-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-inner transition-all sm:text-sm"
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="sourceUrl" className="block text-sm font-medium text-neutral-300">
-                        {t('sourceUrl')}
-                    </label>
-                    <input
-                        type="url"
-                        id="sourceUrl"
-                        value={sourceUrl}
-                        onChange={(e) => setSourceUrl(e.target.value)}
-                        placeholder="https://..."
-                        className="mt-2 block w-full rounded-xl border border-white/10 bg-black/50 px-4 py-3 text-white placeholder-neutral-500 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-inner transition-all sm:text-sm"
-                    />
-                </div>
-
-                {/* Poster Upload */}
-                <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                        {t('showPoster')}
-                    </label>
+                {/* Plakat spektaklu: .rk-poster--lg (144px per design system) */}
+                <div className="rk-field">
+                    <span className="rk-label">{t('showPoster')}</span>
                     <div
-                        className={`flex items-start gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${isDragging ? 'border-neutral-500 bg-neutral-800/50' : 'border-transparent'}`}
+                        className={`flex flex-col sm:flex-row items-start gap-6 p-4 rounded-md border border-dashed transition-colors ${
+                            isDragging ? 'border-kurtyna-text bg-surface-raised' : 'border-border'
+                        }`}
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
                         onDrop={handleDrop}
                     >
-                        <div
-                            className="relative w-32 h-48 bg-neutral-950 rounded-lg border border-neutral-800 overflow-hidden flex items-center justify-center shrink-0"
-                            style={{ borderColor: selectedColor || undefined }}
-                        >
+                        <div className="relative shrink-0">
                             {imagePreview ? (
-                                <>
-                                    <Image
-                                        src={imagePreview}
-                                        alt="Preview"
-                                        fill
-                                        className="object-cover"
-                                        unoptimized
-                                    />
+                                <span className="rk-poster rk-poster--lg">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={imagePreview} alt="" />
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -365,105 +335,166 @@ export function EditPerformanceForm({ performance }: Props) {
                                             setExtractedColors([])
                                             setSelectedColor(null)
                                         }}
-                                        className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full hover:bg-black/80"
+                                        aria-label={t('noPoster')}
+                                        className="absolute top-1 right-1 bg-surface/90 hover:bg-surface text-ink p-1 rounded-full border border-border shadow-sm transition-colors"
                                     >
-                                        <X className="w-3 h-3" />
+                                        <X className="w-3.5 h-3.5" />
                                     </button>
-                                </>
+                                </span>
                             ) : (
-                                <div className="text-neutral-600 flex flex-col items-center gap-2">
-                                    <Upload className="w-6 h-6" />
-                                    <span className="text-xs">{t('noPoster')}</span>
-                                </div>
+                                <span className="rk-poster rk-poster--lg rk-poster--empty" title={t('noPoster')}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src="/brand/rekwizytor-znak-mono-bialy.svg" alt="" />
+                                </span>
                             )}
                         </div>
 
-                        <div className="flex-1 space-y-4">
+                        <div className="flex-1 flex flex-col gap-3 min-w-0">
                             <div>
                                 <input
+                                    ref={fileInputRef}
                                     type="file"
-                                    id="poster"
+                                    id="edit-poster"
                                     accept="image/*"
                                     onChange={handleImageChange}
-                                    className="block w-full text-sm text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-neutral-800 file:text-white hover:file:bg-neutral-700"
+                                    className="hidden"
                                 />
-                                <p className="mt-2 text-xs text-neutral-500">
+                                <button
+                                    type="button"
+                                    className="rk-btn rk-btn--secondary rk-btn--sm"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload className="w-4 h-4" />
                                     {t('uploadPoster')}
-                                    <br />
-                                    <span className="text-neutral-400">{t('dragDrop')}</span>
+                                </button>
+                                <p className="rk-hint mt-2">
+                                    {t('dragDrop')}
                                 </p>
                             </div>
 
                             {extractedColors.length > 0 ? (
-                                <div className="space-y-2">
-                                    <p className="text-xs font-medium text-neutral-400">{t('selectThemeColor')}</p>
-                                    <div className="flex gap-3">
-                                        {extractedColors.map((color) => (
+                                <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                                    <span className="rk-hint">{t('selectThemeColor')}</span>
+                                    <div className="flex gap-2 flex-wrap items-center">
+                                        {extractedColors.map(color => (
                                             <button
                                                 key={color}
                                                 type="button"
                                                 onClick={() => setSelectedColor(color)}
-                                                className={`w-8 h-8 rounded-full shadow-sm ring-2 transition-all ${selectedColor === color ? 'ring-white scale-110' : 'ring-transparent hover:scale-105'}`}
+                                                className={`w-6 h-6 rounded-full border transition-all ${
+                                                    selectedColor === color
+                                                        ? 'border-white scale-110 ring-2 ring-kurtyna-text'
+                                                        : 'border-border hover:scale-105'
+                                                }`}
                                                 style={{ backgroundColor: color }}
                                                 title={color}
                                             />
                                         ))}
                                     </div>
-                                    {/* Hex code removed as per user request */}
                                 </div>
                             ) : selectedColor && (
-                                <div className="flex items-center gap-3 p-3 bg-neutral-950 rounded-md border border-neutral-800">
+                                <div className="flex items-center gap-3 pt-2 border-t border-border">
                                     <div
-                                        className="w-8 h-8 rounded-full shadow-sm ring-2 ring-white/10"
+                                        className="w-6 h-6 rounded-full border border-white"
                                         style={{ backgroundColor: selectedColor }}
                                     />
-                                    <div>
-                                        <p className="text-xs font-medium text-white">{t('currentThemeColor')}</p>
-                                        {/* Hex code removed */}
-                                    </div>
+                                    <span className="rk-hint">{t('currentThemeColor')}</span>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {error && (
-                <div className="rounded-md bg-red-900/20 p-4 text-sm text-red-400 border border-red-900/50">
-                    {error}
-                </div>
-            )}
+                <label className="rk-field">
+                    <span className="rk-label">{t('notes')}</span>
+                    <textarea
+                        className="rk-textarea"
+                        rows={4}
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                    />
+                </label>
 
-            <div className="flex items-center justify-between">
-                <Button
-                    type="button"
-                    onClick={handleDelete}
-                    disabled={loading}
-                    variant="glassy-danger"
-                    leftIcon={<Trash2 className="h-4 w-4" />}
-                >
-                    {t('deleteProduction')}
-                </Button>
+                <label className="rk-field">
+                    <span className="rk-label">{t('sourceUrl')}</span>
+                    <input
+                        type="url"
+                        className="rk-input"
+                        value={sourceUrl}
+                        onChange={e => setSourceUrl(e.target.value)}
+                        placeholder="https://..."
+                    />
+                </label>
 
-                <div className="flex gap-4">
+                {error && (
+                    <div className="rk-alert rk-alert--danger" role="alert">
+                        <strong>{error}</strong>
+                    </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
                     <Button
                         type="button"
-                        onClick={() => router.back()}
-                        variant="ghost"
+                        variant="danger"
+                        onClick={() => setConfirmDelete(true)}
+                        disabled={loading || deleting}
+                        leftIcon={<Trash2 className="w-4 h-4" />}
                     >
-                        {t('cancel')}
+                        {t('deleteProduction')}
                     </Button>
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                        variant="glassy-success"
-                        isLoading={loading}
-                        leftIcon={<Save className="h-4 w-4" />}
-                    >
-                        {t('saveChanges')}
-                    </Button>
+
+                    <div className="flex items-center gap-3">
+                        <Link href={`/performances/${performance.id}`} className="rk-btn rk-btn--ghost">
+                            {t('cancel')}
+                        </Link>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            isLoading={loading}
+                        >
+                            {t('saveChanges')}
+                        </Button>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+
+            {confirmDelete && (
+                <div className="rk-overlay fixed inset-0 z-50 rounded-none flex items-center justify-center p-4 bg-black/60">
+                    <div
+                        className="rk-modal rk-modal--confirm"
+                        role="alertdialog"
+                        aria-labelledby="perf-del-title"
+                        aria-describedby="perf-del-desc"
+                    >
+                        <div className="rk-modal__head">
+                            <span className="rk-modal__icon rk-modal__icon--danger">
+                                <Trash2 className="w-5 h-5 text-danger" />
+                            </span>
+                            <div>
+                                <h3 className="rk-modal__title" id="perf-del-title">
+                                    {t('deleteProduction')}
+                                </h3>
+                                <p className="rk-modal__desc" id="perf-del-desc">
+                                    {t('deleteConfirmation')}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="rk-modal__foot">
+                            <Button variant="ghost" onClick={() => setConfirmDelete(false)} autoFocus>
+                                {t('cancel')}
+                            </Button>
+                            <Button
+                                variant="danger"
+                                onClick={handleDelete}
+                                isLoading={deleting}
+                                loadingLabel={t('deleteProduction')}
+                            >
+                                {t('deleteProduction')}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </main>
     )
 }

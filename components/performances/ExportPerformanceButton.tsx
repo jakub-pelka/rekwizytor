@@ -12,10 +12,47 @@ type Performance = Database['public']['Tables']['performances']['Row']
 type PerformanceProp = Database['public']['Tables']['performance_props']['Row']
 type Note = Database['public']['Tables']['notes']['Row']
 type Scene = Database['public']['Tables']['scenes']['Row']
-type SceneTask = Database['public']['Tables']['scene_tasks']['Row']
 type User = {
     full_name: string | null
     email: string | undefined
+}
+
+type ExportData = {
+    production: Performance
+    items: PerformanceProp[]
+    scenes?: Scene[]
+    notes?: Note[]
+    user: User | null
+}
+
+/** Pobranie PDF spektaklu (przycisk i menu „…” na ekranie spektaklu). */
+export function exportPerformancePdf({ production, items, scenes = [], notes = [], user }: ExportData) {
+    const exportPromise = (async () => {
+        const response = await fetch('/api/generate-performance-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ production, items, scenes, notes, user }),
+        })
+
+        if (!response.ok) throw new Error('Failed to generate PDF')
+
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        const safeTitle = production.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()
+        a.download = `${safeTitle}_export_${format(new Date(), 'yyyy-MM-dd')}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+    })()
+
+    return notify.promise(exportPromise, {
+        loading: 'Generowanie PDF...',
+        success: 'PDF wygenerowany!',
+        error: 'Błąd generowania PDF'
+    }, 'pdf')
 }
 
 interface ExportPerformanceButtonProps {
@@ -23,45 +60,17 @@ interface ExportPerformanceButtonProps {
     readonly items: PerformanceProp[]
     readonly scenes?: Scene[]
     readonly notes?: Note[]
-    readonly tasks?: SceneTask[]
     readonly user: User | null
     readonly variant?: 'default' | 'menu'
 }
 
-export function ExportPerformanceButton({ production, items, scenes = [], notes = [], tasks = [], user, variant = 'default' }: ExportPerformanceButtonProps) {
+export function ExportPerformanceButton({ production, items, scenes = [], notes = [], user, variant = 'default' }: ExportPerformanceButtonProps) {
     const t = useTranslations('ExportButton') // Reusing existing translations or we might need new ones
     const [isExporting, setIsExporting] = useState(false)
 
-    const handleExportPDF = async () => {
-        const exportPromise = (async () => {
-            const response = await fetch('/api/generate-performance-pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ production, items, scenes, notes, tasks, user }),
-            })
-
-            if (!response.ok) throw new Error('Failed to generate PDF')
-
-            const blob = await response.blob()
-            const url = window.URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            const safeTitle = production.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()
-            a.download = `${safeTitle}_export_${format(new Date(), 'yyyy-MM-dd')}.pdf`
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-            window.URL.revokeObjectURL(url)
-        })()
-
+    const handleExportPDF = () => {
         setIsExporting(true)
-        notify.promise(exportPromise, {
-            loading: 'Generowanie PDF...',
-            success: 'PDF wygenerowany!',
-            error: 'Błąd generowania PDF'
-        }, 'pdf').finally(() => setIsExporting(false))
+        exportPerformancePdf({ production, items, scenes, notes, user }).finally(() => setIsExporting(false))
     }
 
     if (variant === 'menu') {

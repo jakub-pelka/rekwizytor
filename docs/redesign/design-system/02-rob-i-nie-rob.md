@@ -45,6 +45,7 @@ Krótka ściąga do każdego nowego ekranu, slajdu i wydruku. Po lewej to, co ro
 | Rób | Nie rób |
 | --- | --- |
 | Wielka litera tylko na początku zdania: „Dodaj rekwizyt do sceny”. | Nie pisz angielskim Title Case: „Dodaj Rekwizyt Do Sceny”. |
+| W pasku akcji: 1 przycisk to sam główny, 2 to główny i `secondary`, 3 to główny, `secondary` i `ghost`, 4+ to główny i „Więcej ▾” z menu. | Nie stawiaj obok siebie więcej niż trzech przycisków ani ikony „⋯” obok pełnych przycisków. |
 | Przyciski jako czasowniki w trybie rozkazującym, bez kropki: „Drukuj etykiety”. | Nie pisz „OK”, „Kliknij tutaj”, „Wyślij formularz”. |
 | Słownictwo teatru: spektakl, scena, akt, obsada, magazyn. | Nie pisz „rekord”, „item”, „encja”, „obiekt”. |
 | Komunikat błędu mówi, jak naprawić: „Numer musi mieć 4 cyfry, np. REK-0142.” | Nie pisz samego „Błędne dane” albo „Coś poszło nie tak”. |

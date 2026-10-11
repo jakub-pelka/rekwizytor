@@ -11,6 +11,12 @@ Ruch: hover unosi przycisk o 1 px (`-1px, -1px`) i wydłuża cień (`shadow-stam
 
 Rozmiary: `sm` 32 px **zawsze płaski** (paski narzędzi, tabele, filtry, bez cienia i ruchu), `md` 40 px (domyślny), `lg` 48 px (lista zadań na żywo, mobile). Zaokrąglenie `radius-sm`.
 
+- **Ile przycisków obok siebie** (pasek akcji nagłówka widoku, od 8.10; liczą się wszystkie, także „Więcej”):
+  - 1 akcja: sam `primary`.
+  - 2 akcje: `primary` i jeden `secondary` (z pieczątką).
+  - 3 akcje: `primary`, `secondary` (z pieczątką) i `ghost` (bez pieczątki).
+  - 4 i więcej: `primary` i `secondary` „Więcej ▾” z menu (`ActionMenu` z `text`), w którym lądują pozostałe akcje. Nie dawaj ikony „⋯” jako ghost obok innych przycisków, a „Etykiety”, „Edytuj” i „Eksportuj” nie stoją wtedy osobno.
+  - Zawsze jeden `primary`, zawsze pierwszy z prawej (ostatni w rzędzie). Na komputerze nie pokazujemy akcji, które mają sens tylko na telefonie (skanowanie).
 - Między przyciskami z cieniem zostaw co najmniej `space-3`, żeby cień nie wchodził na sąsiada.
 - W gęstych widokach (tabele, listy z akcją w każdym wierszu) używaj `sm` albo `ghost`, nie `md` z cieniem.
 - Przycisk z samą ikoną (`--icon`) zawsze ma `aria-label`.

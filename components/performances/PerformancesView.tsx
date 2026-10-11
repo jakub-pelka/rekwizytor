@@ -1,3 +1,4 @@
+import { SharedElement } from '@/components/rk/SharedElement'
 import { ChevronRight, Plus } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
@@ -93,10 +94,10 @@ export async function PerformancesView({ performances, venues, venue, seasonLabe
                 <Link className="sl-row" href={`/performances/${p.id}`}>
                     {p.poster ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <span className="rk-poster"><img src={p.poster} alt="" loading="lazy" /></span>
+                        <SharedElement name={`show-poster-${p.id}`}><span className="rk-poster"><img src={p.poster} alt="" loading="lazy" /></span></SharedElement>
                     ) : (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <span className="rk-poster rk-poster--empty" title={t('noPoster')}><img src="/brand/rekwizytor-znak-mono-bialy.svg" alt="" /></span>
+                        <SharedElement name={`show-poster-${p.id}`}><span className="rk-poster rk-poster--empty" title={t('noPoster')}><img src="/brand/rekwizytor-znak-mono-bialy.svg" alt="" /></span></SharedElement>
                     )}
                     <span className="pl-main">
                         <b className="sl-title">{p.title}</b>

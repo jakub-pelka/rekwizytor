@@ -1,4 +1,4 @@
-import { Camera, Check, ChevronRight, FileText, Mail, Plus } from 'lucide-react'
+import { Camera, Check, ChevronRight, FileText, Mail } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
 import { ShowTitle } from '@/components/rk/ShowTitle'
@@ -23,15 +23,8 @@ export async function DashboardView({ data, now, canEdit, theatreName }: Props) 
 
     return (
         <div className="mx-auto flex max-w-[1184px] flex-col gap-6 px-4 pt-2 pb-8 md:gap-8 md:px-12 md:pt-8 md:pb-12">
-            <header className="rk-page-header hidden flex-wrap items-center border-b-0 pb-0 md:flex">
-                <div>
-                    <p className="rk-page-header__eyebrow">{theatreName ? t('eyebrowTheatre', { date: longDate(nowDate), theatre: theatreName }) : longDate(nowDate)}</p>
-                    <h1 className="rk-page-header__title">{t('title')}</h1>
-                </div>
-                {canEdit && (
-                    // Na komputerze bez skanowania (zasada przycisków, karta Button): skanuje się telefonem.
-                    <Link className="rk-btn rk-btn--primary" href="/groups?create=1"><Plus />{t('addProp')}</Link>
-                )}
+            <header className="rk-page-header hidden flex-wrap items-center justify-end border-b-0 pb-0 md:flex">
+                <p className="rk-page-header__eyebrow">{theatreName ? t('eyebrowTheatre', { date: longDate(nowDate), theatre: theatreName }) : longDate(nowDate)}</p>
             </header>
 
             <div className="flex flex-col gap-8 md:gap-12">

@@ -9,7 +9,6 @@ type Performance = Database['public']['Tables']['performances']['Row']
 type Scene = Database['public']['Tables']['scenes']['Row']
 type PerformanceProp = Database['public']['Tables']['performance_props']['Row']
 type Note = Database['public']['Tables']['notes']['Row']
-type SceneTask = Database['public']['Tables']['scene_tasks']['Row']
 
 interface User {
     full_name: string | null
@@ -21,7 +20,6 @@ interface RequestBody {
     items: PerformanceProp[]
     scenes?: Scene[]
     notes?: Note[]
-    tasks?: SceneTask[]
     user: User | null
 }
 
@@ -119,7 +117,7 @@ const extractTextFromContent = (content: Json | null): string => {
     return ''
 }
 
-const PerformancePdfDocument = ({ production, items, scenes, notes, tasks, user, qrCodeUrl }: RequestBody & { qrCodeUrl?: string }) => {
+const PerformancePdfDocument = ({ production, items, scenes, notes, user, qrCodeUrl }: RequestBody & { qrCodeUrl?: string }) => {
     // 1. Process Master Item List (Deduplicate Items)
     const uniqueItemsMap = new Map<string, string>();
     items.forEach(pi => {
@@ -180,13 +178,13 @@ const PerformancePdfDocument = ({ production, items, scenes, notes, tasks, user,
                             <View style={[styles.tableRow, styles.tableHeader]}>
                                 <View style={[styles.tableCell, styles.colSceneNum]}><Text>Nr</Text></View>
                                 <View style={[styles.tableCell, styles.colSceneName]}><Text>Nazwa</Text></View>
-                                <View style={[styles.tableCell, styles.colTasks]}><Text>Zadania</Text></View>
+                                <View style={[styles.tableCell, styles.colTasks]}><Text>Rekwizyty</Text></View>
                             </View>
                             {sortedScenes.map((scene, i) => {
                                 const isNewAct = i === 0 || scene.act_number !== sortedScenes[i - 1].act_number;
-                                const sceneTasks = tasks
-                                    ?.filter(task => task.scene_id === scene.id)
-                                    .sort((a, b) => a.order_index - b.order_index) || [];
+                                const sceneProps = items
+                                    ?.filter(item => item.scene_number === scene.scene_number)
+                                    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)) || [];
                                 
                                 return (
                                     <React.Fragment key={scene.id}>
@@ -203,12 +201,14 @@ const PerformancePdfDocument = ({ production, items, scenes, notes, tasks, user,
                                                 <Text>{scene.name || '-'}</Text>
                                             </View>
                                             <View style={[styles.tableCell, styles.colTasks]}>
-                                                {sceneTasks.length > 0 ? (
+                                                {sceneProps.length > 0 ? (
                                                     <View style={styles.tasksList}>
-                                                        {sceneTasks.map((task) => (
-                                                            <View key={task.id} style={styles.taskItem}>
+                                                        {sceneProps.map((item) => (
+                                                            <View key={item.id} style={styles.taskItem}>
                                                                 <View style={styles.taskCheckbox} />
-                                                                <Text style={styles.taskText}>{task.content}</Text>
+                                                                <Text style={styles.taskText}>
+                                                                    {item.item_name}{item.description ? ` — ${item.description}` : ''}
+                                                                </Text>
                                                             </View>
                                                         ))}
                                                     </View>
@@ -300,7 +300,6 @@ export async function POST(request: NextRequest) {
                 items={body.items || []}
                 scenes={body.scenes || []}
                 notes={body.notes || []}
-                tasks={body.tasks || []}
                 user={body.user}
                 qrCodeUrl={qrCodeDataUrl}
             />

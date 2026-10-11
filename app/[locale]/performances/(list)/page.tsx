@@ -68,8 +68,26 @@ export default async function PerformancesPage({ searchParams }: Props) {
         }
     })
 
-    const venues = [...new Set(listed.map(p => p.venue).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, 'pl'))
-    const venue = params.venue && venues.includes(params.venue) ? params.venue : null
+    // Scena wpisana ręcznie bywa zapisana różnie („Duża scena”, „duża scena ”): za tę samą uznajemy ten sam napis bez względu
+    // na wielkość liter i odstępy. Na chipie i w metryce pokazujemy najczęstszy zapis (przy remisie ten z wielką literą).
+    const venueKey = (v: string) => v.trim().replace(/\s+/g, ' ').toLocaleLowerCase('pl')
+    const spellings = new Map<string, Map<string, number>>()
+    for (const p of listed) {
+        if (!p.venue?.trim()) continue
+        const label = p.venue.trim().replace(/\s+/g, ' ')
+        const forms = spellings.get(venueKey(label)) ?? new Map<string, number>()
+        forms.set(label, (forms.get(label) ?? 0) + 1)
+        spellings.set(venueKey(label), forms)
+    }
+    const canonical = new Map<string, string>()
+    for (const [key, forms] of spellings) {
+        const best = [...forms].sort(([a, na], [b, nb]) => nb - na || Number(b[0] === b[0].toLocaleUpperCase('pl')) - Number(a[0] === a[0].toLocaleUpperCase('pl')) || a.localeCompare(b, 'pl'))[0][0]
+        canonical.set(key, best)
+    }
+    for (const p of listed) p.venue = p.venue?.trim() ? canonical.get(venueKey(p.venue)) ?? p.venue : null
+
+    const venues = [...canonical.values()].sort((a, b) => a.localeCompare(b, 'pl'))
+    const venue = params.venue ? canonical.get(venueKey(params.venue)) ?? null : null
 
     return (
         <PerformancesView

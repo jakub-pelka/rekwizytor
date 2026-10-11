@@ -71,6 +71,10 @@ export function StorageView({ data, roomId, canEdit }: Props) {
     const groupsIn = (locationId: string | null) => sortGroups(groups.filter(g => g.locationId === locationId && visibleGroup(g)))
     const roomIds = room ? subtreeIds(locations, room.id) : null
     const unassigned = groupsIn(null)
+    // Przedmioty bez grupy i bez miejsca (np. ze skanu zapisanego bez wybranego miejsca) też trafiają do „Nieprzypisanych”,
+    // inaczej byłyby widoczne tylko w wyszukiwarce.
+    const unassignedItems = performance ? [] : data.looseItems.filter(i => !i.locationId)
+    const unassignedCount = unassigned.length + unassignedItems.length
     const looseIn = (locationId: string) => performance ? [] : data.looseItems.filter(i => i.locationId === locationId)
 
     const pathLabel = (locationId: string | null, extra?: string) =>
@@ -338,16 +342,16 @@ export function StorageView({ data, roomId, canEdit }: Props) {
                         <div className="rk-inv-jump-scroll md:!mr-0 md:!overflow-visible">
                             <div className="rk-inv-jump overflow-x-auto md:!flex-wrap" role="group" aria-label={t('jump')}>
                                 <button className="rk-chip" aria-pressed={!jump} onClick={() => setJump(null)}>
-                                    {t('all')}<span className="rk-chip__n">{groups.filter(g => g.locationId && roomIds!.has(g.locationId)).length + unassigned.length}</span>
+                                    {t('all')}<span className="rk-chip__n">{groups.filter(g => g.locationId && roomIds!.has(g.locationId)).length + unassignedCount}</span>
                                 </button>
                                 {roomContainers.map(c => (
                                     <button key={c.id} className="rk-chip" aria-pressed={jump === c.id} onClick={() => setJump(c.id)}>
                                         {c.name}<span className="rk-chip__n">{groups.filter(g => g.locationId && subtreeIds(locations, c.id).has(g.locationId)).length}</span>
                                     </button>
                                 ))}
-                                {unassigned.length > 0 && (
+                                {unassignedCount > 0 && (
                                     <button className="rk-chip" aria-pressed={jump === 'unassigned'} onClick={() => setJump('unassigned')}>
-                                        {t('unassigned')}<span className="rk-chip__n">{unassigned.length}</span>
+                                        {t('unassigned')}<span className="rk-chip__n">{unassignedCount}</span>
                                     </button>
                                 )}
                             </div>
@@ -401,8 +405,8 @@ export function StorageView({ data, roomId, canEdit }: Props) {
                             {jump !== 'unassigned' && shownContainers.map(containerSection)}
                             {!jump && loose.length > 0 && section('inv-loose', t('loose'), plural(loose.length, ['grupa', 'grupy', 'grup']),
                                 <ul className="rk-inv-list pl-list">{loose.map(g => groupRow(g))}</ul>)}
-                            {(!jump || jump === 'unassigned') && unassigned.length > 0 && section('inv-unassigned', t('unassigned'), plural(unassigned.length, ['grupa', 'grupy', 'grup']),
-                                <ul className="rk-inv-list pl-list">{unassigned.map(g => groupRow(g))}</ul>)}
+                            {(!jump || jump === 'unassigned') && unassignedCount > 0 && section('inv-unassigned', t('unassigned'), plural(unassignedCount, ['pozycja', 'pozycje', 'pozycji']),
+                                <ul className="rk-inv-list pl-list">{unassigned.map(g => groupRow(g))}{unassignedItems.map(i => itemRow(i, null))}</ul>)}
                         </>
                     ) : (
                         <>
@@ -426,8 +430,8 @@ export function StorageView({ data, roomId, canEdit }: Props) {
                                     })}
                                 </ul>,
                             )}
-                            {unassigned.length > 0 && section('inv-unassigned', t('unassigned'), plural(unassigned.length, ['grupa', 'grupy', 'grup']),
-                                <ul className="rk-inv-list pl-list">{unassigned.map(g => groupRow(g))}</ul>)}
+                            {unassignedCount > 0 && section('inv-unassigned', t('unassigned'), plural(unassignedCount, ['pozycja', 'pozycje', 'pozycji']),
+                                <ul className="rk-inv-list pl-list">{unassigned.map(g => groupRow(g))}{unassignedItems.map(i => itemRow(i, null))}</ul>)}
                         </>
                     )}
 

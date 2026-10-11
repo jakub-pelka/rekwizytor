@@ -120,12 +120,25 @@ export async function loadPerformanceStructure(
         return { act, scenes: actScenes, actProps: direct, propCount }
     })
 
+    // Płaska lista („Wszystkie rekwizyty”, eksport, podpowiedzi) w kolejności rozpiski: przygotowanie, potem akty
+    // (najpierw rekwizyty całego aktu, potem sceny po kolei), na końcu „Bez sceny”. W obrębie miejsca kolejność z bazy.
+    const position = (p: StructuredProp): [number, number, number] => {
+        const scene = p.scene != null ? sceneByNumber.get(p.scene) : undefined
+        if (scene && (scene.type === 'preparation' || (scene.act_number ?? 0) === 0)) return [0, 0, scene.scene_number]
+        if (p.act != null && p.act > 0) return [1, p.act, scene ? scene.scene_number : -1]
+        return [2, 0, 0]
+    }
+    const inBreakdownOrder = structured
+        .map((p, i) => ({ p, i, k: position(p) }))
+        .sort((a, b) => a.k[0] - b.k[0] || a.k[1] - b.k[1] || a.k[2] - b.k[2] || a.i - b.i)
+        .map(x => x.p)
+
     return {
         preparation: scenes.filter(s => s.type === 'preparation' || s.act_number === 0).map(toScene),
         acts,
         actsOnly,
         unassigned: structured.filter(p => p.scene == null && p.act == null),
-        props: structured,
+        props: inBreakdownOrder,
         actCount: acts.length,
         sceneCount: actsOnly ? 0 : playable.length,
     }

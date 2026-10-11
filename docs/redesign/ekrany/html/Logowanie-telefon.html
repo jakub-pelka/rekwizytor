@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Logowanie · telefon</title>
+<link rel="stylesheet" href="../../design-system/components/bundle.css">
+<link rel="stylesheet" href="rk-theme.css">
+</head>
+<body>
+<div class="x-dc">
+<div hidden>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Courier+Prime:wght@400;700&amp;display=swap">
+<style>
+@font-face { font-family: "Boldonse"; src: url("assets/Boldonse-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+body { margin: 0; background: #0d0b0b; }
+a { color: inherit; } a:hover { color: inherit; }
+</style>
+</div>
+<style>
+/* Logowanie */
+.lg { display: flex; min-height: 100%; }
+.lg-stage { position: relative; flex: 1 1 50%; overflow: hidden; background: var(--scena); border-right: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lg-valance { position: absolute; left: 0; right: 0; top: 0; height: 72px; background: var(--kurtyna-night); }
+.lg-valance::after { content: ""; position: absolute; left: 0; right: 0; top: 72px; height: 16px; background: radial-gradient(circle at 16px 0, var(--kurtyna-night) 15.5px, transparent 16px) repeat-x 0 0 / 32px 16px; }
+.lg-valance::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 40px; background: var(--kurtyna-deep); }
+.lg-drape { position: absolute; top: 0; bottom: 64px; width: 20%; max-width: 150px; }
+.lg-drape--l { left: 0; } .lg-drape--r { right: 0; transform: scaleX(-1); }
+.lg-drape svg { width: 100%; height: 100%; display: block; }
+.lg-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 64px; background: var(--kurtyna-night); }
+.lg-floor::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--kurtyna-deep); }
+.lg-words { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; padding: 0 24px; }
+.lg-words img { height: 64px; display: block; }
+.lg-tag { margin: 0; font: 400 16px/24px var(--font-typewriter); color: var(--ink-muted); }
+.lg-points { position: relative; z-index: 1; margin: 48px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+.lg-form-wrap { flex: 1 1 50%; display: flex; flex-direction: column; padding: 32px 48px; }
+.lg-form { flex: 1; width: 100%; max-width: 360px; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+.lg-form h1 { margin: 0; font: 600 20px/28px var(--font-sans); color: var(--ink); }
+.lg-form .lg-sub { margin: 4px 0 0; font: 400 14px/20px var(--font-sans); color: var(--ink-muted); }
+.lg-fields { display: flex; flex-direction: column; gap: 16px; }
+.lg-labelrow { display: flex; justify-content: space-between; align-items: baseline; }
+.lg-labelrow a { font: 500 13px/18px var(--font-sans); color: var(--ink-muted); text-decoration: none; }
+.lg-pass { position: relative; }
+.lg-pass .rk-input { width: 100%; box-sizing: border-box; padding-right: 44px; }
+.lg-pass button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+.lg-demo { display: flex; flex-direction: column; gap: 8px; padding-top: 24px; border-top: 1px solid var(--border); }
+.lg-demo p { margin: 0; font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.lg-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 16px; font: 400 12px/16px var(--font-sans); color: var(--ink-subtle); }
+.lg-foot a { color: var(--ink-subtle); text-decoration: underline; text-underline-offset: 2px; }
+.lg--phone { flex-direction: column; }
+.lg--phone .lg-stage { flex: none; height: 200px; border-right: 0; border-bottom: 1px solid var(--border); justify-content: flex-end; padding-bottom: 32px; box-sizing: border-box; }
+.lg--phone .lg-words img { height: 40px; }
+.lg--phone .lg-tag { font-size: 14px; line-height: 20px; }
+.lg--phone .lg-drape { display: none; }
+.lg--phone .lg-floor { display: none; }
+.lg--phone .lg-valance { height: 40px; } .lg--phone .lg-valance::before { height: 20px; } .lg--phone .lg-valance::after { top: 40px; }
+.lg--phone .lg-form-wrap { padding: 24px 16px; }
+.lg--phone .lg-form { justify-content: flex-start; }
+</style>
+<div class="rk rk-th" data-theme="dark" style="width: 390px; height: 844px; box-sizing: border-box; overflow: hidden;">
+<div class="lg lg--phone" style="height: 100%;"><section class="lg-stage" aria-hidden="true">
+<div class="lg-valance"></div><div class="lg-drape lg-drape--l"><svg viewBox="0 0 220 600" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0h220c-30 120-60 300-40 430 8 50 30 100 50 170H0z" style="fill:var(--kurtyna)"/><path d="M40 0c-6 160-4 380 14 600h-18C20 380 22 160 28 0z" style="fill:var(--kurtyna-deep)"/><path d="M110 0c-22 150-26 360-4 600H92C70 360 76 150 96 0z" style="fill:var(--kurtyna-deep)"/><path d="M178 0c-34 120-52 300-36 430 6 50 22 100 40 170h-12c-20-70-36-120-42-170-16-130 4-310 38-430z" style="fill:var(--kurtyna-deep)"/></svg></div><div class="lg-drape lg-drape--r"><svg viewBox="0 0 220 600" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0h220c-30 120-60 300-40 430 8 50 30 100 50 170H0z" style="fill:var(--kurtyna)"/><path d="M40 0c-6 160-4 380 14 600h-18C20 380 22 160 28 0z" style="fill:var(--kurtyna-deep)"/><path d="M110 0c-22 150-26 360-4 600H92C70 360 76 150 96 0z" style="fill:var(--kurtyna-deep)"/><path d="M178 0c-34 120-52 300-36 430 6 50 22 100 40 170h-12c-20-70-36-120-42-170-16-130 4-310 38-430z" style="fill:var(--kurtyna-deep)"/></svg></div><div class="lg-floor"></div>
+<div class="lg-words"><img src="assets/rekwizytor-logo-dark.svg" alt="Rekwizytor"><p class="lg-tag">Mniej szukania, więcej grania.</p></div>
+
+</section><div class="lg-form-wrap">
+<form class="lg-form" aria-labelledby="lg-h">
+<div><h1 id="lg-h">Zaloguj się</h1><p class="lg-sub">Do kulis swojego teatru.</p></div>
+<div class="lg-fields">
+<label class="rk-field"><span class="rk-label">E-mail</span><input class="rk-input" type="email" placeholder="imie@teatr.pl" autocomplete="email"></label>
+<div class="rk-field"><div class="lg-labelrow"><label class="rk-label" for="lg-p">Hasło</label><a href="#">Nie pamiętasz?</a></div><div class="lg-pass"><input class="rk-input" id="lg-p" type="password" value="••••••••••" autocomplete="current-password"><button type="button" class="rk-btn rk-btn--ghost rk-btn--icon rk-btn--sm" aria-label="Pokaż hasło"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></button></div></div>
+</div>
+<button class="rk-btn rk-btn--primary rk-btn--lg" type="submit" style="width: 100%;">Zaloguj się</button>
+<p class="pl-meta" style="margin: 0; text-align: center;">Nie masz konta? Konto zakłada administrator teatru. <a class="pl-link" href="#">Poproś o dostęp</a></p>
+<div class="lg-demo"><p>Chcesz najpierw zobaczyć, jak to działa?</p><a class="pl-link" href="#">Zobacz wersję demo bez logowania<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></div>
+</form>
+<footer class="lg-foot"><span>© 2026 Jakub Pełka</span><a href="#">Polityka prywatności</a><a href="#">Regulamin wersji testowej</a></footer>
+</div></div>
+</div>
+</div>
+<script type="text/x-dc" data-dc-script data-props='{"motyw":{"editor":"enum","options":["Kulisy","Biuro"],"default":"Kulisy"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: (this.props.motyw ?? 'Kulisy') === 'Biuro' ? 'light' : 'dark' };
+  }
+}
+</script>
+</body>
+</html>

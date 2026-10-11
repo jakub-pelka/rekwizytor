@@ -245,8 +245,7 @@ export function PerformancePhone({ performance, structure, lists, currentListId,
                             { type: 'button', label: t('addProp'), onSelect: () => setEditing({ prop: null }) },
                             { type: 'separator' },
                             { label: t('editPerformance'), href: `/performances/${performance.id}/edit` },
-                            { label: t('editScenes'), href: `/performances/${performance.id}/scenes` },
-                            { label: t('editProps'), href: `/performances/${performance.id}/props` },
+                            { label: t('editBreakdown'), href: `/performances/${performance.id}/props` },
                             { label: t('editDates'), href: `/performances/${performance.id}/schedule` },
                         ]}
                     />

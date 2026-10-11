@@ -8,6 +8,39 @@ Celem najbliższych tygodni jest **pilotaż w jednym–dwóch teatrach na Śląs
 
 **Zasada nadrzędna:** nie wymyślamy wyglądu w kodzie. Jeśli czegoś brakuje w design systemie, najpierw zapisujemy to w systemie, potem w kodzie.
 
+## Aktualizacja 8 października (2): Spektakl na komputerze, koniec zadań scen, logowanie
+
+### Spektakl (`ekrany/png/Spektakl.png`)
+
+Zastępuje stary widok na komputerze (`page.tsx` od `hidden md:block`). Telefon (`PerformancePhone`) zostaje z zakładkami.
+
+- **Bez paska zakładek na komputerze.** Wszystko mieści się naraz w dwóch kolumnach.
+- **Trzy poziomy uwagi:**
+  1. Nagłówek: plakat 96 px, tytuł w Boldonse, metryka w jednej linii (scena, akty, sceny, rekwizyty, premiera, po polsku). Po prawej kontekst „Najbliżej: dziś 19:00 · obsada B · 31/42 gotowe” nad jedynym głównym przyciskiem „Otwórz listę zadań” (lista najbliższego terminu). „Etykiety” i menu „⋯” (edycja danych, sceny, eksport, druk) jako ciche przyciski. Gdy brak terminu: główny przycisk „Zaplanuj termin”.
+  2. Lewa kolumna (około 2/3): „Rozpiska” z przełącznikiem „Według scen / Wszystkie rekwizyty”. Przygotowanie i akty jako sekcje, sceny jako wiersze z licznikiem, otwarta jedna scena naraz. W rozwiniętej scenie wpisy `.rk-entry` **bez** kafelków z ikoną i **bez** numerów REK (numer jest w karcie rekwizytu). Znaczki tylko tam, gdzie coś wymaga uwagi (do naprawy, tylko obsada A).
+  3. Prawa kolumna wyciszona (klasy `.sp-side*` w `ekrany/html/rk-theme.css`): „Kolejne terminy” (2 wiersze, link do Kalendarza) i „Powiązane”: Obsada (liczba wyjątków), Z magazynu (grupy, ile do naprawy), Notatki (ile nowych). Każde to jedno wejście, pełne treści na osobnych ekranach.
+- **Usunąć ze starego widoku:** karty z tłem i rozmytym plakatem, kolor spektaklu w ramkach, status po angielsku, kartę „Zaplanowane”, podgląd notatek, kartę grup, tabelę „Scena / Zadania” z pełnym ekranem, sekcję „Wszystkie rekwizyty” **z odhaczaniem** (odhacza się tylko w liście zadań terminu).
+
+### Koniec zadań scen (`scene_tasks`)
+
+Wpis rekwizytu ma opis (co, jak, gdzie, skąd), więc osobne zadania scen są zbędne. Czynność bez rekwizytu zapisujemy jako wpis z samym opisem. Kolejność, żeby nic nie pękło:
+
+1. Sprawdzić, czy w `scene_tasks` są dane. Jeśli tak, przenieść je do wpisów (rekwizyt z samym opisem) i pokazać Kubie wynik.
+2. Usunąć z interfejsu: kolumnę „Zadania”, `/performances/[id]/tasks/edit`, `SceneTaskEditor`, `SceneTaskItem`, pozycję w menu akcji, resztki „notatki scenicznej” (`sceneNote`).
+3. Stary tryb na żywo (`/performances/[id]/live`, `SimpleLiveView`): jeśli nowa lista zadań terminu go zastąpiła, usunąć i przekierować na listę najbliższego terminu. Eksport PDF (`generate-performance-pdf`) przepiąć na wpisy rekwizytów.
+4. Tabelę usunąć osobną migracją na końcu, po kilku dniach działania bez niej. **Najpierw zapytać Kubę.**
+
+### Logowanie (`ekrany/png/Logowanie.png`, `Logowanie-telefon.png`)
+
+Pierwszy ekran, który widzi teatr, więc ma być spokojny i po polsku.
+
+- **Lewa połowa (komputer): scena.** Lambrekin z falbaną u góry, kotary zebrane po bokach, podłoga sceny, na środku logo i hasło „Mniej szukania, więcej grania.” w Courier Prime, pod spodem trzy krótkie linie o funkcjach, bez ikon i kafelków. Bez gradientów i rozmyć. Na telefonie zostaje tylko lambrekin, logo i hasło.
+- **Prawa połowa: formularz,** maksymalnie 360 px: „Zaloguj się” (Geist 20/28) i podtytuł „Do kulis swojego teatru.”, pola E-mail i Hasło (z „Nie pamiętasz?” w wierszu etykiety i przyciskiem pokaż hasło), jeden główny przycisk.
+- **Konto:** „Nie masz konta? Konto zakłada administrator teatru. Poproś o dostęp”.
+- **Demo:** pod linią cichy link „Zobacz wersję demo bez logowania →”, a nie drugi duży przycisk z „LUB”.
+- **Stopka:** stonowana, z podkreślonymi linkami (polityka prywatności, regulamin wersji testowej), bez czerwieni.
+- Kod: style ekranu są w `<style>` wewnątrz `ekrany/html/Logowanie.html` (klasy `.lg-*`). Kotary to inline SVG, lambrekin to CSS (`radial-gradient` w pasku). Wersja oszczędna ruchu: bez animacji, i tak nic się nie rusza.
+
 ## Aktualizacja 8 października: Kalendarz, Spektakle z plakatem, Ustawienia
 
 Ta sekcja ma pierwszeństwo przed starszymi fragmentami tego pliku, jeśli coś się kłóci. Odpowiada też na punkt audytu o starych ekranach Spektaklu i Listy spektakli na komputerze.

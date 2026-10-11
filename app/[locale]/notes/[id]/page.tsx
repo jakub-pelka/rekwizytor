@@ -283,7 +283,7 @@ export default function NoteDetailPage() {
                                         },
                                         {
                                             label: t('manageScenes'),
-                                            onClick: () => router.push(`/performances/${note.performance_id}/scenes`)
+                                            onClick: () => router.push(`/performances/${note.performance_id}/props`)
                                         }
                                     ]}
                                 />

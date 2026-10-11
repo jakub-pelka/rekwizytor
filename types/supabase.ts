@@ -526,11 +526,11 @@ export type Database = {
         Row: {
           acts_collapsed: boolean
           collapse_done: boolean
-          list_detail: string
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          list_detail: string
           role: Database["public"]["Enums"]["user_role"] | null
           status: Database["public"]["Enums"]["user_status"] | null
           updated_at: string | null
@@ -538,11 +538,11 @@ export type Database = {
         Insert: {
           acts_collapsed?: boolean
           collapse_done?: boolean
-          list_detail?: string
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          list_detail?: string
           role?: Database["public"]["Enums"]["user_role"] | null
           status?: Database["public"]["Enums"]["user_status"] | null
           updated_at?: string | null
@@ -550,11 +550,11 @@ export type Database = {
         Update: {
           acts_collapsed?: boolean
           collapse_done?: boolean
-          list_detail?: string
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          list_detail?: string
           role?: Database["public"]["Enums"]["user_role"] | null
           status?: Database["public"]["Enums"]["user_status"] | null
           updated_at?: string | null
@@ -707,57 +707,6 @@ export type Database = {
           },
         ]
       }
-      scene_tasks: {
-        Row: {
-          assigned_to: string | null
-          content: string
-          created_at: string | null
-          id: string
-          is_completed: boolean | null
-          live_notes: string | null
-          order_index: number
-          scene_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          assigned_to?: string | null
-          content: string
-          created_at?: string | null
-          id?: string
-          is_completed?: boolean | null
-          live_notes?: string | null
-          order_index?: number
-          scene_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          assigned_to?: string | null
-          content?: string
-          created_at?: string | null
-          id?: string
-          is_completed?: boolean | null
-          live_notes?: string | null
-          order_index?: number
-          scene_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scene_tasks_assigned_to_fkey"
-            columns: ["assigned_to"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scene_tasks_scene_id_fkey"
-            columns: ["scene_id"]
-            isOneToOne: false
-            referencedRelation: "scenes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       scenes: {
         Row: {
           act_number: number | null
@@ -902,10 +851,6 @@ export type Database = {
       }
       show_lists: {
         Row: {
-          note: string | null
-          title: string | null
-          venue: string | null
-          with_props: boolean
           cast: string | null
           created_at: string
           id: string
@@ -913,14 +858,14 @@ export type Database = {
           live_act_started_at: string | null
           live_scene_number: number | null
           live_updated_by: string | null
+          note: string | null
           performance_id: string
           show_date: string
+          title: string | null
+          venue: string | null
+          with_props: boolean
         }
         Insert: {
-          note?: string | null
-          title?: string | null
-          venue?: string | null
-          with_props?: boolean
           cast?: string | null
           created_at?: string
           id?: string
@@ -928,14 +873,14 @@ export type Database = {
           live_act_started_at?: string | null
           live_scene_number?: number | null
           live_updated_by?: string | null
+          note?: string | null
           performance_id: string
           show_date: string
-        }
-        Update: {
-          note?: string | null
           title?: string | null
           venue?: string | null
           with_props?: boolean
+        }
+        Update: {
           cast?: string | null
           created_at?: string
           id?: string
@@ -943,8 +888,12 @@ export type Database = {
           live_act_started_at?: string | null
           live_scene_number?: number | null
           live_updated_by?: string | null
+          note?: string | null
           performance_id?: string
           show_date?: string
+          title?: string | null
+          venue?: string | null
+          with_props?: boolean
         }
         Relationships: [
           {

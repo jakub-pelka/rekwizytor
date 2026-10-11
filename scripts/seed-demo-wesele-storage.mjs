@@ -23,7 +23,7 @@ const [room] = await api('locations?name=eq.Pracownia rekwizytorska&belongs_to=i
 const children = await api(`locations?belongs_to=eq.${room.id}&select=id,name,kind`)
 const byName = Object.fromEntries(children.map(c => [c.name, c]))
 
-if ((await api(`locations?belongs_to=eq.${byName['Szafa B']?.id}&select=id`)).length) {
+if ((await api(`group_items?name=eq.Kask strażacki&select=id`)).length) {
     console.log('Magazyn „Wesela” już uzupełniony. Nic nie zmieniam.')
     process.exit(0)
 }
@@ -35,13 +35,15 @@ for (const [name, kind] of Object.entries(kinds)) {
 }
 
 // Półki w szafach (półka to osobny pojemnik ze skanowalną etykietą).
-const shelves = await api('locations', {
-    method: 'POST',
-    body: [
-        ...[1, 2, 3].map(n => ({ name: `Półka ${n}`, kind: 'shelf', type: 'other', belongs_to: byName['Szafa B'].id })),
-        ...[1, 2].map(n => ({ name: `Półka ${n}`, kind: 'shelf', type: 'other', belongs_to: byName['Szafa A'].id })),
-    ],
-})
+// Wznawialne: półki, które już istnieją (po przerwanym uruchomieniu), zostają, brakujące dopisujemy.
+const wanted = [
+    ...[1, 2, 3].map(n => ({ name: `Półka ${n}`, kind: 'shelf', type: 'other', belongs_to: byName['Szafa B'].id })),
+    ...[1, 2].map(n => ({ name: `Półka ${n}`, kind: 'shelf', type: 'other', belongs_to: byName['Szafa A'].id })),
+]
+const existing = await api(`locations?kind=eq.shelf&belongs_to=in.(${byName['Szafa A'].id},${byName['Szafa B'].id})&select=id,name,belongs_to`)
+const missing = wanted.filter(w => !existing.some(e => e.name === w.name && e.belongs_to === w.belongs_to))
+const created = missing.length ? await api('locations', { method: 'POST', body: missing }) : []
+const shelves = [...existing, ...created]
 const shelf = (parent, n) => shelves.find(s => s.name === `Półka ${n}` && s.belongs_to === byName[parent].id).id
 
 // Grupy na półkach.
@@ -56,9 +58,8 @@ for (const [name, n] of Object.entries(approx)) {
 }
 
 // Przedmioty rozpisane z grup (z numerami REK- nadawanymi przez bazę) i stanami.
-const items = await api('group_items', {
-    method: 'POST',
-    body: [
+// Po jednym wpisie: PostgREST odrzuca paczkę, w której obiekty mają różne klucze.
+const itemRows = [
         { group_id: groups['Srebra stołowe'], name: 'Kielich srebrny', status: 'in_repair', status_note: 'odbiór 16:00' },
         { group_id: groups['Srebra stołowe'], name: 'Lichtarz mosiężny × 6' },
         { group_id: groups['Szkło i butelki'], name: 'Butelka wina × 2' },
@@ -67,8 +68,9 @@ const items = await api('group_items', {
         { group_id: groups['Instrumenty'], name: 'Skrzypce' },
         // Kask leży luzem na półce, bo nie mieści się do pudła (przykład z POMYSLY 13).
         { location_id: shelf('Szafa B', 3), name: 'Kask strażacki' },
-    ],
-})
+]
+const items = []
+for (const row of itemRows) items.push(...await api('group_items', { method: 'POST', body: row }))
 const item = Object.fromEntries(items.map(i => [i.name, i.id]))
 
 // Rekwizyty w rozpisce wskazują konkretne przedmioty; „kto bierze” w trybie na żywo.

@@ -5,6 +5,10 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   experimental: {
+    // Przejścia ze wspólnym elementem (<ViewTransition>): przełącza App Router na React z kanału experimental.
+    viewTransition: true,
+    // Powrót z listy zadań/szczegółu ma wracać z gotowej strony: bez ponownego pobrania nie ma szkieletu, który blokuje przejście.
+    staleTimes: { dynamic: 30 },
     serverActions: {
       bodySizeLimit: '10mb',
     },
