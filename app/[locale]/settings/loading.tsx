@@ -2,82 +2,131 @@ import { Skeleton } from "@/components/ui/Skeleton"
 
 export default function Loading() {
     return (
-        <div className="p-4 md:p-10 space-y-6 max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="space-y-2 mb-8">
-                <Skeleton className="h-8 w-32" />
-                <Skeleton className="h-4 w-64" />
+        <div>
+            {/* Mobile Top placeholder */}
+            <div className="flex items-center justify-between px-4 py-2 md:hidden">
+                <Skeleton className="h-6 w-24 rounded" />
+                <Skeleton className="h-6 w-24 rounded" />
             </div>
 
-            {/* Content Grid */}
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Account Section - typically taller */}
-                <div className="space-y-4 p-6 rounded-xl border border-neutral-800 bg-neutral-900/50">
-                    <Skeleton className="h-6 w-32 mb-6" />
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-10 w-full rounded-lg" />
-                        </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-10 w-full rounded-lg" />
-                        </div>
-                    </div>
-                </div>
+            <div className="mx-auto max-w-[1184px] px-4 pt-2 pb-12 md:px-12 md:pt-8">
+                {/* Header */}
+                <header className="mb-6 md:mb-8 space-y-1">
+                    <Skeleton className="h-4 w-48 rounded hidden md:block" />
+                    <Skeleton className="h-9 w-36 rounded" />
+                </header>
 
-                {/* Appearance Section */}
-                <div className="space-y-4 p-6 rounded-xl border border-neutral-800 bg-neutral-900/50">
-                    <Skeleton className="h-6 w-32 mb-6" />
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-10 w-32 rounded-lg" />
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <div className="space-y-1">
-                                <Skeleton className="h-4 w-24" />
-                                <Skeleton className="h-3 w-40" />
+                <div className="md:grid md:grid-cols-[180px_minmax(0,1fr)] md:gap-12">
+                    {/* Left Settings Navigation */}
+                    <nav className="hidden md:block" aria-hidden="true">
+                        <ul className="rk-settings-nav sticky top-8 space-y-3">
+                            <li><Skeleton className="h-5 w-20 rounded" /></li>
+                            <li><Skeleton className="h-5 w-36 rounded" /></li>
+                            <li><Skeleton className="h-5 w-32 rounded" /></li>
+                            <li><Skeleton className="h-5 w-16 rounded" /></li>
+                            <li><Skeleton className="h-5 w-24 rounded" /></li>
+                        </ul>
+                    </nav>
+
+                    {/* Right Settings Rows */}
+                    <div className="flex max-w-[712px] flex-col gap-12">
+                        {/* Account Section */}
+                        <section className="space-y-4">
+                            <div className="pl-sect-head pl-sect-head--rule mb-2">
+                                <Skeleton className="h-6 w-20 rounded" />
                             </div>
-                            <Skeleton className="h-6 w-10 rounded-full" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Management Section */}
-                <div className="space-y-4 p-6 rounded-xl border border-neutral-800 bg-neutral-900/50">
-                    <Skeleton className="h-6 w-32 mb-6" />
-                    <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
-                            <div key={i} className="flex justify-between items-center p-3 rounded-lg border border-white/5">
-                                <div className="space-y-1">
-                                    <Skeleton className="h-4 w-32" />
-                                    <Skeleton className="h-3 w-48" />
+                            <div className="space-y-4">
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-28 rounded" />
+                                        <Skeleton className="h-3 w-64 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-9 w-60 rounded-md" />
+                                    </div>
                                 </div>
-                                <Skeleton className="h-8 w-24 rounded-lg" />
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-16 rounded" />
+                                        <Skeleton className="h-3 w-72 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-8 w-20 rounded-md" />
+                                    </div>
+                                </div>
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-24 rounded" />
+                                        <Skeleton className="h-3 w-56 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-8 w-28 rounded-md" />
+                                    </div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
+                        </section>
 
-                {/* Security Section */}
-                <div className="space-y-4 p-6 rounded-xl border border-neutral-800 bg-neutral-900/50">
-                    <Skeleton className="h-6 w-40 mb-6" />
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <div className="space-y-1">
-                                <Skeleton className="h-4 w-32" />
-                                <Skeleton className="h-3 w-48" />
+                        {/* Look & Motion Section */}
+                        <section className="space-y-4">
+                            <div className="pl-sect-head pl-sect-head--rule mb-2">
+                                <Skeleton className="h-6 w-36 rounded" />
                             </div>
-                            <Skeleton className="h-9 w-32 rounded-lg" />
-                        </div>
-                        <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                            <div className="space-y-1">
-                                <Skeleton className="h-4 w-16" />
-                                <Skeleton className="h-3 w-32" />
+                            <div className="space-y-4">
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-16 rounded" />
+                                        <Skeleton className="h-3 w-56 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-9 w-36 rounded-md" />
+                                    </div>
+                                </div>
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-20 rounded" />
+                                        <Skeleton className="h-3 w-64 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-9 w-36 rounded-md" />
+                                    </div>
+                                </div>
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-16 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-9 w-28 rounded-md" />
+                                    </div>
+                                </div>
                             </div>
-                            <Skeleton className="h-9 w-24 rounded-lg" />
-                        </div>
+                        </section>
+
+                        {/* Lists Section */}
+                        <section className="space-y-4">
+                            <div className="pl-sect-head pl-sect-head--rule mb-2">
+                                <Skeleton className="h-6 w-32 rounded" />
+                            </div>
+                            <div className="space-y-4">
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-28 rounded" />
+                                        <Skeleton className="h-3 w-64 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-8 w-60 rounded-md" />
+                                    </div>
+                                </div>
+                                <div className="rk-setting max-md:flex-wrap">
+                                    <div className="rk-setting__text space-y-1">
+                                        <Skeleton className="h-4 w-32 rounded" />
+                                        <Skeleton className="h-3 w-48 rounded" />
+                                    </div>
+                                    <div className="rk-setting__control">
+                                        <Skeleton className="h-9 w-36 rounded-md" />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>

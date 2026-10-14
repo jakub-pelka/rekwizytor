@@ -83,9 +83,12 @@ export default function LoginPage() {
             } else {
                 // Lewy panel rozsuwa się na cały ekran, dopiero wtedy przechodzimy na pulpit, a kurtyna idzie w górę,
                 // gdy pulpit jest już na miejscu (CurtainReveal w layoucie, ekran Logowanie-przejscie).
-                router.prefetch('/')
+                // Powrót pod adres, z którego przyszło logowanie (np. zeskanowana etykieta). Tylko ścieżki w aplikacji.
+                const returnTo = new URLSearchParams(window.location.search).get('returnTo')
+                const target = returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/'
+                router.prefetch(target)
                 await lowerCurtain(stageRef.current, videoRef.current)
-                router.push('/')
+                router.push(target)
                 router.refresh()
             }
         }

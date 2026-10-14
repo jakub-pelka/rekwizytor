@@ -22,6 +22,7 @@ export type Database = {
           id: string
           model_name: string | null
           operation_type: string
+          theatre_id: string | null
           tokens_input: number | null
           tokens_output: number | null
           total_tokens: number | null
@@ -33,6 +34,7 @@ export type Database = {
           id?: string
           model_name?: string | null
           operation_type: string
+          theatre_id?: string | null
           tokens_input?: number | null
           tokens_output?: number | null
           total_tokens?: number | null
@@ -44,11 +46,20 @@ export type Database = {
           id?: string
           model_name?: string | null
           operation_type?: string
+          theatre_id?: string | null
           tokens_input?: number | null
           tokens_output?: number | null
           total_tokens?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_logs_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       app_settings: {
         Row: {
@@ -81,6 +92,7 @@ export type Database = {
           sort_order: number
           status: string
           status_note: string | null
+          theatre_id: string
         }
         Insert: {
           code?: string | null
@@ -94,6 +106,7 @@ export type Database = {
           sort_order?: number
           status?: string
           status_note?: string | null
+          theatre_id?: string
         }
         Update: {
           code?: string | null
@@ -107,6 +120,7 @@ export type Database = {
           sort_order?: number
           status?: string
           status_note?: string | null
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -121,6 +135,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_items_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -145,6 +166,7 @@ export type Database = {
           sort_order: number
           status: string
           status_note: string | null
+          theatre_id: string
         }
         Insert: {
           approx_count?: number | null
@@ -165,6 +187,7 @@ export type Database = {
           sort_order?: number
           status?: string
           status_note?: string | null
+          theatre_id?: string
         }
         Update: {
           approx_count?: number | null
@@ -185,6 +208,7 @@ export type Database = {
           sort_order?: number
           status?: string
           status_note?: string | null
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -199,6 +223,13 @@ export type Database = {
             columns: ["performance_id"]
             isOneToOne: false
             referencedRelation: "performances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "groups_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -249,6 +280,7 @@ export type Database = {
           map_image_url: string | null
           name: string
           sort_order: number
+          theatre_id: string
           type: Database["public"]["Enums"]["location_type_enum"]
         }
         Insert: {
@@ -263,6 +295,7 @@ export type Database = {
           map_image_url?: string | null
           name: string
           sort_order?: number
+          theatre_id?: string
           type?: Database["public"]["Enums"]["location_type_enum"]
         }
         Update: {
@@ -277,6 +310,7 @@ export type Database = {
           map_image_url?: string | null
           name?: string
           sort_order?: number
+          theatre_id?: string
           type?: Database["public"]["Enums"]["location_type_enum"]
         }
         Relationships: [
@@ -285,6 +319,13 @@ export type Database = {
             columns: ["belongs_to"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -297,6 +338,7 @@ export type Database = {
           mention_type: Database["public"]["Enums"]["mention_type"]
           mentioned_id: string | null
           note_id: string | null
+          theatre_id: string
         }
         Insert: {
           created_at?: string | null
@@ -305,6 +347,7 @@ export type Database = {
           mention_type: Database["public"]["Enums"]["mention_type"]
           mentioned_id?: string | null
           note_id?: string | null
+          theatre_id?: string
         }
         Update: {
           created_at?: string | null
@@ -313,6 +356,7 @@ export type Database = {
           mention_type?: Database["public"]["Enums"]["mention_type"]
           mentioned_id?: string | null
           note_id?: string | null
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -320,6 +364,13 @@ export type Database = {
             columns: ["note_id"]
             isOneToOne: false
             referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_mentions_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -333,6 +384,7 @@ export type Database = {
           id: string
           is_master: boolean | null
           performance_id: string | null
+          theatre_id: string
           title: string
           updated_at: string | null
         }
@@ -344,6 +396,7 @@ export type Database = {
           id?: string
           is_master?: boolean | null
           performance_id?: string | null
+          theatre_id?: string
           title: string
           updated_at?: string | null
         }
@@ -355,6 +408,7 @@ export type Database = {
           id?: string
           is_master?: boolean | null
           performance_id?: string | null
+          theatre_id?: string
           title?: string
           updated_at?: string | null
         }
@@ -364,6 +418,13 @@ export type Database = {
             columns: ["performance_id"]
             isOneToOne: false
             referencedRelation: "performances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notes_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -391,6 +452,7 @@ export type Database = {
           sort_order: number | null
           stages: string[] | null
           structured_at: string | null
+          theatre_id: string
         }
         Insert: {
           act_number?: number | null
@@ -414,6 +476,7 @@ export type Database = {
           sort_order?: number | null
           stages?: string[] | null
           structured_at?: string | null
+          theatre_id?: string
         }
         Update: {
           act_number?: number | null
@@ -437,6 +500,7 @@ export type Database = {
           sort_order?: number | null
           stages?: string[] | null
           structured_at?: string | null
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -460,6 +524,13 @@ export type Database = {
             referencedRelation: "performances"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "performance_props_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
         ]
       }
       performances: {
@@ -477,6 +548,7 @@ export type Database = {
           source_url: string | null
           status: Database["public"]["Enums"]["performance_status_enum"]
           structure: string
+          theatre_id: string
           thumbnail_url: string | null
           title: string
           updated_at: string | null
@@ -496,6 +568,7 @@ export type Database = {
           source_url?: string | null
           status?: Database["public"]["Enums"]["performance_status_enum"]
           structure?: string
+          theatre_id?: string
           thumbnail_url?: string | null
           title: string
           updated_at?: string | null
@@ -515,18 +588,28 @@ export type Database = {
           source_url?: string | null
           status?: Database["public"]["Enums"]["performance_status_enum"]
           structure?: string
+          theatre_id?: string
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
           venue?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "performances_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           acts_collapsed: boolean
           collapse_done: boolean
           created_at: string | null
+          current_theatre_id: string | null
           email: string | null
           full_name: string | null
           id: string
@@ -539,6 +622,7 @@ export type Database = {
           acts_collapsed?: boolean
           collapse_done?: boolean
           created_at?: string | null
+          current_theatre_id?: string | null
           email?: string | null
           full_name?: string | null
           id: string
@@ -551,6 +635,7 @@ export type Database = {
           acts_collapsed?: boolean
           collapse_done?: boolean
           created_at?: string | null
+          current_theatre_id?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -559,7 +644,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["user_status"] | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_current_theatre_id_fkey"
+            columns: ["current_theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       qr_codes: {
         Row: {
@@ -572,6 +665,7 @@ export type Database = {
           created_by: string | null
           description: string | null
           target_url: string
+          theatre_id: string
           updated_at: string | null
         }
         Insert: {
@@ -584,6 +678,7 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           target_url: string
+          theatre_id?: string
           updated_at?: string | null
         }
         Update: {
@@ -596,9 +691,18 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           target_url?: string
+          theatre_id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "qr_codes_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scene_checklist_items: {
         Row: {
@@ -613,6 +717,7 @@ export type Database = {
           live_notes: string | null
           performance_prop_id: string | null
           scene_checklist_id: string
+          theatre_id: string
         }
         Insert: {
           assigned_to?: string | null
@@ -626,6 +731,7 @@ export type Database = {
           live_notes?: string | null
           performance_prop_id?: string | null
           scene_checklist_id: string
+          theatre_id?: string
         }
         Update: {
           assigned_to?: string | null
@@ -639,6 +745,7 @@ export type Database = {
           live_notes?: string | null
           performance_prop_id?: string | null
           scene_checklist_id?: string
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -655,6 +762,13 @@ export type Database = {
             referencedRelation: "scene_checklists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "scene_checklist_items_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
         ]
       }
       scene_checklists: {
@@ -669,6 +783,7 @@ export type Database = {
           scene_name: string | null
           scene_number: string
           show_date: string
+          theatre_id: string
           type: string
         }
         Insert: {
@@ -682,6 +797,7 @@ export type Database = {
           scene_name?: string | null
           scene_number: string
           show_date: string
+          theatre_id?: string
           type?: string
         }
         Update: {
@@ -695,6 +811,7 @@ export type Database = {
           scene_name?: string | null
           scene_number?: string
           show_date?: string
+          theatre_id?: string
           type?: string
         }
         Relationships: [
@@ -703,6 +820,13 @@ export type Database = {
             columns: ["performance_id"]
             isOneToOne: false
             referencedRelation: "performances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scene_checklists_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -715,6 +839,7 @@ export type Database = {
           name: string | null
           performance_id: string
           scene_number: number
+          theatre_id: string
           type: string | null
         }
         Insert: {
@@ -724,6 +849,7 @@ export type Database = {
           name?: string | null
           performance_id: string
           scene_number: number
+          theatre_id?: string
           type?: string | null
         }
         Update: {
@@ -733,6 +859,7 @@ export type Database = {
           name?: string | null
           performance_id?: string
           scene_number?: number
+          theatre_id?: string
           type?: string | null
         }
         Relationships: [
@@ -741,6 +868,13 @@ export type Database = {
             columns: ["performance_id"]
             isOneToOne: false
             referencedRelation: "performances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scenes_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
             referencedColumns: ["id"]
           },
         ]
@@ -753,6 +887,7 @@ export type Database = {
           performance_prop_id: string
           show_list_id: string
           stage: string
+          theatre_id: string
         }
         Insert: {
           done_at?: string
@@ -761,6 +896,7 @@ export type Database = {
           performance_prop_id: string
           show_list_id: string
           stage: string
+          theatre_id?: string
         }
         Update: {
           done_at?: string
@@ -769,6 +905,7 @@ export type Database = {
           performance_prop_id?: string
           show_list_id?: string
           stage?: string
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -792,6 +929,13 @@ export type Database = {
             referencedRelation: "show_lists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "show_list_checks_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
         ]
       }
       show_list_reports: {
@@ -804,6 +948,7 @@ export type Database = {
           resolved_at: string | null
           scene_number: number | null
           show_list_id: string
+          theatre_id: string
         }
         Insert: {
           created_at?: string
@@ -814,6 +959,7 @@ export type Database = {
           resolved_at?: string | null
           scene_number?: number | null
           show_list_id: string
+          theatre_id?: string
         }
         Update: {
           created_at?: string
@@ -824,6 +970,7 @@ export type Database = {
           resolved_at?: string | null
           scene_number?: number | null
           show_list_id?: string
+          theatre_id?: string
         }
         Relationships: [
           {
@@ -847,6 +994,13 @@ export type Database = {
             referencedRelation: "show_lists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "show_list_reports_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
         ]
       }
       show_lists: {
@@ -861,6 +1015,7 @@ export type Database = {
           note: string | null
           performance_id: string
           show_date: string
+          theatre_id: string
           title: string | null
           venue: string | null
           with_props: boolean
@@ -876,6 +1031,7 @@ export type Database = {
           note?: string | null
           performance_id: string
           show_date: string
+          theatre_id?: string
           title?: string | null
           venue?: string | null
           with_props?: boolean
@@ -891,6 +1047,7 @@ export type Database = {
           note?: string | null
           performance_id?: string
           show_date?: string
+          theatre_id?: string
           title?: string | null
           venue?: string | null
           with_props?: boolean
@@ -910,7 +1067,166 @@ export type Database = {
             referencedRelation: "performances"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "show_lists_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      theatre_counters: {
+        Row: {
+          kind: string
+          last_value: number
+          theatre_id: string
+        }
+        Insert: {
+          kind: string
+          last_value?: number
+          theatre_id: string
+        }
+        Update: {
+          kind?: string
+          last_value?: number
+          theatre_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theatre_counters_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      theatre_member_events: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          id: number
+          previous_role: string | null
+          role: string | null
+          theatre_id: string
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: never
+          previous_role?: string | null
+          role?: string | null
+          theatre_id: string
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: never
+          previous_role?: string | null
+          role?: string | null
+          theatre_id?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theatre_member_events_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      theatre_members: {
+        Row: {
+          created_at: string
+          invited_at: string | null
+          invited_by: string | null
+          role: string
+          theatre_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          role?: string
+          theatre_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          role?: string
+          theatre_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theatre_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "theatre_members_theatre_id_fkey"
+            columns: ["theatre_id"]
+            isOneToOne: false
+            referencedRelation: "theatres"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "theatre_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      theatres: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_demo: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_demo?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_demo?: boolean
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -925,6 +1241,7 @@ export type Database = {
           image_url: string | null
           metadata: Json | null
           name: string | null
+          theatre_id: string | null
           updated_at: string | null
           url: string | null
         }
@@ -932,6 +1249,7 @@ export type Database = {
       }
     }
     Functions: {
+      active_theatre_id: { Args: never; Returns: string }
       calculate_test_metrics: {
         Args: { test_run_id: string }
         Returns: {
@@ -944,6 +1262,7 @@ export type Database = {
           total_queries: number
         }[]
       }
+      can_write_active_theatre: { Args: never; Returns: boolean }
       get_intent_classification_stats: {
         Args: { days?: number }
         Returns: {
@@ -965,6 +1284,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_approved: { Args: never; Returns: boolean }
+      is_theatre_admin: { Args: { t: string }; Returns: boolean }
       match_items: {
         Args: {
           match_count: number
@@ -980,6 +1300,8 @@ export type Database = {
           similarity: number
         }[]
       }
+      my_theatre_ids: { Args: never; Returns: string[] }
+      next_storage_code: { Args: { k: string; t: string }; Returns: string }
       refresh_search_index: { Args: never; Returns: undefined }
       search_global: {
         Args: {
@@ -1094,12 +1416,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1123,11 +1445,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1148,11 +1470,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1173,11 +1495,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1190,11 +1512,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1222,3 +1544,4 @@ export const Constants = {
     },
   },
 } as const
+

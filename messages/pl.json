@@ -158,7 +158,8 @@
         "roleManager": "Kierownik pracowni",
         "roleUser": "Rekwizytor",
         "storage": "Magazyn",
-        "calendar": "Kalendarz"
+        "calendar": "Kalendarz",
+        "theatre": "Teatr"
     },
     "Groups": {
         "title": "Grupy",
@@ -1230,7 +1231,8 @@
         "detail": "Poziom szczegółów",
         "detail_all": "Wszystko",
         "detail_where": "Nazwa i miejsce",
-        "detail_names": "Tylko nazwy"
+        "detail_names": "Tylko nazwy",
+        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
     },
     "Lists": {
         "title": "Listy zadań",
@@ -1380,7 +1382,8 @@
         "cancel": "Anuluj",
         "send": "Wyślij zgłoszenie",
         "sending": "Wysyłanie",
-        "actTitle": "Akt {act}"
+        "actTitle": "Akt {act}",
+        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
     },
     "Sync": {
         "offline": "Brak sieci. Odhaczaj dalej, zapiszemy, gdy połączenie wróci.",
@@ -1811,7 +1814,8 @@
         "saveFailed": "Nie udało się zapisać. Sprawdź połączenie i spróbuj jeszcze raz.",
         "signOut": "Wyloguj się",
         "trash": "Kosz",
-        "trashHint": "Usunięte spektakle. Stąd możesz je przywrócić."
+        "trashHint": "Usunięte spektakle. Stąd możesz je przywrócić.",
+        "theatreNone": "Bez teatru"
     },
     "PerformanceDesktop": {
         "back": "Spektakle",
@@ -1954,5 +1958,54 @@
         "deleteActTitle": "Usunąć akt {act}?",
         "deleteActDesc": "{scenes, plural, =0 {Akt nie ma scen.} one {Zniknie # scena.} few {Znikną # sceny.} other {Zniknie # scen.}} Rekwizyty aktu trafią do „Bez sceny”, nic nie zniknie. Dalsze akty przesuną się o jeden.",
         "deleteActConfirm": "Usuń akt"
+    },
+    "NoTheatre": {
+        "title": "Nie należysz jeszcze do żadnego teatru",
+        "text": "Konto {email} jest gotowe, ale nikt nie dodał go do zespołu teatru. Poproś kierownika pracowni albo administratora aplikacji, żeby dodał Cię do teatru.",
+        "signOut": "Wyloguj się"
+    },
+    "TheatresAdmin": {
+        "eyebrow": "Administrator aplikacji",
+        "title": "Teatry",
+        "hint": "Każdy teatr widzi tylko swoje spektakle, magazyn i notatki. Tu zakładasz teatry i dodajesz do nich ludzi.",
+        "newTitle": "Nowy teatr",
+        "newPlaceholder": "np. Teatr Śląski",
+        "newLabel": "Nazwa nowego teatru",
+        "create": "Załóż teatr",
+        "saving": "Zapisywanie",
+        "created": "Założono „{name}”",
+        "failed": "Nie udało się. Spróbuj jeszcze raz.",
+        "demo": "demo",
+        "current": "teraz tutaj",
+        "people": "{count, plural, =0 {nikt} one {# osoba} few {# osoby} other {# osób}}",
+        "goTo": "Przejdź do teatru",
+        "actions": "Akcje: {name}",
+        "rename": "Zmień nazwę",
+        "renameLabel": "Nazwa teatru",
+        "save": "Zapisz",
+        "empty": "Nikt jeszcze nie należy do tego teatru. Dodaj kierownika pracowni.",
+        "you": "Ty",
+        "roleAdmin": "Kierownik pracowni",
+        "roleMember": "Rekwizytor",
+        "roleLabel": "Rola w teatrze",
+        "memberActions": "Akcje: {name}",
+        "remove": "Usuń z teatru",
+        "removed": "Usunięto {name} z teatru",
+        "emailPlaceholder": "adres e-mail, np. anna@teatr.pl",
+        "emailLabel": "Dodaj osobę do: {name}",
+        "addPerson": "Dodaj osobę",
+        "addHint": "Gdy ktoś nie ma jeszcze konta, wyślemy mu zaproszenie z linkiem do ustawienia hasła.",
+        "invited": "Wysłano zaproszenie na {email}",
+        "added": "Dodano {email}",
+        "roleViewer": "Podgląd (tylko ogląda)",
+        "makeRole": "Zmień na: {role}",
+        "history": "Historia zespołu",
+        "by": "przez {name}",
+        "byUnknown": "autor nieznany (stan sprzed dziennika albo zmiana w bazie)",
+        "addedBy": "dodał(a) {name}, {date}",
+        "evAdded": "{who} dołącza jako: {role}",
+        "evRemoved": "{who} usunięto z teatru",
+        "evRole": "{who}: rola z „{from}” na „{to}”",
+        "evMigrated": "{who} jest w zespole jako: {role}"
     }
 }

@@ -70,12 +70,19 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         path.includes('/admin') ||
         path.includes('/settings') ||
         path.includes('/waiting') ||
-        path.includes('/rejected')
+        path.includes('/rejected') ||
+        path.includes('/no-theatre') ||
+        // Etykiety QR (/g/<kod>, /scan/…): skan prowadzi do rzeczy z magazynu, więc tylko dla zalogowanych
+        // pracowników. Zgubiona naklejka zeskanowana na ulicy kończy się na ekranie logowania.
+        /^\/(?:(?:en|pl)\/)?(?:g|scan)(?:\/|$)/.test(path)
 
     if (!user && !isAuthPage && isProtectedPage) {
         // Redirect to login only for protected pages
         const url = request.nextUrl.clone()
         url.pathname = '/login'
+        // Po zalogowaniu wracamy tam, dokąd prowadził link (np. zeskanowana etykieta).
+        url.search = ''
+        url.searchParams.set('returnTo', `${path}${request.nextUrl.search}`)
         return NextResponse.redirect(url)
     }
 
@@ -83,7 +90,7 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         // Check user status
         const { data: profile, error } = await supabase
             .from('profiles')
-            .select('status')
+            .select('status, role')
             .eq('id', user.id)
             .single()
 
@@ -93,6 +100,7 @@ export async function updateSession(request: NextRequest, response?: NextRespons
 
         const isWaitingPage = path.includes('/waiting')
         const isRejectedPage = path.includes('/rejected')
+        const isNoTheatrePage = path.includes('/no-theatre')
         // Politykę prywatności i regulamin może przeczytać każdy, także osoba czekająca na zatwierdzenie.
         const isLegalPage = /\/(privacy|terms)(\/|$)/.test(path)
 
@@ -116,6 +124,27 @@ export async function updateSession(request: NextRequest, response?: NextRespons
             const url = request.nextUrl.clone()
             url.pathname = '/'
             return NextResponse.redirect(url)
+        }
+
+        // Zatwierdzone konto bez teatru nie ma czego oglądać (baza pokazuje tylko bieżący teatr): czeka na
+        // dodanie do teatru. Superadmin przechodzi zawsze. Błąd zapytania (np. baza przed migracją teatrów)
+        // nie blokuje nikogo.
+        if (status === 'approved' && profile?.role !== 'admin' && !isLegalPage) {
+            const { count, error: membersError } = await supabase
+                .from('theatre_members')
+                .select('theatre_id', { count: 'exact', head: true })
+                .eq('user_id', user.id)
+            const hasTheatre = membersError ? true : (count ?? 0) > 0
+            if (!hasTheatre && !isNoTheatrePage) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/no-theatre'
+                return NextResponse.redirect(url)
+            }
+            if (hasTheatre && isNoTheatrePage) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/'
+                return NextResponse.redirect(url)
+            }
         }
     }
 

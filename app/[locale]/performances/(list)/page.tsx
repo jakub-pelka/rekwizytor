@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getAccess } from '@/lib/access'
 import { PerformancesView, type ListedPerformance } from '@/components/performances/PerformancesView'
 import type { GroupStatus } from '@/lib/performance-structure'
 import { seasonOf, theatreNow, theatreNowNaive } from '@/lib/rk-format'
@@ -12,9 +13,11 @@ export default async function PerformancesPage({ searchParams }: Props) {
     const params = await searchParams
     const archive = params.season === 'archive'
     const supabase = await createClient()
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
     const nowNaive = theatreNowNaive()
 
-    const [performancesResult, listsResult, scenesResult, propsResult, userResult] = await Promise.all([
+    const [performancesResult, listsResult, scenesResult, propsResult] = await Promise.all([
         supabase
             .from('performances')
             .select('id, title, status, premiere_date, thumbnail_url, image_url, venue, deleted_at')
@@ -24,7 +27,6 @@ export default async function PerformancesPage({ searchParams }: Props) {
         supabase.from('show_lists').select('*').gte('show_date', nowNaive.slice(0, 10)).order('show_date', { ascending: true }),
         supabase.from('scenes').select('performance_id, act_number, type'),
         supabase.from('performance_props').select('performance_id, group_id, cast_only'),
-        supabase.auth.getUser(),
     ])
 
     const performances = (performancesResult.data ?? []).filter(p => (archive ? p.status === 'archived' : p.status !== 'archived'))
@@ -96,7 +98,7 @@ export default async function PerformancesPage({ searchParams }: Props) {
             venue={venue}
             seasonLabel={seasonOf(theatreNow()).label}
             archive={archive}
-            canEdit={!!userResult.data.user}
+            canEdit={access.canWrite}
             now={nowNaive}
         />
     )

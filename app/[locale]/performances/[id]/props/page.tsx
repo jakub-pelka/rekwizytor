@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
-import { notFound } from 'next/navigation'
+import { getAccess } from '@/lib/access'
+import { notFound, redirect } from 'next/navigation'
 import { BreakdownEditor, type StorageSuggestion } from '@/components/performances/BreakdownEditor'
 import { loadPerformanceStructure } from '@/lib/performance-structure'
 
@@ -12,6 +13,8 @@ export default async function ManagePropsPage({ params, searchParams }: Props) {
     const { id } = await params
     const { new: isNew } = await searchParams
     const supabase = await createClient()
+    // Edycja tylko z prawem zapisu w bieżącym teatrze (lib/access); podgląd i niezalogowani wracają do widoku.
+    if (!(await getAccess(supabase)).canWrite) redirect(`/performances/${id}`)
 
     const { data: production } = await supabase
         .from('performances')

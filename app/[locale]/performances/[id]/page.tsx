@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getAccess } from '@/lib/access'
 import { notFound } from 'next/navigation'
 import { PerformancePhone } from '@/components/performances/PerformancePhone'
 import { PerformanceDesktop, type DesktopTerm } from '@/components/performances/PerformanceDesktop'
@@ -14,6 +15,8 @@ type Props = {
 export default async function ProductionDetailsPage({ params }: Props) {
     const { id } = await params
     const supabase = await createClient()
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
 
     const { data: { user: supabaseUser } } = await supabase.auth.getUser()
 
@@ -136,7 +139,7 @@ export default async function ProductionDetailsPage({ params }: Props) {
             currentListId={upcomingLists[0]?.id ?? null}
             notes={(notes ?? []).map(n => ({ id: n.id, title: n.title }))}
             newMentions={mentionsResult.count ?? 0}
-            canEdit={!!supabaseUser}
+            canEdit={access.canWrite}
             groups={groupOptions}
             now={nowNaive}
         />
@@ -158,7 +161,7 @@ export default async function ProductionDetailsPage({ params }: Props) {
                 notes: notes?.length ?? 0,
                 newMentions: mentionsResult.count ?? 0,
             }}
-            canEdit={!!supabaseUser}
+            canEdit={access.canWrite}
             groups={groupOptions}
             labelGroupIds={[...groupById.keys()]}
             now={nowNaive}

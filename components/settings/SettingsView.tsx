@@ -10,6 +10,7 @@ import { MobileTop } from '@/components/rk/MobileTop'
 import { useMotionPreference } from '@/components/rk/MotionProvider'
 import { UserApprovalList } from '@/components/settings/UserApprovalList'
 import { Button } from '@/components/ui/Button'
+import { TheatreBanner } from '@/components/theatre/TheatreBanner'
 import { applyTheme, readTheme, writeTheme, type ThemePreference } from '@/lib/theme'
 import { useListPrefs, type ListDetail } from '@/lib/use-list-prefs'
 import type { MotionPreference } from '@/lib/motion'
@@ -21,6 +22,7 @@ type Props = {
     roleLabel: string
     isAdmin: boolean
     theatreName: string
+    theatreMeta: string
     team: { members: number; pending: number }
     aiScans: number | null
     version: string
@@ -30,7 +32,7 @@ const SECTIONS = ['account', 'look', 'lists', 'theatre', 'about'] as const
 
 // Ustawienia (karta Ustawienia, ekrany „Ustawienia” i „Ustawienia-telefon”): jedna kolumna sekcji, wiersze
 // .rk-setting z opisem po lewej i kontrolką po prawej; na komputerze spis sekcji po lewej.
-export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreName, team, aiScans, version }: Props) {
+export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreName, theatreMeta, team, aiScans, version }: Props) {
     const t = useTranslations('SettingsPage')
     const router = useRouter()
     const pathname = usePathname()
@@ -95,12 +97,6 @@ export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreN
     }
 
     // --- teatr ---
-    const [theatre, setTheatre] = useState(theatreName)
-    const saveTheatre = async () => {
-        if (theatre.trim() === theatreName) return
-        const { error } = await supabase.from('app_settings').upsert({ key: 'theatre_name', value: theatre.trim() || null, updated_at: new Date().toISOString() })
-        if (error) notify.error(t('saveFailed')); else { notify.success(t('theatreSaved')); router.refresh() }
-    }
 
     const select = (value: string, onChange: (v: string) => void, options: [string, string][], label: string) => (
         <span className="rk-select">
@@ -196,11 +192,12 @@ export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreN
                         </>)}
 
                         {isAdmin && section('theatre', t('nav_theatre'), <>
+                            {/* Nazwę teatru zmienia tylko administrator aplikacji, w Ustawieniach → Teatry. */}
+                            {theatreName && <div className="pb-2"><TheatreBanner name={theatreName} meta={theatreMeta} /></div>}
                             {row('theatreName', t('theatreName'), null,
-                                <input className="rk-input !w-[240px] max-md:!w-full" value={theatre} onChange={e => setTheatre(e.target.value)} onBlur={saveTheatre}
-                                    onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }} placeholder={t('theatreNamePlaceholder')} aria-label={t('theatreName')} />, true)}
+                                <span className="text-ink" style={{ fontSize: 14, lineHeight: '20px' }}>{theatreName || t('theatreNone')}</span>)}
                             {row('team', t('team'), t('teamHint', { members: team.members, pending: team.pending }),
-                                <a className="rk-btn rk-btn--secondary rk-btn--sm" href="#set-team-list">{t('manage')}</a>)}
+                                <Link className="rk-btn rk-btn--secondary rk-btn--sm" href="/settings/theatres">{t('manage')}</Link>)}
                             {aiScans !== null && row('ai', t('ai'), t('aiHint', { count: aiScans }),
                                 <Link className="pl-link" href="/ai-stats">{t('details')}<ChevronRight /></Link>)}
                             <div id="set-team-list" className="scroll-mt-6 pt-2"><UserApprovalList /></div>

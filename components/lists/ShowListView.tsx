@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardList, Minus, Users } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardList, Eye, Minus, Users } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { MobileTop } from '@/components/rk/MobileTop'
 import { ShowTitle } from '@/components/rk/ShowTitle'
@@ -10,6 +10,7 @@ import { PropEntry } from '@/components/rk/PropEntry'
 import { GROUP_STATUS, GroupStatusBadge, GroupStatusIcon } from '@/components/rk/GroupStatus'
 import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { EmptyState } from '@/components/rk/EmptyState'
+import { StatusBanner } from '@/components/rk/StatusBanner'
 import {
     isBlocking, propInStage, skippedForCast, stagesFor,
     type PerformanceStructure, type Stage, type StructuredProp,
@@ -45,7 +46,7 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
     const tn = useTranslations('Navigation')
     const nowDate = new Date(now)
     const showDate = new Date(list.showDate)
-    const { isChecked, toggle, sync, retry } = useListChecks(list.id, initialChecks)
+    const { isChecked, toggle, sync, retry } = useListChecks(list.id, initialChecks, { localOnly: !canEdit })
 
     const stages = stagesFor(list.kind, structure.actCount)
     const stageProps = (stage: Stage) => structure.props.filter(p => propInStage(p, stage))
@@ -125,7 +126,6 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
                     type="checkbox"
                     checked={checkedFn(p.id, rowStage)}
                     onChange={() => toggleFn(p.id, rowStage)}
-                    disabled={!canEdit}
                 />
                 <span className="rk-box"><Check className="i-chk" /></span>
                 {/* Przy wyłączonym zwijaniu wpis stoi w opakowaniu, więc reguła „odhaczone zwija się do nazwy” go nie obejmuje. */}
@@ -168,6 +168,12 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
     return (
         <div>
             <div className="sticky top-0 z-20"><SyncBanner sync={sync} onRetry={retry} /></div>
+            {/* Podgląd i demo: odhaczać można, ale tylko na tym ekranie. Mówimy to raz, spokojnie, bez błędów przy każdym kliknięciu. */}
+            {!canEdit && (
+                <div className="mx-auto max-w-[1136px] px-4 pt-4 md:px-12">
+                    <StatusBanner tone="readonly" icon={<Eye />}>{t('previewOnly')}</StatusBanner>
+                </div>
+            )}
             <MobileTop back={{ href: '/calendar', label: t('back') }} title={performance.title} anchorId="list-title" />
             <div className="mx-auto max-w-[1136px] px-4 pt-2 pb-8 md:px-12 md:pt-8 md:pb-12">
                 <Link href="/calendar" className="pl-back mb-4 hidden md:inline-flex">
@@ -391,7 +397,7 @@ function NextShowSection({
     checkRow: (p: StructuredProp, listId: string, checked: (id: string, s: Stage | 'live') => boolean, toggle: (id: string, s: Stage | 'live') => Promise<void>, stage: Stage) => React.ReactNode
 }) {
     const t = useTranslations('ShowList')
-    const { isChecked, toggle } = useListChecks(next.list.id, next.checks)
+    const { isChecked, toggle } = useListChecks(next.list.id, next.checks, { localOnly: !canEdit })
     const d = new Date(next.list.showDate)
     const props = next.structure.props.filter(p => propInStage(p, 'preshow') && !skippedForCast(p, next.list.cast))
     const left = props.filter(p => !isChecked(p.id, 'preshow')).length

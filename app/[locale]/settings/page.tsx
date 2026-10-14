@@ -1,4 +1,6 @@
 import { redirect } from 'next/navigation'
+import { activeTheatreName } from '@/lib/theatre'
+import { plural, seasonOf, theatreNow } from '@/lib/rk-format'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/utils/supabase/server'
 import { SettingsView } from '@/components/settings/SettingsView'
@@ -18,10 +20,15 @@ export default async function SettingsPage() {
     const month = new Date()
     month.setDate(1)
     month.setHours(0, 0, 0, 0)
-    const [settingsResult, members, pending, scans] = await Promise.all([
-        supabase.from('app_settings').select('value').eq('key', 'theatre_name').maybeSingle(),
-        isAdmin ? supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'approved') : Promise.resolve({ count: 0 }),
+    // Nazwa i zespół bieżącego teatru (migracja 20261011_theatres); baza zwraca tylko jego wiersze.
+    const { data: activeTheatreId } = await supabase.rpc('active_theatre_id')
+    const theatreName = await activeTheatreName(supabase)
+    const [members, pending, shows, scans] = await Promise.all([
+        isAdmin && activeTheatreId
+            ? supabase.from('theatre_members').select('user_id', { count: 'exact', head: true }).eq('theatre_id', activeTheatreId as string)
+            : Promise.resolve({ count: 0 }),
         isAdmin ? supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending') : Promise.resolve({ count: 0 }),
+        isAdmin ? supabase.from('performances').select('id', { count: 'exact', head: true }).is('deleted_at', null).neq('status', 'archived') : Promise.resolve({ count: 0 }),
         isAdmin ? supabase.from('ai_usage_logs').select('id', { count: 'exact', head: true }).gte('created_at', month.toISOString()) : Promise.resolve({ count: null }),
     ])
 
@@ -32,7 +39,8 @@ export default async function SettingsPage() {
             email={user.email ?? ''}
             roleLabel={roleLabel}
             isAdmin={isAdmin}
-            theatreName={settingsResult.data?.value ?? ''}
+            theatreName={theatreName ?? ''}
+            theatreMeta={`${seasonOf(theatreNow()).label} · ${plural(shows.count ?? 0, ['spektakl', 'spektakle', 'spektakli'])}`}
             team={{ members: members.count ?? 0, pending: pending.count ?? 0 }}
             aiScans={isAdmin ? scans.count ?? 0 : null}
             version={pkg.version}

@@ -17,7 +17,13 @@ async function api(path, { method = 'GET', body } = {}) {
     return res.status === 204 ? null : res.json()
 }
 
-const existing = await api('performances?title=eq.Wesele&deleted_at=is.null&select=id')
+// Dane demo należą do teatru demo (migracja 20261011_theatres). Klucz serwisowy omija RLS, więc wiersze bez
+// rodzica (spektakl, pomieszczenie) dostają teatr wprost; resztę ustawia wyzwalacz z rodzica.
+const [demo] = await api('theatres?is_demo=eq.true&select=id')
+if (!demo) throw new Error('Brak teatru demo. Najpierw migracja supabase/migrations/20261011_theatres.sql')
+const T = demo.id
+
+const existing = await api(`performances?title=eq.Wesele&deleted_at=is.null&theatre_id=eq.${T}&select=id`)
 if (existing.length) {
     console.log(`„Wesele” już istnieje (${existing[0].id}). Nic nie zmieniam.`)
     process.exit(0)
@@ -31,7 +37,7 @@ const day = (offset) => warsaw(new Date(Date.now() + offset * 86_400_000))
 
 // Magazyn ---------------------------------------------------------------------------
 
-const [workshop] = await api('locations', { method: 'POST', body: { name: 'Pracownia rekwizytorska', type: 'main_storage', description: 'Demo: Wesele' } })
+const [workshop] = await api('locations', { method: 'POST', body: { name: 'Pracownia rekwizytorska', type: 'main_storage', description: 'Demo: Wesele', theatre_id: T } })
 const shelves = await api('locations', {
     method: 'POST',
     body: ['Szafa A', 'Szafa B', 'Szafa C', 'Kufer 3', 'Szuflada 4'].map(name => ({ name, type: 'main_storage', belongs_to: workshop.id })),
@@ -59,7 +65,7 @@ const grp = Object.fromEntries(groupDefs.map((g, i) => [g.key, groups[i].id]))
 
 const [perf] = await api('performances', {
     method: 'POST',
-    body: { title: 'Wesele', status: 'active', venue: 'Duża scena', structure: 'acts_scenes', premiere_date: '2026-03-14', color: '#A0232F' },
+    body: { theatre_id: T, title: 'Wesele', status: 'active', venue: 'Duża scena', structure: 'acts_scenes', premiere_date: '2026-03-14', color: '#A0232F' },
 })
 
 const sceneDefs = [

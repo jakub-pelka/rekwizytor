@@ -158,7 +158,8 @@
         "roleManager": "Workshop manager",
         "roleUser": "Props master",
         "storage": "Storage",
-        "calendar": "Calendar"
+        "calendar": "Calendar",
+        "theatre": "Theatre"
     },
     "Groups": {
         "title": "Groups",
@@ -1229,7 +1230,8 @@
         "detail": "Level of detail",
         "detail_all": "Everything",
         "detail_where": "Name and place",
-        "detail_names": "Names only"
+        "detail_names": "Names only",
+        "previewOnly": "Preview: you can tick items, but changes stay on this screen only and nobody else sees them."
     },
     "Lists": {
         "title": "Task lists",
@@ -1379,7 +1381,8 @@
         "cancel": "Cancel",
         "send": "Send report",
         "sending": "Sending",
-        "actTitle": "Act {act}"
+        "actTitle": "Act {act}",
+        "previewOnly": "Preview: you can tick items, but changes stay on this screen only and nobody else sees them."
     },
     "Sync": {
         "offline": "No connection. Keep checking, we will save when it is back.",
@@ -1810,7 +1813,8 @@
         "saveFailed": "Could not save. Check the connection and try again.",
         "signOut": "Sign out",
         "trash": "Trash",
-        "trashHint": "Deleted performances. Restore them from here."
+        "trashHint": "Deleted performances. Restore them from here.",
+        "theatreNone": "No theatre"
     },
     "PerformanceDesktop": {
         "back": "Shows",
@@ -1953,5 +1957,54 @@
         "deleteActTitle": "Delete act {act}?",
         "deleteActDesc": "{scenes, plural, =0 {The act has no scenes.} one {# scene will be removed.} other {# scenes will be removed.}} Its props go to “No scene”, nothing is lost. Later acts move up by one.",
         "deleteActConfirm": "Delete act"
+    },
+    "NoTheatre": {
+        "title": "You are not part of a theatre yet",
+        "text": "The account {email} is ready, but nobody has added it to a theatre team. Ask your workshop manager or the app administrator to add you.",
+        "signOut": "Sign out"
+    },
+    "TheatresAdmin": {
+        "eyebrow": "App administrator",
+        "title": "Theatres",
+        "hint": "Each theatre sees only its own performances, storage and notes. Create theatres and add people here.",
+        "newTitle": "New theatre",
+        "newPlaceholder": "e.g. City Theatre",
+        "newLabel": "New theatre name",
+        "create": "Create theatre",
+        "saving": "Saving",
+        "created": "Created “{name}”",
+        "failed": "Something went wrong. Try again.",
+        "demo": "demo",
+        "current": "current",
+        "people": "{count, plural, =0 {nobody} one {# person} other {# people}}",
+        "goTo": "Go to theatre",
+        "actions": "Actions: {name}",
+        "rename": "Rename",
+        "renameLabel": "Theatre name",
+        "save": "Save",
+        "empty": "Nobody belongs to this theatre yet. Add a workshop manager.",
+        "you": "you",
+        "roleAdmin": "Workshop manager",
+        "roleMember": "Props person",
+        "roleLabel": "Role in theatre",
+        "memberActions": "Actions: {name}",
+        "remove": "Remove from theatre",
+        "removed": "Removed {name} from the theatre",
+        "emailPlaceholder": "email, e.g. anna@theatre.org",
+        "emailLabel": "Add a person to: {name}",
+        "addPerson": "Add person",
+        "addHint": "If they have no account yet, we send an invitation with a link to set a password.",
+        "invited": "Invitation sent to {email}",
+        "added": "Added {email}",
+        "roleViewer": "Preview (view only)",
+        "makeRole": "Change to: {role}",
+        "history": "Team history",
+        "by": "by {name}",
+        "byUnknown": "author unknown (before the log, or a change made in the database)",
+        "addedBy": "added by {name}, {date}",
+        "evAdded": "{who} joins as: {role}",
+        "evRemoved": "{who} was removed from the theatre",
+        "evRole": "{who}: role changed from “{from}” to “{to}”",
+        "evMigrated": "{who} is on the team as: {role}"
     }
 }

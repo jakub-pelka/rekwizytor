@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { activeTheatreId, filePath as buildFilePath } from '@/lib/storage-paths'
 import { Upload, Loader2 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -22,9 +23,8 @@ export function MapUploader({ locationId }: MapUploaderProps) {
 
         setUploading(true)
         const file = e.target.files[0]
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${locationId}-${Math.random()}.${fileExt}`
-        const filePath = `${fileName}`
+        // Ścieżka teatru (lib/storage-paths): <teatr>/miejsca/<miejsce>/<losowe>.<rozszerzenie>.
+        const filePath = buildFilePath(await activeTheatreId(supabase), 'miejsca', locationId, file.name.split('.').pop() || 'jpg')
 
         try {
             const { error: uploadError } = await supabase.storage

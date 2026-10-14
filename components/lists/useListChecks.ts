@@ -32,7 +32,9 @@ const isNetworkError = (e: { message?: string } | null) =>
 // Odhaczenia jednej listy zadań (POMYSLY 8: praca bez sieci). Zapis optymistyczny; gdy sieci nie ma,
 // zmiany czekają w kolejce na urządzeniu i wysyłają się same po powrocie połączenia.
 // Zmiany z innych telefonów przychodzą przez realtime.
-export function useListChecks(listId: string, initial: ListCheck[]) {
+// localOnly (podgląd, demo bez logowania): odhaczenia działają tylko na tym ekranie, nic nie idzie na serwer,
+// więc nie ma też komunikatów o błędach zapisu.
+export function useListChecks(listId: string, initial: ListCheck[], { localOnly = false }: { localOnly?: boolean } = {}) {
     const [checked, setChecked] = useState(() => new Set(initial.map(c => key(c.performance_prop_id, c.stage))))
     const [sync, setSync] = useState<SyncState>({ offline: false, pending: 0, syncing: false, saved: false, failed: false })
     const queue = useRef<Op[]>([])
@@ -80,6 +82,7 @@ export function useListChecks(listId: string, initial: ListCheck[]) {
 
     // Kolejka z poprzedniej wizyty (np. telefon stracił sieć i aplikację zamknięto).
     useEffect(() => {
+        if (localOnly) return
         queue.current = readQueue(listId)
         if (queue.current.length) {
             setChecked(prev => {
@@ -97,7 +100,7 @@ export function useListChecks(listId: string, initial: ListCheck[]) {
         window.addEventListener('online', onOnline)
         window.addEventListener('offline', onOffline)
         return () => { window.removeEventListener('online', onOnline); window.removeEventListener('offline', onOffline) }
-    }, [listId, flush])
+    }, [listId, flush, localOnly])
 
     useEffect(() => {
         const supabase = createClient()
@@ -133,6 +136,7 @@ export function useListChecks(listId: string, initial: ListCheck[]) {
             else next.delete(k)
             return next
         })
+        if (localOnly) return
 
         if (!navigator.onLine || queue.current.length) {
             enqueue(op)
@@ -148,7 +152,7 @@ export function useListChecks(listId: string, initial: ListCheck[]) {
         // Błąd serwera (np. brak uprawnień): kolejka z „Ponów”, zmiana zostaje widoczna.
         enqueue(op)
         setSync(s => ({ ...s, failed: true }))
-    }, [checked, enqueue, flush, send])
+    }, [checked, enqueue, flush, send, localOnly])
 
     const retry = useCallback(() => { void flush() }, [flush])
 

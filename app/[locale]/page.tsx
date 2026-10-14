@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getAccess } from '@/lib/access'
 import { getTranslations } from 'next-intl/server'
 import { Eye } from 'lucide-react'
 import { Link } from '@/i18n/routing'
@@ -9,16 +10,19 @@ import { StatusBanner } from '@/components/rk/StatusBanner'
 import { PendingUsersAlert } from '@/components/dashboard/PendingUsersAlert'
 import { DashboardView } from '@/components/dashboard/DashboardView'
 import { loadDashboard } from '@/lib/dashboard'
+import { activeTheatreName } from '@/lib/theatre'
 import { dayMonth, theatreNow, theatreNowNaive, weekdayShort } from '@/lib/rk-format'
 
 export default async function Home() {
     const supabase = await createClient()
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
     const { data: { user } } = await supabase.auth.getUser()
     const t = await getTranslations('DashboardB')
 
     const [data, theatre] = await Promise.all([
         loadDashboard(supabase, user?.id ?? null),
-        supabase.from('app_settings').select('value').eq('key', 'theatre_name').maybeSingle(),
+        activeTheatreName(supabase),
     ])
     const today = theatreNow()
 
@@ -45,7 +49,7 @@ export default async function Home() {
                     </>
                 }
             />
-            <DashboardView data={data} now={theatreNowNaive()} canEdit={!!user} theatreName={theatre.data?.value ?? undefined} />
+            <DashboardView data={data} now={theatreNowNaive()} canEdit={access.canWrite} theatreName={theatre ?? undefined} />
         </>
     )
 }

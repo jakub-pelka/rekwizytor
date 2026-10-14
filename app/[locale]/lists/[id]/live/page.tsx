@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { getAccess } from '@/lib/access'
 import { createClient } from '@/utils/supabase/server'
 import { loadPerformanceStructure } from '@/lib/performance-structure'
 import { theatreNowNaive } from '@/lib/rk-format'
@@ -10,6 +11,7 @@ type Props = { readonly params: Promise<{ readonly id: string }> }
 export default async function LiveListPage({ params }: Props) {
     const { id } = await params
     const supabase = await createClient()
+    const access = await getAccess(supabase)
 
     const { data: list } = await supabase
         .from('show_lists')
@@ -56,6 +58,7 @@ export default async function LiveListPage({ params }: Props) {
             initialReports={(reportsResult.data ?? []) as unknown as LiveReport[]}
             crew={[...crew.values()]}
             userId={userResult.data.user?.id ?? null}
+            canWrite={access.canWrite}
             now={theatreNowNaive()}
         />
     )

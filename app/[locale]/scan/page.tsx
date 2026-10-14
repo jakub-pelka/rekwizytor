@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getAccess } from '@/lib/access'
 import { loadStorage, locationPath, sortLocations, type StorageLocation } from '@/lib/storage'
 import { ScanFlow } from '@/components/scan/ScanFlow'
 import type { PlaceNode } from '@/components/scan/ScanPlacePicker'
@@ -30,8 +31,10 @@ function placeTree(locations: StorageLocation[]): PlaceNode[] {
 export default async function ScanPage({ searchParams }: Props) {
     const { in: locationId } = await searchParams
     const supabase = await createClient()
-    const [{ locations }, { data: { user } }] = await Promise.all([loadStorage(supabase), supabase.auth.getUser()])
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
+    const { locations } = await loadStorage(supabase)
     const places = sortLocations(locations).map(l => ({ id: l.id, label: locationPath(locations, l.id).map(p => p.name).join(' › ') }))
         .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
-    return <ScanFlow places={places} tree={placeTree(locations)} initialPlace={locationId ?? null} canEdit={!!user} />
+    return <ScanFlow places={places} tree={placeTree(locations)} initialPlace={locationId ?? null} canEdit={access.canWrite} />
 }

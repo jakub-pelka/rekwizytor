@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { getAccess } from '@/lib/access'
 import { createClient } from '@/utils/supabase/server'
 import { loadStorage, locationPath } from '@/lib/storage'
 import { loadPerformanceStructure } from '@/lib/performance-structure'
@@ -10,13 +11,14 @@ type Props = { readonly params: Promise<{ readonly id: string }> }
 export default async function GroupCardPage({ params }: Props) {
     const { id } = await params
     const supabase = await createClient()
-    const [data, usageResult, { data: { user } }] = await Promise.all([
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
+    const [data, usageResult] = await Promise.all([
         loadStorage(supabase),
         supabase.from('performance_props')
             .select('id, item_name, item_id, performance_id, performance:performances!inner(id, title, deleted_at)')
             .eq('group_id', id)
             .is('performance.deleted_at', null),
-        supabase.auth.getUser(),
     ])
 
     const group = data.groups.find(g => g.id === id)
@@ -37,5 +39,5 @@ export default async function GroupCardPage({ params }: Props) {
     }))
 
     const path = locationPath(data.locations, group.locationId)
-    return <GroupCard group={group} path={path} usage={usage} canEdit={!!user} />
+    return <GroupCard group={group} path={path} usage={usage} canEdit={access.canWrite} />
 }

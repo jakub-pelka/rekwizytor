@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import { getAccess } from '@/lib/access'
 import { CalendarView } from '@/components/calendar/CalendarView'
 import { CalendarActions } from '@/components/calendar/CalendarActions'
 import { calendarRange, dayKey, loadCalendar, parseAnchor, shiftAnchor, type CalendarKind, type CalendarView as View } from '@/lib/calendar'
@@ -15,11 +16,12 @@ export default async function CalendarPage({ searchParams }: Props) {
     const anchor = parseAnchor(params.date, today)
 
     const supabase = await createClient()
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
     const { from, to, days } = calendarRange(view, anchor)
-    const [terms, performancesResult, userResult] = await Promise.all([
+    const [terms, performancesResult] = await Promise.all([
         loadCalendar(supabase, from, to),
         supabase.from('performances').select('id, title').is('deleted_at', null).neq('status', 'archived').order('title'),
-        supabase.auth.getUser(),
     ])
 
     return (
@@ -32,7 +34,7 @@ export default async function CalendarPage({ searchParams }: Props) {
             days={days.map(dayKey)}
             terms={terms}
             today={dayKey(today)}
-            actions={<CalendarActions performances={performancesResult.data ?? []} canEdit={!!userResult.data.user} />}
+            actions={<CalendarActions performances={performancesResult.data ?? []} canEdit={access.canWrite} />}
         />
     )
 }

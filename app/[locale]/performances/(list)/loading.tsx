@@ -2,47 +2,87 @@ import { Skeleton } from "@/components/ui/Skeleton"
 
 export default function Loading() {
     return (
-        <div className="p-4 md:p-10 space-y-6 max-w-7xl mx-auto">
-            {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-2">
-                    <Skeleton className="h-8 w-48 mb-2" />
-                    <Skeleton className="h-4 w-64" />
-                </div>
-                <div className="grid grid-cols-2 w-full md:flex md:w-auto gap-2">
-                    <Skeleton className="h-10 w-full md:w-32 rounded-lg" />
-                    <Skeleton className="h-10 w-full md:w-32 rounded-lg" />
-                </div>
+        <div>
+            {/* Mobile Top Brand placeholder */}
+            <div className="flex items-center justify-between px-4 py-2 md:hidden">
+                <Skeleton className="h-6 w-32 rounded" />
+                <Skeleton className="h-9 w-9 rounded-full" />
             </div>
 
-            {/* Filter Bar */}
-            <div className="flex items-center gap-4">
-                <Skeleton className="h-12 w-full rounded-xl" />
-                <Skeleton className="h-12 w-24 shrink-0 rounded-xl" />
-            </div>
+            <div className="mx-auto flex max-w-[1184px] flex-col gap-6 px-4 pt-2 pb-8 md:gap-8 md:px-12 md:pt-8 md:pb-12">
+                {/* Page Header */}
+                <header className="rk-page-header flex-wrap items-center border-b-0 pb-0">
+                    <Skeleton className="h-9 w-40 rounded" />
+                    <Skeleton className="h-10 w-40 rounded-md hidden md:block" />
+                </header>
 
-            {/* List View Skeletons (Default) */}
-            <div className="space-y-3">
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-4 border border-neutral-800 rounded-xl p-3 bg-neutral-900/40">
-                        {/* Thumbnail */}
-                        <Skeleton className="h-24 w-16 shrink-0 rounded-lg" />
-
-                        {/* Content */}
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <Skeleton className="h-5 w-48" />
-                                <Skeleton className="h-4 w-20 rounded-lg" />
-                            </div>
-                            <div className="hidden md:block">
-                                <Skeleton className="h-4 w-32" />
-                            </div>
-                        </div>
-
-                        {/* Chevron */}
-                        <Skeleton className="h-10 w-10 round-full shrink-0 rounded-full" />
+                {/* Filter Bar */}
+                <div className="flex flex-wrap items-center gap-3 md:justify-between">
+                    <Skeleton className="h-9 w-36 rounded-md w-full md:order-2 md:w-44" />
+                    <div className="pl-chips md:order-1 flex gap-2">
+                        <Skeleton className="h-8 w-28 rounded-full" />
+                        <Skeleton className="h-8 w-24 rounded-full max-md:hidden" />
+                        <Skeleton className="h-8 w-24 rounded-full max-md:hidden" />
                     </div>
-                ))}
+                </div>
+
+                {/* Playing section */}
+                <section className="pl-sect">
+                    <div className="pl-sect-head pl-sect-head--rule">
+                        <Skeleton className="h-6 w-44 rounded" />
+                        <Skeleton className="h-4 w-20 rounded" />
+                    </div>
+                    <ul className="pl-list sl-list space-y-2">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <li key={i}>
+                                <div className="sl-row pointer-events-none">
+                                    <span className="rk-poster">
+                                        <Skeleton className="h-full w-full rounded" />
+                                    </span>
+                                    <span className="pl-main space-y-1.5">
+                                        <Skeleton className="h-5 w-44 md:w-56 rounded" />
+                                        <Skeleton className="h-3.5 w-52 md:w-72 rounded" />
+                                    </span>
+                                    <span className="sl-when hidden md:block space-y-1">
+                                        <Skeleton className="h-3 w-16 rounded" />
+                                        <Skeleton className="h-3.5 w-32 rounded" />
+                                    </span>
+                                    <span className="hidden md:inline-flex">
+                                        <Skeleton className="h-6 w-24 rounded-full" />
+                                    </span>
+                                    <Skeleton className="h-5 w-5 rounded shrink-0 ml-auto md:ml-0" />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                {/* Preparing section */}
+                <section className="pl-sect">
+                    <div className="pl-sect-head pl-sect-head--rule">
+                        <Skeleton className="h-6 w-36 rounded" />
+                        <Skeleton className="h-4 w-16 rounded" />
+                    </div>
+                    <ul className="pl-list sl-list space-y-2">
+                        {Array.from({ length: 2 }).map((_, i) => (
+                            <li key={i}>
+                                <div className="sl-row pointer-events-none">
+                                    <span className="rk-poster">
+                                        <Skeleton className="h-full w-full rounded" />
+                                    </span>
+                                    <span className="pl-main space-y-1.5">
+                                        <Skeleton className="h-5 w-40 md:w-48 rounded" />
+                                        <Skeleton className="h-3.5 w-48 md:w-60 rounded" />
+                                    </span>
+                                    <span className="hidden md:inline-flex">
+                                        <Skeleton className="h-6 w-24 rounded-full" />
+                                    </span>
+                                    <Skeleton className="h-5 w-5 rounded shrink-0 ml-auto md:ml-0" />
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
             </div>
         </div>
     )

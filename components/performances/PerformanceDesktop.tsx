@@ -248,7 +248,7 @@ export function PerformanceDesktop({ performance, structure, nextTerm, laterTerm
                                     )}
                                 </span>
                             )}
-                            <div className="rk-btn-group">
+                            <div className="rk-btn-group ml-auto">
                                 <ActionMenu
                                     text={t('more')}
                                     label={t('actions', { title: performance.title })}

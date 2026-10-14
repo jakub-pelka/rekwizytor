@@ -244,3 +244,11 @@ Dwie ścieżki.
 
 - **Co:** ustawienia w jednej kolumnie, z nowymi preferencjami listy (szczegóły wpisu, zwijanie aktów i odhaczonych) i sekcją Teatr dla administratora.
 - **Dlaczego:** nowe osoby potrzebują pełnych opisów, doświadczone tylko nazw; jedna aplikacja ma obsłużyć obie grupy bez osobnych trybów.
+
+## 19. Problemy z rzeczami i zamienniki (P1 część, P2 reszta)
+
+- **Stan rzeczy dziś:** status grupy (`groups.status`: na miejscu, do naprawy, wypożyczone, zaginione) da się ustawić tylko z menu „…” w górnym pasku karty grupy, a ten pasek jest tylko na telefonie. Przedmiot w rozpisanej grupie ma listę wyboru (komputer i telefon). Notatki do stanu (`status_note`, np. „odbiór 16:00”) nie da się wpisać nigdzie. Pulpit pokazuje problemy („Blokuje gotowość”, kafelek Magazyn), ale nie ma ich jak ustawić ani zamknąć.
+- **Zgłoszenie:** ustawianie stanu tam, gdzie problem widać (wiersz na Pulpicie, plakietka stanu w rozpisce) i w karcie grupy także na komputerze; stan + krótka notatka + opcjonalnie „do kiedy”.
+- **Zamknięcie, okno „Co z tym?”:** (1) wróciło / znalazło się / naprawione: na miejscu, notatka czyszczona; (2) kupiono nowe: nowa rzecz zajmuje miejsce starej, rekwizyty w spektaklach przechodzą na nią, stara zostaje w historii; (3) zamiennik z magazynu: rekwizyty tego spektaklu (albo wszystkich) wskazują inną rzecz, oryginał zachowuje swój problem; (4) rezygnujemy: rekwizyt zdjęty z rozpiski albo „pomijamy”.
+- **Zamiennik po zdjęciu albo opisie (pomysł Kuby, 11.10):** przy problemie „znajdź podobne”, żeby znaleźć w magazynie coś, co może zastąpić brakującą rzecz. Embeddingi grup i wyszukiwanie hybrydowe po nich są; stara funkcja `match_items` odwołuje się do usuniętej tabeli `items` i jest martwa.
+- **Kolejność:** pilotaż: ustawianie stanu, notatka, okno z opcjami 1, 3 (ręczny wybór) i 4. Później: zamiennik po zdjęciu, „kupiono nowe” z przenoszeniem rekwizytów, historia zmian stanu.

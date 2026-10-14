@@ -16,14 +16,19 @@ async function api(path, { method = 'GET', body } = {}) {
     return res.status === 204 ? null : res.json()
 }
 
-const [perf] = await api('performances?title=eq.Wesele&deleted_at=is.null&select=id')
+// Wszystko w teatrze demo (migracja 20261011_theatres); klucz serwisowy widzi wszystkie teatry, więc filtrujemy.
+const [demo] = await api('theatres?is_demo=eq.true&select=id')
+if (!demo) throw new Error('Brak teatru demo. Najpierw migracja supabase/migrations/20261011_theatres.sql')
+const T = demo.id
+
+const [perf] = await api(`performances?title=eq.Wesele&deleted_at=is.null&theatre_id=eq.${T}&select=id`)
 if (!perf) throw new Error('Najpierw uruchom scripts/seed-demo-wesele.mjs')
 
-const [room] = await api('locations?name=eq.Pracownia rekwizytorska&belongs_to=is.null&select=id')
+const [room] = await api(`locations?name=eq.Pracownia rekwizytorska&belongs_to=is.null&theatre_id=eq.${T}&select=id`)
 const children = await api(`locations?belongs_to=eq.${room.id}&select=id,name,kind`)
 const byName = Object.fromEntries(children.map(c => [c.name, c]))
 
-if ((await api(`group_items?name=eq.Kask strażacki&select=id`)).length) {
+if ((await api(`group_items?name=eq.Kask strażacki&theatre_id=eq.${T}&select=id`)).length) {
     console.log('Magazyn „Wesela” już uzupełniony. Nic nie zmieniam.')
     process.exit(0)
 }
@@ -47,7 +52,7 @@ const shelves = [...existing, ...created]
 const shelf = (parent, n) => shelves.find(s => s.name === `Półka ${n}` && s.belongs_to === byName[parent].id).id
 
 // Grupy na półkach.
-const groups = Object.fromEntries((await api('groups?deleted_at=is.null&select=id,name')).map(g => [g.name, g.id]))
+const groups = Object.fromEntries((await api(`groups?deleted_at=is.null&theatre_id=eq.${T}&select=id,name`)).map(g => [g.name, g.id]))
 const place = { 'Szkło i butelki': shelf('Szafa B', 2), 'Srebra stołowe': shelf('Szafa B', 2), 'Świece i lichtarze': shelf('Szafa B', 1), 'Gazety i druki': shelf('Szafa A', 1), 'Instrumenty': shelf('Szafa A', 2) }
 for (const [name, loc] of Object.entries(place)) {
     if (groups[name]) await api(`groups?id=eq.${groups[name]}`, { method: 'PATCH', body: { location_id: loc } })

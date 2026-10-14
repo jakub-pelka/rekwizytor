@@ -3,16 +3,19 @@
 import { Link, useRouter } from '@/i18n/routing'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Calendar, Command, QrCode, Warehouse, LogIn, LogOut, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings2, Settings } from 'lucide-react'
+import { Calendar, Check, Command, QrCode, Warehouse, LogIn, LogOut, NotebookPen, PanelLeftClose, PanelLeftOpen, Settings2, Settings } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/utils/supabase/client'
 import { useGlobalSearch } from '@/components/search/GlobalSearchProvider'
 import { RkIcon } from '@/components/rk/RkIcon'
 import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { theatreNowNaive } from '@/lib/rk-format'
+import { switchTheatre } from '@/app/actions/theatres'
+import { notify } from '@/utils/notify'
 
 type Counts = { weekShows: number; todayLists: number; mentions: number }
 type Profile = { id: string; name: string; role: string | null }
+type Theatre = { id: string; name: string }
 
 const STORAGE_KEY = 'rk-sidebar-rail'
 
@@ -26,6 +29,9 @@ export function Sidebar() {
     const [profile, setProfile] = useState<Profile | null | undefined>(undefined)
     const [counts, setCounts] = useState<Counts>({ weekShows: 0, todayLists: 0, mentions: 0 })
     const [menuOpen, setMenuOpen] = useState(false)
+    // Teatry, do których ta osoba ma dostęp, i bieżący. Przełącznik tylko przy więcej niż jednym (POMYSLY 11).
+    const [theatres, setTheatres] = useState<Theatre[]>([])
+    const [currentTheatre, setCurrentTheatre] = useState<string | null>(null)
     const menuRef = useRef<HTMLDivElement>(null)
 
     // Zwinięcie pamiętamy na urządzeniu; szerokość czyta AppShell przez zmienną CSS.
@@ -46,6 +52,18 @@ export function Sidebar() {
             if (user) {
                 const { data } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).single()
                 setProfile({ id: user.id, name: data?.full_name || user.email?.split('@')[0] || '', role: data?.role ?? null })
+                // Superadmin widzi wszystkie teatry, pozostali swoje. Błąd (baza przed migracją teatrów) = brak przełącznika.
+                const [list, active] = await Promise.all([
+                    data?.role === 'admin'
+                        ? supabase.from('theatres').select('id, name').order('name')
+                        : supabase.from('theatre_members').select('theatres(id, name)').eq('user_id', user.id),
+                    supabase.rpc('active_theatre_id'),
+                ])
+                if (!list.error) {
+                    const rows = (list.data ?? []) as ({ id: string; name: string } | { theatres: Theatre | null })[]
+                    setTheatres(rows.map(r => ('theatres' in r ? r.theatres : r)).filter((x): x is Theatre => !!x))
+                }
+                if (!active.error) setCurrentTheatre(active.data as string | null)
             } else {
                 setProfile(null)
             }
@@ -69,6 +87,16 @@ export function Sidebar() {
         document.addEventListener('keydown', onKey)
         return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey) }
     }, [menuOpen])
+
+    const pickTheatre = async (id: string) => {
+        setMenuOpen(false)
+        if (id === currentTheatre) return
+        const result = await switchTheatre(id)
+        if (!result.ok) { notify.error(result.error); return }
+        setCurrentTheatre(id)
+        router.push('/')
+        router.refresh()
+    }
 
     const signOut = async () => {
         await createClient().auth.signOut()
@@ -151,7 +179,9 @@ export function Sidebar() {
                             {!rail && (
                                 <span className="rk-sidebar__user">
                                     <b className="truncate">{profile.name}</b>
-                                    {profile.role && <small>{ROLE[profile.role] ?? profile.role}</small>}
+                                    {theatres.length > 1 && currentTheatre
+                                        ? <small className="truncate">{theatres.find(th => th.id === currentTheatre)?.name}</small>
+                                        : profile.role && <small>{ROLE[profile.role] ?? profile.role}</small>}
                                 </span>
                             )}
                         </button>
@@ -162,6 +192,18 @@ export function Sidebar() {
                         )}
                         {menuOpen && (
                             <div role="menu" className="rk-menu absolute bottom-full left-0 z-50 mb-2">
+                                {theatres.length > 1 && (
+                                    <>
+                                        <span className="rk-sidebar__label" role="presentation">{t('theatre')}</span>
+                                        {theatres.map(th => (
+                                            <button key={th.id} role="menuitemradio" aria-checked={th.id === currentTheatre} className="rk-menu__item" onClick={() => pickTheatre(th.id)}>
+                                                {th.id === currentTheatre ? <Check /> : <span style={{ width: 16 }} />}
+                                                <span className="truncate">{th.name}</span>
+                                            </button>
+                                        ))}
+                                        <div className="rk-menu__sep" role="separator" />
+                                    </>
+                                )}
                                 <Link role="menuitem" className="rk-menu__item" href="/settings" onClick={() => setMenuOpen(false)}>
                                     <Settings />{t('settings')}
                                 </Link>

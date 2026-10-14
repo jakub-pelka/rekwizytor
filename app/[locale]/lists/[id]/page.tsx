@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation'
+import { getAccess } from '@/lib/access'
 import { getLocale } from 'next-intl/server'
 import { createClient } from '@/utils/supabase/server'
 import { isLiveNow, loadPerformanceStructure } from '@/lib/performance-structure'
@@ -15,6 +16,8 @@ export default async function ShowListPage({ params, searchParams }: Props) {
     const { id } = await params
     const { view } = await searchParams
     const supabase = await createClient()
+    // Zapis tylko dla kierownika i rekwizytora bieżącego teatru (lib/access); podgląd i niezalogowani oglądają.
+    const access = await getAccess(supabase)
 
     const { data: list } = await supabase
         .from('show_lists')
@@ -27,7 +30,7 @@ export default async function ShowListPage({ params, searchParams }: Props) {
     // O godzinie spektaklu lista sama przechodzi w stan „na żywo”; ?view=list pokazuje całą listę.
     if (view !== 'list' && isLiveNow(list.kind, list.show_date, theatreNowNaive())) redirect(`/${await getLocale()}/lists/${id}/live`)
 
-    const [structure, checksResult, nextListResult, userResult] = await Promise.all([
+    const [structure, checksResult, nextListResult] = await Promise.all([
         loadPerformanceStructure(supabase, list.performance_id),
         supabase.from('show_list_checks').select('performance_prop_id, stage, done_by, profile:profiles(id, full_name, role)').eq('show_list_id', id),
         // Następny spektakl w kolejce: po spektaklu można już przygotować część rzeczy na kolejny termin.
@@ -39,7 +42,6 @@ export default async function ShowListPage({ params, searchParams }: Props) {
             .order('show_date', { ascending: true })
             .limit(1)
             .maybeSingle(),
-        supabase.auth.getUser(),
     ])
 
     // „W kulisach”: kto odhacza tę listę i ile.
@@ -77,7 +79,7 @@ export default async function ShowListPage({ params, searchParams }: Props) {
                 structure: nextStructure,
                 checks: (nextChecksResult?.data ?? []) as ListCheck[],
             } : null}
-            canEdit={!!userResult.data.user}
+            canEdit={access.canWrite}
             now={theatreNowNaive()}
         />
     )

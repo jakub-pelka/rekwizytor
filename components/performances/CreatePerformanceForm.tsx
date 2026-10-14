@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { activeTheatreId, filePath, miniPath } from '@/lib/storage-paths'
 import { createClient } from '@/utils/supabase/client'
 import { Link, useRouter } from '@/i18n/routing'
 import { ChevronDown, ChevronLeft, Upload, X } from 'lucide-react'
@@ -67,10 +68,10 @@ export function CreatePerformanceForm({ venues }: { venues: string[] }) {
         }
     }
 
-    const handleUpload = async (file: File | Blob, name: string) => {
-        const fileExt = (file instanceof File ? file.name : name).split('.').pop() || 'jpeg'
-        const fileName = `${Math.random()}.${fileExt}`
-        const thumbnailName = `thumb_${fileName}`
+    // Plakat w ścieżce teatru (lib/storage-paths): <teatr>/plakaty/<spektakl>/<losowe>.jpg, miniatura z „-mini”.
+    const handleUpload = async (file: File | Blob, name: string, performanceId: string) => {
+        const fileName = filePath(await activeTheatreId(supabase), 'plakaty', performanceId, 'jpg')
+        const thumbnailName = miniPath(fileName)
 
         const fileToProcess = file instanceof File ? file : new File([file], name, { type: file.type })
 
@@ -158,8 +159,8 @@ export function CreatePerformanceForm({ venues }: { venues: string[] }) {
     // Plakat wysyłamy po utworzeniu spektaklu, żeby nie trzymać nikogo na pierwszym ekranie.
     const uploadPoster = async (performanceId: string) => {
         let images: { imageUrl: string; thumbnailUrl: string } | null = null
-        if (imageFile) images = await handleUpload(imageFile, imageFile.name)
-        else if (imagePreview?.startsWith('data:')) images = await handleUpload(base64ToBlob(imagePreview), 'scraped.jpeg')
+        if (imageFile) images = await handleUpload(imageFile, imageFile.name, performanceId)
+        else if (imagePreview?.startsWith('data:')) images = await handleUpload(base64ToBlob(imagePreview), 'scraped.jpeg', performanceId)
         else if (imagePreview?.startsWith('http')) images = { imageUrl: imagePreview, thumbnailUrl: imagePreview }
         if (!images) return
         await supabase.from('performances').update({ image_url: images.imageUrl, thumbnail_url: images.thumbnailUrl }).eq('id', performanceId)

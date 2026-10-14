@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { StatusBanner } from '@/components/rk/StatusBanner'
 import { useTranslations } from 'next-intl'
-import { Check, ChevronRight, MapPin, TriangleAlert, User } from 'lucide-react'
+import { Check, ChevronRight, Eye, MapPin, TriangleAlert, User } from 'lucide-react'
 import { Link } from '@/i18n/routing'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
@@ -33,19 +34,20 @@ type Props = {
     initialReports: LiveReport[]
     crew: { id: string; name: string; role: string | null }[]
     userId: string | null
+    /** Zapis w bieżącym teatrze (lib/access). Podgląd i demo: odhaczenia tylko na ekranie, bez przełączania scen i zgłoszeń. */
+    canWrite: boolean
     now: string
 }
 
 // Tryb na żywo (karta NaZywo, ekrany „Na-zywo-telefon” i „Na-zywo”): telefon rekwizytora
 // podąża za sceną przełączaną przez inspicjenta na komputerze („Następna scena” albo spacja).
-export function LiveView({ list, performance, structure, initialChecks, initialReports, crew, userId, now }: Props) {
+export function LiveView({ list, performance, structure, initialChecks, initialReports, crew, userId, canWrite, now }: Props) {
     const t = useTranslations('Live')
-    const canEdit = !!userId
     const scenes = playOrder(structure)
     const [sceneNumber, setSceneNumber] = useState<number | null>(list.sceneNumber ?? scenes[0]?.number ?? null)
     const [actStartedAt, setActStartedAt] = useState(list.actStartedAt ?? null)
     // Stan potwierdzeń (z kolejką bez sieci) w useListChecks; tu tylko kto i kiedy, do pokazania na komputerze.
-    const { isChecked, toggle: toggleCheck, sync, retry } = useListChecks(list.id, initialChecks.map(c => ({ performance_prop_id: c.propId, stage: 'live' })))
+    const { isChecked, toggle: toggleCheck, sync, retry } = useListChecks(list.id, initialChecks.map(c => ({ performance_prop_id: c.propId, stage: 'live' })), { localOnly: !canWrite })
     const [meta, setMeta] = useState(() => new Map(initialChecks.map(c => [c.propId, c])))
     const [reports, setReports] = useState(initialReports)
     const [reporting, setReporting] = useState(false)
@@ -90,13 +92,12 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
     }, [list.id])
 
     const toggle = (propId: string) => {
-        if (!canEdit) return
         if (!isChecked(propId, 'live')) setMeta(prev => new Map(prev).set(propId, { propId, at: new Date().toISOString(), by: null }))
         void toggleCheck(propId, 'live')
     }
 
     const goNext = useCallback(async () => {
-        if (!canEdit || !nextScene) return
+        if (!canWrite || !nextScene) return
         const actChanged = nextScene.act !== act
         const startedAt = actChanged ? new Date().toISOString() : actStartedAt
         setSceneNumber(nextScene.number)
@@ -105,7 +106,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
             .update({ live_scene_number: nextScene.number, live_act_started_at: startedAt, live_updated_by: userId })
             .eq('id', list.id)
         if (error) notify.error(t('switchFailed'))
-    }, [canEdit, nextScene, act, actStartedAt, userId, list.id, t])
+    }, [canWrite, nextScene, act, actStartedAt, userId, list.id, t])
 
     // „Następna scena” spacją (komputer inspicjenta), poza polami formularza.
     useEffect(() => {
@@ -137,6 +138,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                 <div style={{ paddingTop: 'env(safe-area-inset-top)' }} className="sticky top-0 z-20 bg-warning-tint">
                     {strip(false)}
                     <SyncBanner sync={sync} onRetry={retry} />
+                    {!canWrite && <StatusBanner tone="readonly" icon={<Eye />}>{t('previewOnly')}</StatusBanner>}
                 </div>
                 <MobileTop back={{ href: `/lists/${list.id}?view=list`, label: t('backToList') }} />
                 <div className="flex flex-1 flex-col gap-6 px-4 pt-2 pb-6">
@@ -155,7 +157,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                                 {props.map(p => (
                                     <li key={p.id}>
                                         <label className="rk-check ls-item rk-live-item">
-                                            <input type="checkbox" checked={isChecked(p.id, 'live')} onChange={() => toggle(p.id)} disabled={!canEdit} />
+                                            <input type="checkbox" checked={isChecked(p.id, 'live')} onChange={() => toggle(p.id)} />
                                             <span className="rk-box"><Check className="i-chk" /></span>
                                             <span className="rk-entry">
                                                 <span className="rk-entry__name">{p.name}</span>
@@ -177,7 +179,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                         </div>
                     )}
                 </div>
-                {canEdit && (
+                {canWrite && (
                     <div className="rk-live-bottom sticky bottom-0" style={{ paddingBottom: 'calc(var(--space-6) + env(safe-area-inset-bottom))' }}>
                         <Button variant="danger" size="lg" className="w-full" leftIcon={<TriangleAlert />} onClick={() => setReporting(true)}>
                             {t('report')}
@@ -190,6 +192,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
             <div className="mx-auto hidden max-w-[1184px] flex-col gap-8 px-12 pt-8 pb-12 md:flex">
                 {strip(true)}
                 <SyncBanner sync={sync} onRetry={retry} />
+                {!canWrite && <StatusBanner tone="readonly" icon={<Eye />}>{t('previewOnly')}</StatusBanner>}
                 <div className="flex flex-wrap items-end justify-between gap-6">
                     <div className="flex min-w-0 flex-col gap-1">
                         <span className="rk-tally">
@@ -197,7 +200,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                         </span>
                         <ShowTitle title={performance.title} />
                     </div>
-                    {canEdit && nextScene && (
+                    {canWrite && nextScene && (
                         <div className="flex items-center gap-4">
                             <span className="pl-meta">{t('orSpace')}</span>
                             <Button size="lg" rightIcon={<ChevronRight />} onClick={goNext}>{t('nextScene', { code: nextScene.code })}</Button>
@@ -239,7 +242,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                                     const c = isChecked(p.id, 'live') ? meta.get(p.id) ?? { propId: p.id, at: new Date().toISOString(), by: null } : null
                                     return (
                                         <li key={p.id}>
-                                            <button type="button" className="contents" onClick={() => toggle(p.id)} disabled={!canEdit} aria-pressed={!!c} aria-label={p.name}>
+                                            <button type="button" className="contents" onClick={() => toggle(p.id)} aria-pressed={!!c} aria-label={p.name}>
                                                 {c ? <span className="rk-live-ok"><Check /></span> : <span className="rk-live-wait" />}
                                             </button>
                                             <span className="rk-entry rk-entry--sm">

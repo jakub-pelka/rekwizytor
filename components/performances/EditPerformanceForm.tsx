@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useTransition } from 'react'
+import { activeTheatreId, filePath, miniPath } from '@/lib/storage-paths'
 import { createClient } from '@/utils/supabase/client'
 import { Link, useRouter } from '@/i18n/routing'
 import { ChevronDown, ChevronLeft, Trash2, Upload, X } from 'lucide-react'
@@ -117,9 +118,9 @@ export function EditPerformanceForm({ performance, venues }: Props) {
             let thumbnailUrl = performance.thumbnail_url
 
             if (imageFile) {
-                const fileExt = imageFile.name.split('.').pop() || 'jpeg'
-                const fileName = `${Math.random()}.${fileExt}`
-                const thumbnailName = `thumb_${fileName}`
+                // Ścieżka teatru (lib/storage-paths); kompresja zapisuje JPEG.
+                const fileName = filePath(await activeTheatreId(supabase), 'plakaty', performance.id, 'jpg')
+                const thumbnailName = miniPath(fileName)
 
                 // Compress main image
                 const compressedBlob = await compressImage(imageFile)
