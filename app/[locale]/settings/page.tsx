@@ -23,12 +23,22 @@ export default async function SettingsPage() {
     // Nazwa i zespół bieżącego teatru (migracja 20261011_theatres); baza zwraca tylko jego wiersze.
     const { data: activeTheatreId } = await supabase.rpc('active_theatre_id')
     const theatreName = await activeTheatreName(supabase)
+    // Kierownik pracowni bieżącego teatru (theatre_members.role = 'admin') widzi sekcję Teatr i zespół.
+    let canManageTeam = isAdmin
+    if (!isAdmin && activeTheatreId) {
+        const { data: membership } = await supabase.from('theatre_members').select('role').eq('user_id', user.id).eq('theatre_id', activeTheatreId as string).maybeSingle()
+        canManageTeam = membership?.role === 'admin'
+    }
+    const showTheatre = isAdmin || canManageTeam
     const [members, pending, shows, scans] = await Promise.all([
-        isAdmin && activeTheatreId
+        showTheatre && activeTheatreId
             ? supabase.from('theatre_members').select('user_id', { count: 'exact', head: true }).eq('theatre_id', activeTheatreId as string)
             : Promise.resolve({ count: 0 }),
-        isAdmin ? supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('status', 'pending') : Promise.resolve({ count: 0 }),
-        isAdmin ? supabase.from('performances').select('id', { count: 'exact', head: true }).is('deleted_at', null).neq('status', 'archived') : Promise.resolve({ count: 0 }),
+        // Zaproszenia czekające na przyjęcie w tym teatrze (joined_at NULL).
+        showTheatre && activeTheatreId
+            ? supabase.from('theatre_members').select('user_id', { count: 'exact', head: true }).eq('theatre_id', activeTheatreId as string).is('joined_at', null)
+            : Promise.resolve({ count: 0 }),
+        showTheatre ? supabase.from('performances').select('id', { count: 'exact', head: true }).is('deleted_at', null).neq('status', 'archived') : Promise.resolve({ count: 0 }),
         isAdmin ? supabase.from('ai_usage_logs').select('id', { count: 'exact', head: true }).gte('created_at', month.toISOString()) : Promise.resolve({ count: null }),
     ])
 
@@ -39,6 +49,7 @@ export default async function SettingsPage() {
             email={user.email ?? ''}
             roleLabel={roleLabel}
             isAdmin={isAdmin}
+            canManageTeam={canManageTeam}
             theatreName={theatreName ?? ''}
             theatreMeta={`${seasonOf(theatreNow()).label} · ${plural(shows.count ?? 0, ['spektakl', 'spektakle', 'spektakli'])}`}
             team={{ members: members.count ?? 0, pending: pending.count ?? 0 }}

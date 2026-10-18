@@ -73,7 +73,7 @@ Nigdy nie uruchamiaj testu na produkcji.
 ## Otwarte (po migracji)
 
 - **Zatwierdzanie kont** (`/admin/users`, lista w Ustawieniach) nie dodaje do teatru. Ludzi do teatru dodaje się w Ustawieniach → Teatry, co też zatwierdza konto.
-- **Ekran zespołu dla kierownika pracowni**: reguły w bazie są gotowe (kierownik zarządza członkami swojego teatru), brakuje ekranu. Część scenariusza „pierwsze uruchomienie”.
+- **Ekran zespołu dla kierownika pracowni** (18.10: zrobione w migracji `20261018_team_managers.sql` i na ekranie `/settings/team`): reguły w bazie są gotowe (kierownik zarządza członkami swojego teatru). Część scenariusza „pierwsze uruchomienie”.
 - **Inspicjent przełącza sceny w trybie na żywo**, a to zapis: potrzebuje roli rekwizytora, nie podglądu.
 - **Skaner w demo** (`/scan`) wymaga teraz logowania, tak jak etykiety.
 - **Stare skrypty w `scripts/`** (poza dwoma skryptami demo) zapisują kluczem serwisowym bez teatru i po migracji nie zadziałają, dopóki nie podadzą `theatre_id`. `app/actions/fast-mode.ts` nie jest używany i nie zna standardu ścieżek.
@@ -82,26 +82,49 @@ Nigdy nie uruchamiaj testu na produkcji.
 
 Mail z zaproszeniem i z resetem hasła musi prowadzić na `/pl/auth/confirm` (trasa w `app/[locale]/auth/confirm/route.ts`), która zamienia token na sesję. Domyślny szablon prowadzi na adres z tokenem w hashu, którego serwer nie widzi, więc zaproszenie nie zadziałałoby do końca. Ustawienia robi się raz, ręcznie:
 
-1. **Authentication → URL Configuration:** „Site URL” to adres produkcyjnej aplikacji (bez ukośnika na końcu). Na dev dopisz `http://localhost:3000` w „Redirect URLs”.
-2. **Authentication → Sign In / Providers:** wyłącz „Allow new users to sign up” (konta tylko z zaproszenia).
-3. **Authentication → Email Templates → Invite user** (temat: `Zaproszenie do Rekwizytora`):
+1. **Authentication → URL Configuration:** „Site URL” bez zmian (adres produkcyjnej aplikacji, bez ukośnika na końcu). W „Redirect URLs” dopisz adresy, na które aplikacja odsyła z zaproszeń:
+   - produkcja: `<adres aplikacji>/pl/auth/confirm**`,
+   - dev: `http://localhost:3000/pl/auth/confirm**` i `http://localhost:3100/pl/auth/confirm**` (dev działa też na porcie 3100).
 
-   ```html
-   <h2>Zaproszenie do Rekwizytora</h2>
-   <p>Cześć! Kierownik pracowni dodał Cię do zespołu w aplikacji Rekwizytor.</p>
-   <p><a href="{{ .SiteURL }}/pl/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/pl/update-password">Ustaw hasło i wejdź</a></p>
-   <p>Link działa jeden raz i wygasa po kilku godzinach. Jeśli nie spodziewałeś się tej wiadomości, zignoruj ją: bez kliknięcia nic się nie stanie.</p>
-   ```
+   Gwiazdki są potrzebne: aplikacja dopisuje do adresu, dokąd przejść po zalogowaniu (`?next=/pl/witaj` przy zaproszeniu, `?next=/pl/update-password` przy resecie hasła).
+
+   Bez wpisu link wraca na Site URL zamiast do `/pl/auth/confirm`.
+2. **Authentication → Sign In / Providers:** wyłącz „Allow new users to sign up” (konta tylko z zaproszenia).
+3. **Authentication → Email Templates → Invite user.**
+   - Temat: `{{ .Data.inviter_line }}` (gotowe zdanie bez kropki na końcu, np. „Anna Kowalska zaprasza cię do Teatru Miejskiego w Rekwizytorze”).
+   - Treść HTML poniżej. Link przycisku musi być `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=invite`, a nie adres z `{{ .SiteURL }}`. `RedirectTo` niesie już `?next=/pl/witaj`, więc w szablonie jest `&`, nie `?`.
+   - Zmienne z `data`: `inviter_name`, `theatre_name`, `role_label`, `inviter_line`. Szablon nie używa form z rodzajem („zaprosiła(-ł)”).
+
+```html
+<div style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.5; color: #222222; max-width: 560px;">
+  <h2 style="font-size: 20px;">Cześć, zapraszamy cię do zespołu</h2>
+  <p>{{ .Data.inviter_line }}. Rekwizytor to aplikacja do rekwizytów, spektakli i list przed spektaklem.</p>
+  <p>Twoja rola: {{ .Data.role_label }}.</p>
+  <p>Ustaw hasło i imię, a potem od razu zobaczysz rekwizyty i listy swojego teatru.</p>
+  <p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=invite" style="display: inline-block; padding: 12px 20px; background: #222222; color: #ffffff; text-decoration: none; border-radius: 6px;">Ustaw hasło i wejdź</a></p>
+  <p>Link działa krótko i tylko raz. Jeśli wygaśnie, poproś osobę, która cię zaprosiła, o wysłanie zaproszenia jeszcze raz.</p>
+  <p style="font-size: 14px;">Przycisk nie działa? Skopiuj ten adres do przeglądarki:<br>{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=invite</p>
+  <p style="font-size: 13px; color: #666666;">Dostajesz tę wiadomość, bo w zespole teatru podano twój adres: {{ .Email }}. Jeśli to pomyłka, zignoruj mail: bez kliknięcia w link nic się nie stanie.</p>
+</div>
+```
 
 4. **Authentication → Email Templates → Reset password** (temat: `Ustaw nowe hasło w Rekwizytorze`):
 
-   ```html
-   <h2>Nowe hasło</h2>
-   <p>Poprosiłeś o zmianę hasła w Rekwizytorze.</p>
-   <p><a href="{{ .SiteURL }}/pl/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/pl/update-password">Ustaw nowe hasło</a></p>
-   <p>Jeśli to nie Ty, zignoruj tę wiadomość.</p>
-   ```
+```html
+<h2>Nowe hasło</h2>
+<p>Ktoś poprosił o nowe hasło do twojego konta w Rekwizytorze.</p>
+<p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Ustaw nowe hasło</a></p>
+<p>Jeśli to nie ty, zignoruj tę wiadomość: bez kliknięcia w link nic się nie zmieni.</p>
+```
+
+   Notka: osoba, której zaproszenie ponowiono po potwierdzeniu e-maila, może dostać mail resetu zamiast zaproszenia. Wtedy `RedirectTo` ma `?next=/pl/witaj`, więc ten sam szablon prowadzi ją na ekran z hasłem i imieniem. Zwykły reset (z logowania albo z zespołu) ma `?next=/pl/update-password`.
 
 Pozostałe szablony (potwierdzenie rejestracji, zmiana e-maila) nie są używane, dopóki rejestracja jest wyłączona.
 
-Do dopracowania w ekranach pierwszego wejścia: po kliknięciu w zaproszenie osoba trafia na ustawianie hasła (`/update-password`, dziś w starym wyglądzie i bez kroku „imię”), a link wygasły kończy na logowaniu z `?link=expired` (komunikat jeszcze nie jest tam wyświetlany).
+5. **Nadawca (SMTP):** domyślna poczta Supabase ma niskie limity i słabą dostarczalność. Do pilotażu własny SMTP z adresem na domenie Rekwizytora (na planszy: `zaproszenia@rekwizytor.app`).
+
+**Nowa ścieżka pierwszego wejścia:**
+
+- `/pl/witaj`: sesja z linku już jest. Formularz: imię i nazwisko oraz hasło (miernik siły jak w aplikacji). Zapis ustawia hasło i imię, zapisuje dołączenie do teatru i przenosi na `/`.
+- Stany: „link wygasł” (`?stan=wygasl`: „Ten link już nie działa”) oraz „Masz już konto” (zaproszenie już przyjęte). Bez sesji i bez stanu pokazuje się „link wygasł”.
+- `/pl/settings/team`: ekran zespołu dla kierownika pracowni (dodawanie, ponowne zaproszenie, zmiana roli, usuwanie, historia zespołu).

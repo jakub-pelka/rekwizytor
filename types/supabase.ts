@@ -1160,6 +1160,7 @@ export type Database = {
           created_at: string
           invited_at: string | null
           invited_by: string | null
+          joined_at: string | null
           role: string
           theatre_id: string
           user_id: string
@@ -1168,6 +1169,7 @@ export type Database = {
           created_at?: string
           invited_at?: string | null
           invited_by?: string | null
+          joined_at?: string | null
           role?: string
           theatre_id: string
           user_id: string
@@ -1176,6 +1178,7 @@ export type Database = {
           created_at?: string
           invited_at?: string | null
           invited_by?: string | null
+          joined_at?: string | null
           role?: string
           theatre_id?: string
           user_id?: string
@@ -1262,6 +1265,7 @@ export type Database = {
           total_queries: number
         }[]
       }
+      complete_invite: { Args: { p_full_name: string }; Returns: undefined }
       can_write_active_theatre: { Args: never; Returns: boolean }
       get_intent_classification_stats: {
         Args: { days?: number }
@@ -1387,6 +1391,19 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_item: { Args: { item_uuid: string }; Returns: undefined }
+      theatre_team: {
+        Args: { t: string }
+        Returns: {
+          email: string
+          full_name: string
+          invited_at: string
+          invited_by_name: string
+          joined_at: string
+          last_sign_in_at: string
+          role: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       item_performance_status_enum:

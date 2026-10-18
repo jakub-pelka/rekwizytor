@@ -25,9 +25,21 @@ const RECENT_PLACES = 'rk-scan-recent'
 // odnosić do tego, co model widzi. Na wzorcu z 9.10 wynik taki sam jak przy 1600 px, a taniej i szybciej.
 const MAX_PIXELS = 1_150_000
 
+// HEIC (zdjęcia z iPhone'a przesłane na Maca) dekoduje tylko Safari. W innych przeglądarkach konwerter
+// wczytujemy dopiero wtedy, gdy jest potrzebny, żeby nie obciążać zwykłego skanu.
+async function decode(file: File): Promise<ImageBitmap> {
+    try {
+        return await createImageBitmap(file)
+    } catch (e) {
+        const { heicTo, isHeic } = await import('heic-to/next')
+        if (!(await isHeic(file))) throw e
+        return heicTo({ blob: file, type: 'bitmap' })
+    }
+}
+
 // Zmniejszamy zdjęcie przed wysłaniem, także w skanie grup (POMYSLY 14: dziś leci w pełnym rozmiarze).
 async function resize(file: File): Promise<{ image: string; size: ScanImageSize }> {
-    const bitmap = await createImageBitmap(file)
+    const bitmap = await decode(file)
     const scale = Math.min(1, Math.sqrt(MAX_PIXELS / (bitmap.width * bitmap.height)))
     const canvas = document.createElement('canvas')
     canvas.width = Math.round(bitmap.width * scale)
@@ -78,7 +90,9 @@ export function ScanFlow({ places, tree, initialPlace, canEdit }: Props) {
     }, [places])
 
     const start = async (file: File) => {
-        const { image, size } = await resize(file)
+        let resized: Awaited<ReturnType<typeof resize>>
+        try { resized = await resize(file) } catch { notify.error(t('photoError')); return }
+        const { image, size } = resized
         setPhoto(image)
         setPhotoSize(size)
         setSelected(null)

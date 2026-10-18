@@ -57,7 +57,9 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         path.startsWith('/login') ||
         path.startsWith('/auth') ||
         // Check for localized paths (e.g. /pl/login, /en/auth)
-        /^\/(?:en|pl)\/(?:login|auth|forgot-password|update-password)/.test(path) ||
+        /^\/(?:en|pl)\/(?:login|auth|forgot-password|update-password|witaj)/.test(path) ||
+        // Ekran z linku zaproszenia: bez sesji (link wygasł) i dla każdego statusu konta, bez odbijania na /waiting.
+        path.startsWith('/witaj') ||
         path.startsWith('/forgot-password') ||
         path.startsWith('/update-password')
 
@@ -130,11 +132,19 @@ export async function updateSession(request: NextRequest, response?: NextRespons
         // dodanie do teatru. Superadmin przechodzi zawsze. Błąd zapytania (np. baza przed migracją teatrów)
         // nie blokuje nikogo.
         if (status === 'approved' && profile?.role !== 'admin' && !isLegalPage) {
-            const { count, error: membersError } = await supabase
+            const { data: memberships, error: membersError } = await supabase
                 .from('theatre_members')
-                .select('theatre_id', { count: 'exact', head: true })
+                .select('joined_at')
                 .eq('user_id', user.id)
-            const hasTheatre = membersError ? true : (count ?? 0) > 0
+            const hasTheatre = membersError ? true : (memberships?.length ?? 0) > 0
+            // Zaproszenie niedokończone (bez imienia i hasła z /witaj): także gdy osoba zalogowała się zwykłą drogą,
+            // a nie linkiem z maila, najpierw kończy wejście. Brak kolumny joined_at (baza przed migracją) nie blokuje.
+            if (!membersError && memberships?.some(m => m.joined_at === null)) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/witaj'
+                url.search = ''
+                return NextResponse.redirect(url)
+            }
             if (!hasTheatre && !isNoTheatrePage) {
                 const url = request.nextUrl.clone()
                 url.pathname = '/no-theatre'

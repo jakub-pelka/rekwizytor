@@ -23,6 +23,8 @@ type CurtainStart = {
     logo: Box | null
     /** Bieżąca klatka wideo z logowania: nowe wideo w chwili przejścia to dekodowanie w najgorszym momencie. */
     frame: HTMLCanvasElement | null
+    /** To samo wideo i sekunda, od której gra dalej pod kurtyną (plik jest już w pamięci przeglądarki). */
+    video: { src: string; time: number } | null
     /** Proporcje klatki (szerokość / wysokość). */
     aspect: number
 }
@@ -66,6 +68,7 @@ export function lowerCurtain(from: HTMLElement | null, video?: HTMLVideoElement 
         stage: box(from?.getBoundingClientRect()),
         logo: box(from?.querySelector('.ld-words img')?.getBoundingClientRect()),
         frame: grabFrame(video),
+        video: video?.currentSrc ? { src: video.currentSrc, time: video.currentTime } : null,
         aspect: video?.videoWidth ? video.videoWidth / video.videoHeight : 16 / 9,
     }
     // Nawigacja rusza dopiero, gdy ekran jest naprawdę zakryty (koniec animacji, a nie zegar), żeby pulpit nie mignął
@@ -119,10 +122,30 @@ export function CurtainReveal() {
     // Pulpit jest już na ekranie: kurtyna idzie w górę.
     const shown = phase === 'cover' && !isLogin(pathname) ? 'up' : phase
 
-    // Klatka satyny trafia do warstwy, zanim ruszy animacja.
+    // Klatka satyny trafia do warstwy, zanim ruszy animacja. Nad nią to samo wideo gra dalej od tej samej sekundy,
+    // żeby kurtyna nie stała w miejscu, gdy wczytuje się pulpit; pokazuje się dopiero, gdy naprawdę gra, więc
+    // do tego czasu widać klatkę. W wersji oszczędnej zostaje sama klatka.
+    const liveRef = useRef<HTMLVideoElement | null>(null)
     useLayoutEffect(() => {
-        if (shown !== 'idle' && start?.frame && frameRef.current) frameRef.current.replaceChildren(start.frame)
+        const frame = frameRef.current
+        if (shown === 'idle' || !start || !frame) return
+        if (start.frame && !frame.contains(start.frame)) frame.replaceChildren(start.frame)
+        if (start.video && !liveRef.current && !isLite()) {
+            const live = document.createElement('video')
+            Object.assign(live, { muted: true, loop: true, playsInline: true, preload: 'auto', src: start.video.src })
+            Object.assign(live.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', objectFit: 'cover', opacity: '0' })
+            live.addEventListener('loadedmetadata', () => { live.currentTime = start.video!.time }, { once: true })
+            live.addEventListener('playing', () => { live.style.opacity = '1' }, { once: true })
+            live.play().catch(() => {})
+            frame.append(live)
+            liveRef.current = live
+        }
     }, [shown, start])
+    useEffect(() => {
+        if (shown !== 'idle') return
+        liveRef.current?.pause()
+        liveRef.current = null
+    }, [shown])
 
     // 1) Rozsuwanie. Warstwa na cały ekran jest przesunięta tak, że widać tylko obszar panelu, a jej zawartość
     // przesunięta odwrotnie, więc stoi w miejscu i jedzie tylko krawędź. Klatka i cieniowanie skalują się z panelu

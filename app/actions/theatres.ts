@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
+import { accountIsActive, inviterDisplayName, isAlreadyRegistered, loose, sendInviteMail, INVITE_FAILED } from '@/lib/team'
 
 // Teatry (migracja 20261011_theatres): baza pokazuje każdemu tylko jego bieżący teatr (profiles.current_theatre_id),
 // więc reszta aplikacji nie filtruje po teatrze. Tu: przełączanie teatru, a dla superadmina zakładanie teatrów
@@ -70,23 +71,34 @@ export async function addTheatreMember(theatreId: string, email: string, role: T
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) return { ok: false, error: 'Wpisz poprawny adres e-mail, np. anna@teatr.pl.' }
 
     let invited = false
-    let { data: profile } = await s.supabase.from('profiles').select('id, status, current_theatre_id').ilike('email', address).maybeSingle()
+    const admin = createAdminClient()
+    let { data: profile } = await admin.from('profiles').select('id, status, current_theatre_id').ilike('email', address).maybeSingle()
+    // Konto, które nie przyjęło jeszcze zaproszenia (brak hasła), dostaje zaproszenie ponownie, a członkostwo czeka (joined_at NULL).
+    const needsInvite = !profile || !(await accountIsActive(profile.id))
 
-    if (!profile) {
+    if (needsInvite) {
         // Zaproszenie wymaga klucza serwisowego (tworzy konto w auth); profil zakłada wyzwalacz handle_new_user.
-        const admin = createAdminClient()
-        // Szablon maila „Invite user” w Supabase prowadzi na /auth/confirm (docs/TEATRY.md, „Maile”); imię osoba poda przy pierwszym wejściu.
-        const { data: invite, error: inviteError } = await admin.auth.admin.inviteUserByEmail(address)
+        // Dane i redirectTo jak przy zaproszeniu przez kierownika (lib/team.ts); szablon maila opisuje docs/TEATRY.md, „Maile”.
+        const { data: theatre } = await s.supabase.from('theatres').select('name').eq('id', theatreId).maybeSingle()
+        const inviterName = await inviterDisplayName(s.supabase, s.user.id, s.user.email)
+        const { data: invite, error: inviteError } = await sendInviteMail({ email: address, inviterName, theatreName: theatre?.name ?? 'teatru', role })
         if (inviteError || !invite.user) {
-            console.error('addTheatreMember invite:', inviteError)
-            return { ok: false, error: 'Nie udało się wysłać zaproszenia. Sprawdź adres i spróbuj jeszcze raz.' }
+            if (isAlreadyRegistered(inviteError) && profile) {
+                // Konto potwierdziło e-mail, ale nie dokończyło zaproszenia: członkostwo zostaje oczekujące, mail ponowi kierownik z ekranu zespołu.
+                invited = true
+            } else {
+                console.error('addTheatreMember invite:', inviteError)
+                return { ok: false, error: INVITE_FAILED }
+            }
+        } else {
+            profile = profile ?? { id: invite.user.id, status: 'pending', current_theatre_id: null }
         }
         invited = true
-        profile = { id: invite.user.id, status: 'pending', current_theatre_id: null }
     }
+    if (!profile) return { ok: false, error: INVITE_FAILED }
 
-    const { error: memberError } = await s.supabase.from('theatre_members')
-        .upsert({ theatre_id: theatreId, user_id: profile.id, role }, { onConflict: 'theatre_id,user_id' })
+    const { error: memberError } = await loose(s.supabase).from('theatre_members')
+        .upsert({ theatre_id: theatreId, user_id: profile.id, role, ...(needsInvite ? {} : { joined_at: new Date().toISOString() }) }, { onConflict: 'theatre_id,user_id' })
     if (memberError) return { ok: false, error: 'Nie udało się dodać osoby do teatru. Spróbuj jeszcze raz.' }
 
     const { error: profileError } = await s.supabase.from('profiles').update({

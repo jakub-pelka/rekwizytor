@@ -10,7 +10,7 @@ import { MobileTop, MobileBrand } from '@/components/rk/MobileTop'
 import { GROUP_STATUS, statusCountLabel } from '@/components/rk/GroupStatus'
 import { EmptyState } from '@/components/rk/EmptyState'
 import type { CalendarKind, CalendarTerm, CalendarView as View } from '@/lib/calendar'
-import { castLabel, theatreNowNaive, weekdayShort } from '@/lib/rk-format'
+import { castLabel, longDate, theatreNowNaive, weekdayShort } from '@/lib/rk-format'
 
 type Props = {
     view: View
@@ -21,6 +21,8 @@ type Props = {
     days: string[]
     terms: CalendarTerm[]
     today: string
+    /** Pierwszy dzień z terminem po widocznym okresie (null: nic dalej nie zaplanowano). */
+    upcoming?: string | null
     actions?: ReactNode
 }
 
@@ -28,7 +30,7 @@ const MAX_IN_CELL = 2
 
 // Kalendarz terminów (karta Kalendarz, ekrany „Kalendarz”, „Kalendarz-miesiac”, „Kalendarz-telefon”).
 // Wiersz terminu prowadzi do jego listy zadań; próba bez rekwizytów nie ma listy.
-export function CalendarView({ view, kind, anchor, prev, next, days, terms, today, actions }: Props) {
+export function CalendarView({ view, kind, anchor, prev, next, days, terms, today, upcoming = null, actions }: Props) {
     const t = useTranslations('Calendar')
 
     // Kreska „teraz” odświeżana co minutę (czas teatru, ten sam układ co terminy).
@@ -95,7 +97,13 @@ export function CalendarView({ view, kind, anchor, prev, next, days, terms, toda
     const listView = () => {
         const byDay = days.map(d => ({ day: d, items: shown.filter(x => x.day === d) })).filter(d => d.items.length)
         if (!byDay.length) {
-            return <EmptyState art="closed" title={t('emptyTitle')}>{t('emptyText')}</EmptyState>
+            if (!upcoming) return <EmptyState art="closed" title={t('emptyTitle')}>{t('emptyNothingAhead')}</EmptyState>
+            const when = longDate(parseISO(upcoming)).toLowerCase()
+            return (
+                <EmptyState art="closed" title={t('emptyTitle')} actions={
+                    <Link className="rk-btn rk-btn--secondary max-md:w-full" href={href({ date: upcoming })}>{t('emptyGoTo')}</Link>
+                }>{t('emptyNext', { when })}</EmptyState>
+            )
         }
         const hasToday = byDay.some(d => d.day === today)
         // Najbliższy dzień z terminami po dzisiejszym; gdy dziś nic nie ma, wyróżnienie przechodzi na niego.

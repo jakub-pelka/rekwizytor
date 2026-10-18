@@ -3,7 +3,7 @@ import { getAccess } from '@/lib/access'
 import { notFound } from 'next/navigation'
 import { PerformancePhone } from '@/components/performances/PerformancePhone'
 import { PerformanceDesktop, type DesktopTerm } from '@/components/performances/PerformanceDesktop'
-import { statusCountLabel } from '@/components/rk/GroupStatus'
+import { GROUP_STATUS, statusCountLabel } from '@/components/rk/GroupStatus'
 import { listProgress, loadPerformanceStructure } from '@/lib/performance-structure'
 import { theatreNowNaive } from '@/lib/rk-format'
 
@@ -157,7 +157,7 @@ export default async function ProductionDetailsPage({ params }: Props) {
             related={{
                 castExceptions: structure.props.filter(p => p.castOnly).length,
                 groups: groupStates.length,
-                groupAlert: worstGroup ? { label: statusCountLabel(worstGroup, groupStates.filter(g => g.status === worstGroup).length) } : null,
+                groupAlert: worstGroup ? { label: statusCountLabel(worstGroup, groupStates.filter(g => g.status === worstGroup).length), tone: GROUP_STATUS[worstGroup].tone } : null,
                 notes: notes?.length ?? 0,
                 newMentions: mentionsResult.count ?? 0,
             }}

@@ -320,5 +320,178 @@ DO $$ BEGIN
 END $$;
 RESET ROLE;
 
+-- 11. Zespół (migracja 20261018_team_managers.sql): lista, strażnik ról, kończenie zaproszenia ---------------
+-- Dwie osoby czekają na zaproszenie (joined_at = NULL): rekwizytor (5) i konto 3.
+UPDATE public.theatre_members SET joined_at = now() WHERE joined_at IS NULL;
+UPDATE public.theatre_members SET joined_at = NULL
+ WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id IN ('aaaaaaaa-0000-0000-0000-000000000003', 'aaaaaaaa-0000-0000-0000-000000000005');
+
+-- Kierownik teatru testowego widzi swój zespół, cudzego nie.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+DO $$ BEGIN
+    IF (SELECT count(*) FROM public.theatre_team('bbbbbbbb-0000-0000-0000-000000000001')) <> 4
+        THEN RAISE EXCEPTION 'TEST: kierownik nie widzi całego zespołu swojego teatru'; END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.theatre_team('bbbbbbbb-0000-0000-0000-000000000001')
+                    WHERE email = 'test-rekwizytor@rekwizytor.test' AND joined_at IS NULL AND role = 'member')
+        THEN RAISE EXCEPTION 'TEST: lista zespołu bez e-maila albo bez stanu zaproszenia'; END IF;
+    IF EXISTS (SELECT 1 FROM public.theatre_team((SELECT id FROM public.theatres WHERE is_demo)))
+        THEN RAISE EXCEPTION 'TEST: kierownik widzi zespół cudzego teatru'; END IF;
+END $$;
+RESET ROLE;
+
+-- Superadmin widzi zespół dowolnego teatru; niezalogowany nic.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+DO $$ BEGIN
+    IF (SELECT count(*) FROM public.theatre_team('bbbbbbbb-0000-0000-0000-000000000001')) <> 4
+        THEN RAISE EXCEPTION 'TEST: superadmin nie widzi zespołu teatru'; END IF;
+END $$;
+RESET ROLE;
+SELECT pg_temp.as_user(NULL);
+DO $$ BEGIN
+    BEGIN
+        PERFORM * FROM public.theatre_team('bbbbbbbb-0000-0000-0000-000000000001');
+        RAISE EXCEPTION 'TEST: anon wywołał theatre_team';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
+END $$;
+RESET ROLE;
+
+-- Rekwizytor nie zmienia ról ani nie usuwa członków (reguła members_write), ale zespół widzi.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000005');
+DO $$
+DECLARE n int;
+BEGIN
+    IF (SELECT count(*) FROM public.theatre_team('bbbbbbbb-0000-0000-0000-000000000001')) <> 4
+        THEN RAISE EXCEPTION 'TEST: rekwizytor nie widzi zespołu'; END IF;
+    UPDATE public.theatre_members SET role = 'admin' WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000005';
+    GET DIAGNOSTICS n = ROW_COUNT;
+    IF n > 0 THEN RAISE EXCEPTION 'TEST: rekwizytor awansował siebie'; END IF;
+    UPDATE public.theatre_members SET role = 'viewer' WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000004';
+    GET DIAGNOSTICS n = ROW_COUNT;
+    IF n > 0 THEN RAISE EXCEPTION 'TEST: rekwizytor zmienił cudzą rolę'; END IF;
+    DELETE FROM public.theatre_members WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000004';
+    GET DIAGNOSTICS n = ROW_COUNT;
+    IF n > 0 THEN RAISE EXCEPTION 'TEST: rekwizytor usunął członka zespołu'; END IF;
+END $$;
+RESET ROLE;
+
+-- Kierownik jest jedyny: nie zmieni własnej roli, nie usunie siebie.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+DO $$ BEGIN
+    BEGIN
+        UPDATE public.theatre_members SET role = 'member' WHERE user_id = auth.uid();
+        RAISE EXCEPTION 'TEST: kierownik zmienił własną rolę';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN
+        IF SQLERRM <> 'Swojej roli nie zmienisz sam.' THEN RAISE EXCEPTION 'TEST: zły komunikat zmiany własnej roli (%)', SQLERRM; END IF;
+    END;
+    BEGIN
+        DELETE FROM public.theatre_members WHERE user_id = auth.uid();
+        RAISE EXCEPTION 'TEST: kierownik usunął siebie';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN
+        IF SQLERRM <> 'Nie usuniesz siebie z zespołu.' THEN RAISE EXCEPTION 'TEST: zły komunikat usunięcia siebie (%)', SQLERRM; END IF;
+    END;
+END $$;
+RESET ROLE;
+
+-- Ostatniego kierownika nie odbierze nikt: ani superadmin, ani klucz serwisowy (auth.uid() NULL).
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+DO $$ BEGIN
+    BEGIN
+        UPDATE public.theatre_members SET role = 'member'
+         WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000002';
+        RAISE EXCEPTION 'TEST: zdjęto rolę ostatniemu kierownikowi';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN
+        IF SQLERRM <> 'Teatr musi mieć co najmniej jednego kierownika.' THEN RAISE EXCEPTION 'TEST: zły komunikat ostatniego kierownika (%)', SQLERRM; END IF;
+    END;
+    BEGIN
+        DELETE FROM public.theatre_members
+         WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000002';
+        RAISE EXCEPTION 'TEST: usunięto ostatniego kierownika';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL;
+    END;
+END $$;
+RESET ROLE;
+SELECT set_config('request.jwt.claims', '', true), set_config('request.jwt.claim.sub', '', true);
+DO $$ BEGIN
+    IF auth.uid() IS NOT NULL THEN RAISE EXCEPTION 'TEST: auth.uid() powinno być NULL dla klucza serwisowego'; END IF;
+    BEGIN
+        DELETE FROM public.theatre_members
+         WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000002';
+        RAISE EXCEPTION 'TEST: klucz serwisowy usunął ostatniego kierownika';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL;
+    END;
+END $$;
+
+-- Gdy jest drugi kierownik, zmiana roli pierwszego przechodzi (kierownik awansuje, superadmin odbiera).
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+UPDATE public.theatre_members SET role = 'admin' WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000004';
+RESET ROLE;
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+UPDATE public.theatre_members SET role = 'member'
+ WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000002';
+RESET ROLE;
+UPDATE public.theatre_members SET role = 'admin'
+ WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000002';
+
+-- Usunięcie całego teatru kaskadą nie jest blokowane regułą ostatniego kierownika.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+INSERT INTO public.theatres (id, name) VALUES ('cccccccc-0000-0000-0000-000000000001', 'Teatr do usunięcia');
+INSERT INTO public.theatre_members (theatre_id, user_id, role) VALUES ('cccccccc-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000004', 'admin');
+DELETE FROM public.theatres WHERE id = 'cccccccc-0000-0000-0000-000000000001';
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM public.theatre_members WHERE theatre_id = 'cccccccc-0000-0000-0000-000000000001')
+        THEN RAISE EXCEPTION 'TEST: kaskada nie usunęła członków teatru'; END IF;
+END $$;
+RESET ROLE;
+
+-- complete_invite: ustawia imię i joined_at tylko dla wołającego, zapisuje wpis „joined”.
+CREATE TEMP TABLE t_role_events AS
+SELECT count(*)::int AS n FROM public.theatre_member_events WHERE action = 'role_changed' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000005';
+GRANT SELECT ON t_role_events TO authenticated;
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000005');
+DO $$ BEGIN
+    BEGIN
+        PERFORM public.complete_invite('   ');
+        RAISE EXCEPTION 'TEST: complete_invite przyjęło puste imię';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN
+        IF SQLERRM <> 'Wpisz imię i nazwisko.' THEN RAISE EXCEPTION 'TEST: zły komunikat pustego imienia (%)', SQLERRM; END IF;
+    END;
+    BEGIN
+        PERFORM public.complete_invite(repeat('x', 121));
+        RAISE EXCEPTION 'TEST: complete_invite przyjęło za długie imię';
+    EXCEPTION WHEN SQLSTATE 'P0001' THEN NULL;
+    END;
+    PERFORM public.complete_invite('  Nowa Osoba  ');
+END $$;
+RESET ROLE;
+DO $$ BEGIN
+    IF (SELECT full_name FROM public.profiles WHERE id = 'aaaaaaaa-0000-0000-0000-000000000005') <> 'Nowa Osoba'
+        THEN RAISE EXCEPTION 'TEST: complete_invite nie zapisało imienia'; END IF;
+    IF (SELECT joined_at FROM public.theatre_members WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000005') IS NULL
+        THEN RAISE EXCEPTION 'TEST: complete_invite nie ustawiło joined_at'; END IF;
+    IF (SELECT joined_at FROM public.theatre_members WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000003') IS NOT NULL
+        THEN RAISE EXCEPTION 'TEST: complete_invite dołączyło cudze zaproszenie'; END IF;
+    IF (SELECT full_name FROM public.profiles WHERE id = 'aaaaaaaa-0000-0000-0000-000000000003') <> 'Test Pending'
+        THEN RAISE EXCEPTION 'TEST: complete_invite zmieniło cudzy profil'; END IF;
+    IF (SELECT count(*) FROM public.theatre_member_events WHERE action = 'joined' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000005') <> 1
+        THEN RAISE EXCEPTION 'TEST: brak jednego wpisu joined w dzienniku'; END IF;
+    IF EXISTS (SELECT 1 FROM public.theatre_member_events WHERE action = 'joined' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000003')
+        THEN RAISE EXCEPTION 'TEST: wpis joined dla cudzego zaproszenia'; END IF;
+    -- Ustawienie joined_at nie jest „zmianą roli”.
+    IF (SELECT count(*) FROM public.theatre_member_events WHERE action = 'role_changed' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000005')
+        <> (SELECT n FROM t_role_events)
+        THEN RAISE EXCEPTION 'TEST: fałszywy wpis zmiany roli po complete_invite'; END IF;
+END $$;
+-- Niezalogowany nie kończy zaproszeń.
+SELECT pg_temp.as_user(NULL);
+DO $$ BEGIN
+    BEGIN
+        PERFORM public.complete_invite('Anon');
+        RAISE EXCEPTION 'TEST: anon wywołał complete_invite';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
+END $$;
+RESET ROLE;
+
 DO $$ BEGIN RAISE NOTICE 'Wszystkie testy przeszły'; END $$;
 ROLLBACK;
