@@ -4,8 +4,7 @@ import { useEffect, useRef, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { Trash2, Undo2 } from 'lucide-react'
 import { useRouter } from '@/i18n/routing'
-import { createClient } from '@/utils/supabase/client'
-import { restorePerformance, trashPerformance } from '@/app/actions/performance-trash'
+import { deletePerformanceForever, restorePerformance, trashPerformance } from '@/app/actions/performance-trash'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/rk/EmptyState'
 import { notify } from '@/utils/notify'
@@ -20,7 +19,6 @@ const byDeletedDesc = (a: Performance, b: Performance) => (b.deleted_at ?? '').l
 export function TrashList({ initialPerformances }: { readonly initialPerformances: Performance[] }) {
     const t = useTranslations('Trash')
     const router = useRouter()
-    const supabase = createClient()
     const [pending, start] = useTransition()
 
     const [performances, setPerformances] = useState(initialPerformances)
@@ -54,8 +52,8 @@ export function TrashList({ initialPerformances }: { readonly initialPerformance
     const deleteForever = (perf: Performance) => {
         setConfirming(null)
         start(async () => {
-            const { error } = await supabase.from('performances').delete().eq('id', perf.id)
-            if (error) { notify.error(t('deleteFailed')); return }
+            const result = await deletePerformanceForever(perf.id)
+            if (!result.ok) { notify.error(result.error ?? t('deleteFailed')); return }
             setPerformances(prev => prev.filter(p => p.id !== perf.id))
             notify.success(t('deleted', { title: perf.title }))
             router.refresh()
