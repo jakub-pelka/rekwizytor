@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
-import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { generateAI, isAIAvailable, parseAIJson } from '@/utils/ai/client'
 import type { Database } from '@/types/supabase'
 
 // Podział opisu: najpierw darmowa Gemma z OpenRouter, ten sam model płatny jako zapas (darmowe bywają przeciążone, 429).
@@ -53,7 +53,7 @@ Opis: """${description}"""
 Odpowiedz wyłącznie JSON: {"prep": string|null, "place": string|null, "area": string|null}`
 
     try {
-        const response = await generateAI({ task: 'text', prompt, json: true, maxTokens: 400, models: SPLIT_MODELS })
+        const response = await generateAI({ task: 'text', operation: 'prop_description_split', prompt, json: true, maxTokens: 400, models: SPLIT_MODELS })
         const result = parseAIJson<Split>(response.text)
         const desc = normalize(description)
         const literal = (s: string | null) => (s && desc.includes(normalize(s)) ? s.trim().replace(/[.,;:]+$/, '') : null)
@@ -64,8 +64,6 @@ Odpowiedz wyłącznie JSON: {"prep": string|null, "place": string|null, "area": 
         // Model zmienił tekst albo nic nie znalazł: zostaje opis człowieka.
         if ((result.prep && !prep) || (result.place && !place) || (!prep && !place)) return { ...fallback, area }
 
-        const supabase = await createClient()
-        await logAIUsage(supabase, response, 'prop_description_split')
         return { prep, place, area, structured: true }
     } catch (error) {
         console.warn('Podział opisu nie powiódł się:', error)

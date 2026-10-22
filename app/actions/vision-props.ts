@@ -1,6 +1,7 @@
 'use server'
 
-import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { generateAI, isAIAvailable, parseAIJson } from '@/utils/ai/client'
+import { aiErrorMessage } from '@/utils/ai/budget'
 import { isAIAllowed } from '@/utils/ai/auth'
 import { sanitizeAIOutput } from '@/utils/ai-security'
 
@@ -30,13 +31,11 @@ export async function analyzePropsImage(imageBase64: string) {
 
         const result = await generateAI({
             task: 'vision',
+            operation: 'vision_props',
             prompt,
             images: [{ data: base64Data, mimeType }],
             json: true
         })
-
-        const { createClient } = await import('@/utils/supabase/server')
-        await logAIUsage(await createClient(), result, 'vision_props')
 
         const parsed = parseAIJson<{ items?: string[] } | string[]>(result.text)
         const items = Array.isArray(parsed) ? parsed : parsed.items
@@ -59,7 +58,7 @@ export async function analyzePropsImage(imageBase64: string) {
 
     } catch (error) {
         console.error('Vision Analysis Error:', error)
-        return { error: 'Failed to analyze image' }
+        return { error: aiErrorMessage(error, 'Failed to analyze image') }
     }
 }
 

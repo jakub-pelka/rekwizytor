@@ -2199,5 +2199,9 @@
         "phoneWaiting": "{role} · do {date}",
         "phoneLocked": "{role} · po {count} próbach",
         "phoneExpired": "{role} · {date}"
+    },
+    "AiLimit": {
+        "warn": "Zużyto {percent}% limitu AI tego teatru ({spent} z {budget}). Po wyczerpaniu rozpoznawanie zdjęć i podpowiedzi przestaną działać, reszta aplikacji tak.",
+        "exceeded": "Limit AI tego teatru jest wyczerpany ({spent} z {budget}). Rozpoznawanie zdjęć i podpowiedzi nie działają, reszta aplikacji tak. O zwiększenie limitu poproś administratora Rekwizytora."
     }
 }

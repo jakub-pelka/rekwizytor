@@ -576,5 +576,95 @@ DO $$ BEGIN
     END;
 END $$;
 
+-- Limit kosztów AI (migracja 20261022_ai_budget.sql): koszt zapisany na teatr, zużycie jednego teatru niewidoczne w
+-- drugim, limit zmienia tylko superadmin, wpisu nie da się podrobić dla cudzego teatru ani zmniejszyć.
+-- Cudzy wpis: 2,50 $ w demo, założony tak jak robi to właściciel bazy (poza RLS).
+INSERT INTO public.ai_usage_logs (theatre_id, operation_type, model_name, tokens_input, tokens_output, total_tokens, cost_usd, cost_source)
+VALUES ((SELECT id FROM public.theatres WHERE is_demo), 'test_obcy', 'test', 10, 10, 20, 2.50, 'provider');
+
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000005');
+DO $$
+DECLARE b numeric; sp numeric;
+BEGIN
+    -- Rekwizytor teatru testowego zapisuje koszt wywołania (theatre_id uzupełnia wyzwalacz).
+    INSERT INTO public.ai_usage_logs (operation_type, model_name, tokens_input, tokens_output, total_tokens, cost_usd, cost_source)
+    VALUES ('test_wlasny', 'test', 100, 50, 150, 1.25, 'provider');
+    IF (SELECT theatre_id FROM public.ai_usage_logs WHERE operation_type = 'test_wlasny') <> 'bbbbbbbb-0000-0000-0000-000000000001'
+        THEN RAISE EXCEPTION 'TEST: koszt AI trafił do złego teatru'; END IF;
+
+    SELECT budget_usd, spent_usd INTO b, sp FROM public.ai_budget_status();
+    IF b <> 3.00 THEN RAISE EXCEPTION 'TEST: domyślny limit AI to % zamiast 3', b; END IF;
+    IF sp <> 1.25 THEN RAISE EXCEPTION 'TEST: zużycie AI teatru testowego to % zamiast 1.25 (cudze wpisy wliczone?)', sp; END IF;
+
+    -- Cudzych wpisów nie widać.
+    IF EXISTS (SELECT 1 FROM public.ai_usage_logs WHERE operation_type = 'test_obcy')
+        THEN RAISE EXCEPTION 'TEST: teatr widzi zużycie AI innego teatru'; END IF;
+
+    -- Nie da się zapisać wpisu na cudzy teatr.
+    BEGIN
+        INSERT INTO public.ai_usage_logs (theatre_id, operation_type, cost_usd)
+        VALUES ((SELECT id FROM public.theatres WHERE is_demo), 'test_podrobiony', 0.01);
+        RAISE EXCEPTION 'TEST: zapisano zużycie AI na cudzy teatr';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
+    -- Ujemny koszt nie zmniejszy zużycia.
+    BEGIN
+        INSERT INTO public.ai_usage_logs (operation_type, cost_usd) VALUES ('test_ujemny', -1);
+        RAISE EXCEPTION 'TEST: przyjęto ujemny koszt AI';
+    EXCEPTION WHEN check_violation THEN NULL;
+    END;
+    -- Wpisu nie da się zmienić ani skasować (brak reguł UPDATE i DELETE: zero zmienionych wierszy).
+    BEGIN
+        UPDATE public.ai_usage_logs SET cost_usd = 0 WHERE operation_type = 'test_wlasny';
+        DELETE FROM public.ai_usage_logs WHERE operation_type = 'test_wlasny';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
+    IF (SELECT spent_usd FROM public.ai_budget_status()) <> 1.25
+        THEN RAISE EXCEPTION 'TEST: rekwizytor zmienił albo skasował zapisany koszt AI'; END IF;
+
+    -- Limitu nie podniesie (zero zmienionych wierszy: reguła theatres_write tylko dla superadmina).
+    BEGIN
+        UPDATE public.theatres SET ai_budget_usd = 1000 WHERE id = 'bbbbbbbb-0000-0000-0000-000000000001';
+    EXCEPTION WHEN insufficient_privilege THEN NULL;
+    END;
+    IF (SELECT budget_usd FROM public.ai_budget_status()) <> 3.00
+        THEN RAISE EXCEPTION 'TEST: rekwizytor zmienił limit AI teatru'; END IF;
+END $$;
+RESET ROLE;
+
+-- Kierownik widzi stan limitu swojego teatru; konto niezatwierdzone i niezalogowany nie dostają niczego.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+DO $$ BEGIN
+    IF (SELECT spent_usd FROM public.ai_budget_status()) <> 1.25
+        THEN RAISE EXCEPTION 'TEST: kierownik nie widzi zużycia AI swojego teatru'; END IF;
+END $$;
+RESET ROLE;
+
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000003');
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM public.ai_budget_status())
+        THEN RAISE EXCEPTION 'TEST: konto niezatwierdzone dostało stan limitu AI'; END IF;
+END $$;
+RESET ROLE;
+
+SELECT pg_temp.as_user(NULL);
+SELECT pg_temp.expect_denied('ai_budget_status (anon)', 'SELECT * FROM public.ai_budget_status()');
+RESET ROLE;
+
+-- Superadmin zmienia limit jednego teatru bez wdrożenia; po obniżeniu poniżej zużycia stan jest „przekroczony”.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000001');
+UPDATE public.theatres SET ai_budget_usd = 1.00 WHERE id = 'bbbbbbbb-0000-0000-0000-000000000001';
+DO $$ BEGIN
+    IF (SELECT ai_budget_usd FROM public.theatres WHERE id = 'bbbbbbbb-0000-0000-0000-000000000001') <> 1.00
+        THEN RAISE EXCEPTION 'TEST: superadmin nie zmienił limitu AI teatru'; END IF;
+END $$;
+RESET ROLE;
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000005');
+DO $$ BEGIN
+    IF (SELECT spent_usd >= budget_usd FROM public.ai_budget_status()) IS NOT TRUE
+        THEN RAISE EXCEPTION 'TEST: po obniżeniu limitu stan nie jest przekroczony'; END IF;
+END $$;
+RESET ROLE;
+
 DO $$ BEGIN RAISE NOTICE 'Wszystkie testy przeszły'; END $$;
 ROLLBACK;
