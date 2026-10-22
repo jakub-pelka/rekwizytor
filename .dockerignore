@@ -1,9 +1,0 @@
-node_modules
-.next
-.git
-.env.local
-.DS_Store
-pocketbase_data
-pocketbase_public
-ollama_data
-*.log
