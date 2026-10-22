@@ -444,6 +444,12 @@ DO $$ BEGIN
 END $$;
 RESET ROLE;
 
+-- Kody zaproszeń (migracja 20261019_invite_codes.sql): dwa oczekujące zaproszenia, założone jak robi to serwer
+-- (klucz serwisowy, tu: właściciel bazy).
+INSERT INTO public.theatre_invites (theatre_id, user_id, code_enc, code_mac, expires_at, created_by) VALUES
+    ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000003', 'enc3', 'mac3', now() + interval '7 days', 'aaaaaaaa-0000-0000-0000-000000000002'),
+    ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000005', 'enc5', 'mac5', now() + interval '7 days', 'aaaaaaaa-0000-0000-0000-000000000002');
+
 -- complete_invite: ustawia imię i joined_at tylko dla wołającego, zapisuje wpis „joined”.
 CREATE TEMP TABLE t_role_events AS
 SELECT count(*)::int AS n FROM public.theatre_member_events WHERE action = 'role_changed' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000005';
@@ -482,6 +488,13 @@ DO $$ BEGIN
         <> (SELECT n FROM t_role_events)
         THEN RAISE EXCEPTION 'TEST: fałszywy wpis zmiany roli po complete_invite'; END IF;
 END $$;
+-- complete_invite usuwa kod tylko wołającego; cudzy wiersz theatre_invites zostaje.
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM public.theatre_invites WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000005')
+        THEN RAISE EXCEPTION 'TEST: complete_invite nie usunęło kodu wołającego'; END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.theatre_invites WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000003')
+        THEN RAISE EXCEPTION 'TEST: complete_invite usunęło cudzy kod zaproszenia'; END IF;
+END $$;
 -- Niezalogowany nie kończy zaproszeń.
 SELECT pg_temp.as_user(NULL);
 DO $$ BEGIN
@@ -492,6 +505,76 @@ DO $$ BEGIN
     END;
 END $$;
 RESET ROLE;
+
+-- Kody zaproszeń: klient (anon i authenticated, także członek i kierownik teatru) nie ma dostępu do theatre_invites
+-- ani invite_lookup_hits; czyta i pisze tylko klucz serwisowy. Wiersze są (założone wyżej), więc brak widoczności
+-- nie wynika z pustej tabeli.
+CREATE OR REPLACE FUNCTION pg_temp.expect_denied(label text, stmt text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN
+    BEGIN
+        EXECUTE stmt;
+    EXCEPTION WHEN insufficient_privilege THEN
+        RETURN;
+    END;
+    RAISE EXCEPTION 'TEST: % nie zostało odrzucone', label;
+END $$;
+GRANT EXECUTE ON FUNCTION pg_temp.expect_denied(text, text) TO PUBLIC;
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.theatre_invites WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000003')
+        THEN RAISE EXCEPTION 'TEST: brak wiersza theatre_invites do sprawdzenia dostępu'; END IF;
+END $$;
+INSERT INTO public.invite_lookup_hits (ip_hash) VALUES ('hash-testowy');
+
+-- Kierownik teatru (konto 2), rekwizytor (konto 5), podgląd (konto 4), niezalogowany.
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000002');
+SELECT pg_temp.expect_denied('SELECT theatre_invites (kierownik)', 'SELECT count(*) FROM public.theatre_invites');
+SELECT pg_temp.expect_denied('INSERT theatre_invites (kierownik)', $q$INSERT INTO public.theatre_invites (theatre_id, user_id, code_enc, code_mac, expires_at)
+    VALUES ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000004', 'x', 'x', now())$q$);
+SELECT pg_temp.expect_denied('UPDATE theatre_invites (kierownik)', $q$UPDATE public.theatre_invites SET attempts = 0, locked_at = NULL, expires_at = now() + interval '30 days'$q$);
+SELECT pg_temp.expect_denied('DELETE theatre_invites (kierownik)', 'DELETE FROM public.theatre_invites');
+SELECT pg_temp.expect_denied('SELECT invite_lookup_hits (kierownik)', 'SELECT count(*) FROM public.invite_lookup_hits');
+SELECT pg_temp.expect_denied('INSERT invite_lookup_hits (kierownik)', $q$INSERT INTO public.invite_lookup_hits (ip_hash) VALUES ('x')$q$);
+SELECT pg_temp.expect_denied('UPDATE invite_lookup_hits (kierownik)', $q$UPDATE public.invite_lookup_hits SET ip_hash = 'y'$q$);
+RESET ROLE;
+
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000003');
+SELECT pg_temp.expect_denied('SELECT theatre_invites (zaproszony, własny wiersz)', 'SELECT code_enc FROM public.theatre_invites');
+SELECT pg_temp.expect_denied('UPDATE theatre_invites (zaproszony, własny wiersz)', $q$UPDATE public.theatre_invites SET attempts = 0, locked_at = NULL$q$);
+RESET ROLE;
+
+SELECT pg_temp.as_user('aaaaaaaa-0000-0000-0000-000000000005');
+SELECT pg_temp.expect_denied('SELECT theatre_invites (członek)', 'SELECT count(*) FROM public.theatre_invites');
+SELECT pg_temp.expect_denied('INSERT theatre_invites (członek)', $q$INSERT INTO public.theatre_invites (theatre_id, user_id, code_enc, code_mac, expires_at)
+    VALUES ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000005', 'x', 'x', now())$q$);
+SELECT pg_temp.expect_denied('SELECT invite_lookup_hits (członek)', 'SELECT count(*) FROM public.invite_lookup_hits');
+RESET ROLE;
+
+SELECT pg_temp.as_user(NULL);
+SELECT pg_temp.expect_denied('SELECT theatre_invites (anon)', 'SELECT count(*) FROM public.theatre_invites');
+SELECT pg_temp.expect_denied('INSERT theatre_invites (anon)', $q$INSERT INTO public.theatre_invites (theatre_id, user_id, code_enc, code_mac, expires_at)
+    VALUES ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000004', 'x', 'x', now())$q$);
+SELECT pg_temp.expect_denied('SELECT invite_lookup_hits (anon)', 'SELECT count(*) FROM public.invite_lookup_hits');
+SELECT pg_temp.expect_denied('INSERT invite_lookup_hits (anon)', $q$INSERT INTO public.invite_lookup_hits (ip_hash) VALUES ('x')$q$);
+RESET ROLE;
+
+-- Usunięcie członkostwa usuwa jego kod (kaskada złożonego klucza obcego), cudzych kodów nie rusza.
+INSERT INTO public.theatre_invites (theatre_id, user_id, code_enc, code_mac, expires_at) VALUES
+    ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000004', 'enc4', 'mac4', now() + interval '7 days');
+DELETE FROM public.theatre_members
+ WHERE theatre_id = 'bbbbbbbb-0000-0000-0000-000000000001' AND user_id = 'aaaaaaaa-0000-0000-0000-000000000003';
+DO $$ BEGIN
+    IF EXISTS (SELECT 1 FROM public.theatre_invites WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000003')
+        THEN RAISE EXCEPTION 'TEST: usunięcie członkostwa nie usunęło kodu zaproszenia'; END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.theatre_invites WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000004')
+        THEN RAISE EXCEPTION 'TEST: usunięcie członkostwa usunęło cudzy kod zaproszenia'; END IF;
+    -- Kod nie istnieje bez członkostwa.
+    BEGIN
+        INSERT INTO public.theatre_invites (theatre_id, user_id, code_enc, code_mac, expires_at)
+        VALUES ('bbbbbbbb-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000003', 'x', 'x', now());
+        RAISE EXCEPTION 'TEST: kod zaproszenia bez członkostwa został przyjęty';
+    EXCEPTION WHEN foreign_key_violation THEN NULL;
+    END;
+END $$;
 
 DO $$ BEGIN RAISE NOTICE 'Wszystkie testy przeszły'; END $$;
 ROLLBACK;

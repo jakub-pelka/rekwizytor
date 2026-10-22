@@ -2,16 +2,16 @@
 
 import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { ChevronDown, ChevronLeft, KeyRound, RotateCw, Trash2, UserCog, UserPlus, Undo2 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, Eye, KeyRound, Mail, RotateCw, Trash2, UserCog, UserPlus, Undo2 } from 'lucide-react'
 import { Link, useRouter } from '@/i18n/routing'
 import { notify } from '@/utils/notify'
 import { MobileTop } from '@/components/rk/MobileTop'
 import { EmptyState } from '@/components/rk/EmptyState'
 import { ActionMenu, type ActionMenuItem } from '@/components/rk/ActionMenu'
 import { Button } from '@/components/ui/Button'
-import { InviteDialog, LastManagerDialog, RemoveDialog, RoleDialog, ROLES } from '@/components/team/TeamDialogs'
-import { daysAgo, eventStamp, initialsColor, initialsOf } from '@/components/team/team-utils'
-import { removeFromTeam, resendInvite, revokeInvite, sendPasswordReset, setMemberRole } from '@/app/actions/team'
+import { CodeDialog, ExistingAccountDialog, InviteDialog, LastManagerDialog, NewCodeDialog, RemoveDialog, RoleDialog, ROLES, copyInviteCode } from '@/components/team/TeamDialogs'
+import { dateShort, daysAgo, eventStamp, initialsColor, initialsOf, timeOf } from '@/components/team/team-utils'
+import { regenerateInviteCode, removeFromTeam, resendInvite, revokeInvite, sendPasswordReset, setMemberRole, showInviteCode } from '@/app/actions/team'
 import type { TeamData, TeamPerson, TheatreRole } from '@/lib/team'
 
 type Tab = 'all' | 'pending' | 'history'
@@ -20,6 +20,9 @@ type Dialog =
     | { kind: 'role'; person: TeamPerson }
     | { kind: 'remove'; person: TeamPerson }
     | { kind: 'last'; why: 'remove' | 'role' }
+    | { kind: 'code'; mode: 'sent' | 'show'; person: TeamPerson | null; who: string; roleLabel: string; code: string; expiresAt: string; sentAt: string | null }
+    | { kind: 'existing'; email: string }
+    | { kind: 'newCode'; person: TeamPerson }
 
 const ROLE_KEY = { admin: 'roleAdmin', member: 'roleMember', viewer: 'roleViewer' } as const
 const LAST_MANAGER = 'co najmniej jednego kierownika'
@@ -90,7 +93,27 @@ export function TeamView({ data }: { data: TeamData }) {
     const revoke = async (p: TeamPerson) => {
         const res = await revokeInvite(p.userId)
         if (!res.ok) { notify.error(res.error); return }
-        notify.success(t('revoked', { email: p.email }))
+        notify.success(t('revokedCode', { email: p.email }))
+        refresh()
+    }
+
+    // --- kody zaproszeń ---
+    const showCode = async (p: TeamPerson) => {
+        const res = await showInviteCode(p.userId)
+        if (!res.ok || !res.data) { notify.error(res.ok ? t('failed') : res.error); return }
+        setDialog({ kind: 'code', mode: 'show', person: p, who: displayName(p), roleLabel: roleName(p.role), ...res.data })
+    }
+
+    const newCode = async (p: TeamPerson) => {
+        const res = await regenerateInviteCode(p.userId)
+        setDialog(null)
+        if (!res.ok || !res.data) { notify.error(res.ok ? t('failed') : res.error); return }
+        const { code } = res.data
+        // Nowy kod w toaście z „Kopiuj”: kierownik zwykle klika go od razu przy osobie. Gdyby toast zniknął, kod wróci w „Pokaż kod”.
+        notify.undo(t('newCodeToast', { email: p.email, code }), t('newCodeCopy'), async () => {
+            if (await copyInviteCode(code)) notify.success(t('codeCopiedToast', { email: p.email }))
+            else notify.error(t('codeCopyFailed'))
+        })
         refresh()
     }
 
@@ -100,10 +123,13 @@ export function TeamView({ data }: { data: TeamData }) {
         notify.success(t('resetSent', { email: p.email }))
     }
 
-    const menuFor = (p: TeamPerson): ActionMenuItem[] => p.pending
+    const menuFor = (p: TeamPerson, codeOnRow = false): ActionMenuItem[] => p.pending
         ? [
-            { type: 'button', label: t('menuResend'), icon: <RotateCw />, onSelect: () => resend(p) },
+            // Na komputerze „Pokaż kod” i „Nowy kod” są już na wierszu, w menu zostaje reszta.
+            ...(!codeOnRow && p.invite?.state === 'waiting' ? [{ type: 'button' as const, label: t('showCode'), icon: <Eye />, onSelect: () => showCode(p) }] : []),
+            ...(!codeOnRow ? [{ type: 'button' as const, label: t('newCodeMenu'), icon: <RotateCw />, onSelect: () => setDialog({ kind: 'newCode', person: p }) }] : []),
             { type: 'button', label: t('menuChangeRole'), icon: <UserCog />, onSelect: () => setDialog({ kind: 'role', person: p }) },
+            { type: 'button', label: t('menuResend'), icon: <Mail />, onSelect: () => resend(p) },
             { type: 'separator' },
             { type: 'button', label: t('menuRevoke'), icon: <Undo2 />, danger: true, onSelect: () => revoke(p) },
         ]
@@ -126,11 +152,6 @@ export function TeamView({ data }: { data: TeamData }) {
     )
 
     const seen = (p: TeamPerson) => {
-        if (p.pending) {
-            if (!p.invitedAt) return t('sentUnknown')
-            const d = daysAgo(p.invitedAt)
-            return d === 0 ? t('sentToday') : d === 1 ? t('sentYesterday') : t('sentDays', { count: d })
-        }
         if (!p.lastSignInAt) return t('seenNever')
         const d = daysAgo(p.lastSignInAt)
         if (d === 0) return t('seenToday')
@@ -139,6 +160,42 @@ export function TeamView({ data }: { data: TeamData }) {
         if (d < 14) return t('seenWeek')
         if (d < 30) return t('seenWeeks', { count: Math.floor(d / 7) })
         return t('seenMonth')
+    }
+
+    const sentAgo = (p: TeamPerson) => {
+        if (!p.invitedAt) return t('sentAgoUnknown')
+        const d = daysAgo(p.invitedAt)
+        return d === 0 ? t('sentAgoToday') : d === 1 ? t('sentAgoYesterday') : t('sentAgoDays', { count: d })
+    }
+
+    // Stan zaproszenia przy wierszu: odznaka i krótka notka (plansze „Zespół-oczekujące”).
+    const inviteBadge = (p: TeamPerson) => {
+        const st = p.invite?.state
+        if (st === 'waiting') return <span className="rk-badge rk-badge--warning">{t('stateWaiting')}</span>
+        if (st === 'locked') return <span className="rk-badge rk-badge--danger">{t('stateLocked')}</span>
+        if (st === 'expired') return <span className="rk-badge rk-badge--plain">{t('stateExpired')}</span>
+        return <span className="rk-badge rk-badge--plain">{t('stateNone')}</span>
+    }
+    const inviteNote = (p: TeamPerson) => {
+        const inv = p.invite
+        if (!inv) return sentAgo(p)
+        if (inv.state === 'waiting') return t('waitingNote', { date: dateShort(inv.expiresAt), sent: sentAgo(p) })
+        if (inv.state === 'locked') {
+            if (!inv.lockedAt) return t('lockedNoteShort', { count: 5 })
+            const d = daysAgo(inv.lockedAt)
+            const time = timeOf(inv.lockedAt)
+            const when = d === 0 ? t('lockedToday', { time }) : d === 1 ? t('lockedYesterday', { time }) : t('lockedOn', { date: dateShort(inv.lockedAt), time })
+            return t('lockedNote', { count: 5, when })
+        }
+        return t('expiredNote', { date: dateShort(inv.expiresAt), sent: sentAgo(p) })
+    }
+    const phoneNote = (p: TeamPerson) => {
+        const inv = p.invite
+        const role = roleName(p.role)
+        if (!inv) return t('pendingPhone', { role })
+        if (inv.state === 'waiting') return t('phoneWaiting', { role, date: dateShort(inv.expiresAt) })
+        if (inv.state === 'locked') return t('phoneLocked', { role, count: 5 })
+        return t('phoneExpired', { role, date: dateShort(inv.expiresAt) })
     }
 
     const isFresh = (p: TeamPerson) => !p.pending && !!p.lastSignInAt && daysAgo(p.lastSignInAt) <= 1
@@ -163,7 +220,7 @@ export function TeamView({ data }: { data: TeamData }) {
         </div>
     )
 
-    const menu = (p: TeamPerson) => (p.isMe ? <span /> : <ActionMenu label={t('actionsFor', { name: displayName(p) })} items={menuFor(p)} />)
+    const menu = (p: TeamPerson, codeOnRow = false) => (p.isMe ? <span /> : <ActionMenu label={t('actionsFor', { name: displayName(p) })} items={menuFor(p, codeOnRow)} />)
 
     const nameCell = (p: TeamPerson) => (
         <div className="zp-pers">
@@ -182,8 +239,7 @@ export function TeamView({ data }: { data: TeamData }) {
             <span className="zp-state">
                 {p.pending ? (
                     <>
-                        <span className="rk-badge rk-badge--warning">{seen(p)}</span>
-                        <button type="button" className="rk-btn rk-btn--ghost rk-btn--sm" style={{ paddingInline: 8 }} onClick={() => resend(p)}>{t('resend')}</button>
+                        {inviteBadge(p)}
                     </>
                 ) : (
                     <>
@@ -196,14 +252,31 @@ export function TeamView({ data }: { data: TeamData }) {
         </div>
     )
 
+    // Zakładka „Oczekujące” (plansza „Zespół-oczekujące”): stan, notka i dwie akcje na wierzchu, reszta w menu.
+    const pendingRow = (p: TeamPerson) => {
+        const st = p.invite?.state
+        return (
+            <div key={p.userId} className="kd-prow">
+                {nameCell(p)}
+                {roleSelect(p)}
+                <div className="kd-st">{inviteBadge(p)}<small>{inviteNote(p)}</small></div>
+                <div className="kd-act">
+                    {st === 'waiting' && <button type="button" className="rk-btn rk-btn--ghost rk-btn--sm" onClick={() => showCode(p)}>{t('showCode')}</button>}
+                    <button type="button" className="rk-btn rk-btn--secondary rk-btn--sm" onClick={() => setDialog({ kind: 'newCode', person: p })}>{t('newCode')}</button>
+                    {menu(p, true)}
+                </div>
+            </div>
+        )
+    }
+
     const phoneRow = (p: TeamPerson) => (
         <div key={p.userId} className="zp-prow">
             {initials(p)}
             <div className="m">
                 <b>{displayName(p)}{p.isMe && ` · ${t('you')}`}</b>
-                <small>{p.pending ? t('pendingPhone', { role: roleName(p.role) }) : p.email}</small>
+                <small>{p.pending ? phoneNote(p) : p.email}</small>
             </div>
-            {!p.pending && roleBadge(p.role, true)}
+            {p.pending ? inviteBadge(p) : roleBadge(p.role, true)}
             {!p.isMe && <ActionMenu label={t('actionsFor', { name: displayName(p) })} items={menuFor(p)} />}
         </div>
     )
@@ -265,8 +338,17 @@ export function TeamView({ data }: { data: TeamData }) {
         return (
             <>
                 <div className="hidden md:block">
-                    <div className="zp-cols"><span>{t('colPerson')}</span><span>{t('colRole')}</span><span>{t('colState')}</span><span /></div>
-                    {visible.map(desktopRow)}
+                    {tab === 'pending' ? (
+                        <div className="kd-pend">
+                            <div className="kd-pcols"><span>{t('colPersonInvited')}</span><span>{t('colRole')}</span><span>{t('colState')}</span><span /></div>
+                            {visible.map(pendingRow)}
+                        </div>
+                    ) : (
+                        <>
+                            <div className="zp-cols"><span>{t('colPerson')}</span><span>{t('colRole')}</span><span>{t('colState')}</span><span /></div>
+                            {visible.map(desktopRow)}
+                        </>
+                    )}
                 </div>
                 <div className="md:hidden">{visible.map(phoneRow)}</div>
             </>
@@ -325,9 +407,11 @@ export function TeamView({ data }: { data: TeamData }) {
                 <InviteDialog
                     theatreName={theatreName}
                     onClose={() => setDialog(null)}
-                    onDone={({ email, invited }) => {
-                        setDialog(null)
-                        notify.success(invited ? t('invited', { email }) : t('addedExisting', { email }))
+                    onDone={({ email, role, invited, code, expiresAt }) => {
+                        // Kod nie wraca w mailu, więc okno zostaje, dopóki kierownik nie kliknie „Gotowe”.
+                        if (invited && code && expiresAt) setDialog({ kind: 'code', mode: 'sent', person: null, who: email, roleLabel: roleName(role), code, expiresAt, sentAt: null })
+                        else if (invited) { setDialog(null); notify.success(t('invited', { email })) }
+                        else setDialog({ kind: 'existing', email })
                         refresh()
                     }}
                 />
@@ -337,6 +421,24 @@ export function TeamView({ data }: { data: TeamData }) {
             )}
             {dialog?.kind === 'remove' && (
                 <RemoveDialog name={displayName(dialog.person)} theatreName={theatreName} onClose={() => setDialog(null)} onConfirm={() => remove(dialog.person)} />
+            )}
+            {dialog?.kind === 'code' && (
+                <CodeDialog
+                    mode={dialog.mode}
+                    who={dialog.who}
+                    roleLabel={dialog.roleLabel}
+                    code={dialog.code}
+                    expiresAt={dialog.expiresAt}
+                    sentAt={dialog.sentAt}
+                    onClose={() => setDialog(null)}
+                    onNewCode={dialog.person ? () => setDialog({ kind: 'newCode', person: dialog.person! }) : undefined}
+                />
+            )}
+            {dialog?.kind === 'existing' && (
+                <ExistingAccountDialog email={dialog.email} theatreName={theatreName} onClose={() => setDialog(null)} onGoTeam={() => { setDialog(null); setTab('all') }} />
+            )}
+            {dialog?.kind === 'newCode' && (
+                <NewCodeDialog name={displayName(dialog.person)} onClose={() => setDialog(null)} onConfirm={() => newCode(dialog.person)} />
             )}
             {dialog?.kind === 'last' && (
                 <LastManagerDialog kind={dialog.why} onClose={() => setDialog(null)} onGoTeam={() => { setDialog(null); setTab('all') }} />

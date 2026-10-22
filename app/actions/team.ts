@@ -4,9 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import {
-    accountIsActive, appOrigin, EMAIL_INVALID, EMAIL_RE, INVITE_FAILED, inviterDisplayName, isAlreadyRegistered,
-    loose, sendInviteMail, type TheatreRole,
+    accountIsActive, addMemberWithInvite, appOrigin, CODE_FAILED, EMAIL_INVALID, EMAIL_RE, GUARD_MESSAGES, INVITE_FAILED,
+    inviterDisplayName, isAlreadyRegistered, loose, readActiveInviteCode, saveInviteCode, sendInviteMail, type TheatreRole,
 } from '@/lib/team'
+import { formatCode } from '@/lib/invite-code'
 
 // Zespół teatru dla kierownika pracowni. Każda akcja sprawdza na serwerze: sesję, bieżący teatr oraz
 // uprawnienie (superadmin albo kierownik tego teatru). Zmiany w theatre_members robimy klientem użytkownika, żeby zadziałały
@@ -21,13 +22,6 @@ const NO_THEATRE_ERROR = 'Nie wybrano teatru.'
 const FORBIDDEN_ERROR = 'Zespołem zarządza kierownik pracowni.'
 const GENERIC_ERROR = 'Nie udało się. Spróbuj jeszcze raz.'
 const ROLES: TheatreRole[] = ['admin', 'member', 'viewer']
-
-// Teksty strażnika z bazy (migracja 20261018_team_managers): przekazujemy je użytkownikowi bez zmian.
-const GUARD_MESSAGES = [
-    'Teatr musi mieć co najmniej jednego kierownika.',
-    'Swojej roli nie zmienisz sam.',
-    'Nie usuniesz siebie z zespołu.',
-]
 
 function dbMessage(error: { message?: string } | null, fallback: string, context: string): string {
     const guard = GUARD_MESSAGES.find((m) => error?.message?.includes(m))
@@ -87,65 +81,29 @@ export async function checkInviteEmail(email: string): Promise<Result<{ state: '
     return { ok: true, data: { state: (await accountIsActive(profile.id)) ? 'existing' : 'new' } }
 }
 
-/** Zaproszenie do bieżącego teatru. invited=false: istniejące konto dodane od razu, bez maila. */
-export async function inviteToTeam(email: string, role: TheatreRole): Promise<Result<{ invited: boolean }>> {
+/**
+ * Zaproszenie do bieżącego teatru. invited=false: istniejące konto dodane od razu, bez maila i kodu (code null).
+ * Nowe konto: mail z linkiem do /witaj i kod 6 cyfr (code „482 913”, expiresAt) do przekazania osobie.
+ */
+export async function inviteToTeam(email: string, role: TheatreRole): Promise<Result<{ invited: boolean; code: string | null; expiresAt: string | null }>> {
     const c = await context()
     if (!c.ok) return c
     const address = normalize(email)
     if (!EMAIL_RE.test(address)) return { ok: false, error: EMAIL_INVALID }
     if (!ROLES.includes(role)) return { ok: false, error: GENERIC_ERROR }
 
-    const admin = createAdminClient()
-    const { data: existing } = await admin.from('profiles').select('id, status, current_theatre_id').ilike('email', address).maybeSingle()
-
-    if (existing) {
-        const { data: already } = await c.supabase.from('theatre_members').select('user_id')
-            .eq('theatre_id', c.theatreId).eq('user_id', existing.id).maybeSingle()
-        if (already) return { ok: false, error: 'Ta osoba jest już w zespole.' }
-    }
-
-    const active = existing ? await accountIsActive(existing.id) : false
-    let userId = existing?.id ?? null
-    let profileState = existing ?? null
-
-    if (!active) {
-        const { data: theatre } = await c.supabase.from('theatres').select('name').eq('id', c.theatreId).maybeSingle()
-        const inviterName = await inviterDisplayName(c.supabase, c.user.id, c.user.email)
-        const { data: invite, error } = await sendInviteMail({ email: address, inviterName, theatreName: theatre?.name ?? 'teatru', role })
-        if (error || !invite.user) {
-            // Konto istnieje, e-mail potwierdzony, ale zaproszenie nie zostało dokończone: członkostwo założymy jako oczekujące,
-            // a nowy link wyśle „Wyślij ponownie” (ścieżka resetu hasła).
-            if (!(isAlreadyRegistered(error) && existing)) {
-                console.error('inviteToTeam invite:', error)
-                return { ok: false, error: INVITE_FAILED }
-            }
-        } else {
-            userId = invite.user.id
-            profileState = profileState ?? { id: invite.user.id, status: 'pending', current_theatre_id: null }
-        }
-    }
-    if (!userId || !profileState) return { ok: false, error: INVITE_FAILED }
-
-    // Klient użytkownika: RLS members_write, strażnik i dziennik widzą zapraszającego (auth.uid()).
-    // invited_by ustawia też wyzwalacz a_set_inviter, ale podajemy je jawnie.
-    const { error: memberError } = await loose(c.supabase).from('theatre_members').upsert({
-        theatre_id: c.theatreId,
-        user_id: userId,
+    const result = await addMemberWithInvite({
+        supabase: c.supabase,
+        inviter: c.user,
+        theatreId: c.theatreId,
+        email: address,
         role,
-        invited_by: c.user.id,
-        joined_at: active ? new Date().toISOString() : null,
-    }, { onConflict: 'theatre_id,user_id' })
-    if (memberError) return { ok: false, error: dbMessage(memberError, 'Nie udało się dodać osoby do zespołu. Spróbuj jeszcze raz.', 'inviteToTeam member') }
-
-    // Zatwierdzenie profilu: RLS nie pozwala kierownikowi zmieniać cudzego profilu.
-    const { error: profileError } = await admin.from('profiles').update({
-        status: 'approved',
-        ...(profileState.current_theatre_id ? {} : { current_theatre_id: c.theatreId }),
-    }).eq('id', userId)
-    if (profileError) console.error('inviteToTeam profile:', profileError)
-
+        failIfMember: true,
+        memberError: 'Nie udało się dodać osoby do zespołu. Spróbuj jeszcze raz.',
+    })
+    if (!result.ok) return result
     refresh()
-    return { ok: true, data: { invited: !active } }
+    return { ok: true, data: result.data }
 }
 
 /** Dane pracownika czekającego na zaproszenie (joined_at NULL) w bieżącym teatrze. */
@@ -156,14 +114,42 @@ async function pendingMember(c: Extract<Awaited<ReturnType<typeof context>>, { o
     return row && row.joined_at === null ? row : null
 }
 
+/** Kod zaproszenia osoby oczekującej (tylko gdy aktywny: nie wygasł, nie jest zablokowany). */
+export async function showInviteCode(userId: string): Promise<Result<{ code: string; expiresAt: string; sentAt: string }>> {
+    const c = await context()
+    if (!c.ok) return c
+    const pending = await pendingMember(c, userId)
+    if (!pending) return { ok: false, error: 'To zaproszenie zostało już przyjęte albo cofnięte.' }
+    try {
+        const active = await readActiveInviteCode(c.theatreId, userId)
+        if (!active) return { ok: false, error: 'Ten kod nie jest już ważny. Wygeneruj nowy.' }
+        return { ok: true, data: { ...active, code: formatCode(active.code) } }
+    } catch (e) {
+        console.error('showInviteCode:', e)
+        return { ok: false, error: CODE_FAILED }
+    }
+}
+
+/** Nowy kod: nowe 7 dni, zerowy licznik prób, zdjęta blokada. Poprzedni kod przestaje działać. */
+export async function regenerateInviteCode(userId: string): Promise<Result<{ code: string; expiresAt: string }>> {
+    const c = await context()
+    if (!c.ok) return c
+    const pending = await pendingMember(c, userId)
+    if (!pending) return { ok: false, error: 'To zaproszenie zostało już przyjęte albo cofnięte.' }
+    try {
+        const fresh = await saveInviteCode(c.theatreId, userId, c.user.id)
+        refresh()
+        return { ok: true, data: { code: formatCode(fresh.code), expiresAt: fresh.expiresAt } }
+    } catch (e) {
+        console.error('regenerateInviteCode:', e)
+        return { ok: false, error: CODE_FAILED }
+    }
+}
+
 /**
- * Nowy link dla osoby, która jeszcze nie ustawiła hasła. Próbujemy inviteUserByEmail: dla konta bez potwierdzonego
- * e-maila Supabase wysyła zaproszenie ponownie, a poprzedni link przestaje działać.
- * Gdy konto już potwierdziło e-mail (kliknęło link, ale nie dokończyło hasła), Supabase odpowiada email_exists.
- * Wtedy wysyłamy mail resetu hasła (resetPasswordForEmail) z next=/pl/witaj w redirectTo: szablon „Reset password”
- * dokleja do RedirectTo tylko token (docs/TEATRY.md, „Maile”), więc osoba trafia na ekran „Witaj”, a nie na zwykłą
- * zmianę hasła. admin.generateLink() tylko zwraca link i NIE wysyła maila,
- * dlatego do wysyłki go nie używamy.
+ * Ponowna wysyłka maila zaproszenia (ten sam witaj_url); kodu nie zmienia. Dla konta bez potwierdzonego e-maila
+ * inviteUserByEmail wysyła zaproszenie ponownie. Gdy konto jest już potwierdzone, Supabase odmawia (email_exists):
+ * wtedy mówimy wprost, że mail nie pójdzie, a kod można podać osobiście.
  */
 export async function resendInvite(userId: string): Promise<Result> {
     const c = await context()
@@ -178,17 +164,11 @@ export async function resendInvite(userId: string): Promise<Result> {
     const { data: theatre } = await c.supabase.from('theatres').select('name').eq('id', c.theatreId).maybeSingle()
     const inviterName = await inviterDisplayName(c.supabase, c.user.id, c.user.email)
     const { error } = await sendInviteMail({ email: profile.email, inviterName, theatreName: theatre?.name ?? 'teatru', role: pending.role })
-    if (!error) { refresh(); return { ok: true } }
-
-    if (!isAlreadyRegistered(error)) {
+    if (error) {
         console.error('resendInvite invite:', error)
-        return { ok: false, error: INVITE_FAILED }
-    }
-    const { error: resetError } = await c.supabase.auth.resetPasswordForEmail(profile.email, {
-        redirectTo: `${await appOrigin()}/pl/auth/confirm?next=/pl/witaj`,
-    })
-    if (resetError) {
-        console.error('resendInvite reset:', resetError)
+        if (isAlreadyRegistered(error)) {
+            return { ok: false, error: 'Nie wyślemy maila ponownie: ta osoba ma już potwierdzone konto. Podaj jej kod osobiście („Pokaż kod”).' }
+        }
         return { ok: false, error: INVITE_FAILED }
     }
     refresh()

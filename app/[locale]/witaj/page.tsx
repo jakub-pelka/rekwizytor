@@ -1,76 +1,77 @@
+import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/utils/supabase/server'
-import { WelcomeShell } from '@/components/auth/WelcomeShell'
-import { WelcomeForm } from '@/components/auth/WelcomeForm'
-import { WelcomeEnd } from '@/components/auth/WelcomeEnd'
+import { InviteShell } from '@/components/auth/invite/InviteShell'
+import { InviteFlow, type InviteFlowStart } from '@/components/auth/invite/InviteFlow'
+import { lookupInvite } from '@/app/actions/invite-entry'
 
 type MemberRow = {
     theatre_id: string
-    role: string
     joined_at?: string | null
     theatres: { name: string } | null
 }
 
-const initialsOf = (value: string) =>
-    value
-        .split(/[\s@.]+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(part => part[0]?.toUpperCase() ?? '')
-        .join('')
-
 const str = (value: unknown) => (typeof value === 'string' && value.trim() ? value.trim() : null)
 
-// Ekran z linku zaproszenia. Sesję założył /auth/confirm; bez niej (link wygasł albo został już użyty) pokazujemy, co dalej.
-export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ stan?: string }> }) {
-    const { stan } = await searchParams
+// Wejście z zaproszenia kodem. Z sesją i czekającym członkostwem od razu imię i hasło;
+// bez sesji: adres z ?email (albo pytamy o e-mail), potem kod.
+export default async function WelcomePage({ searchParams }: { searchParams: Promise<{ email?: string | string[] }> }) {
+    const params = await searchParams
+    const rawEmail = Array.isArray(params.email) ? params.email[0] : params.email
+    const email = rawEmail?.trim() || ''
     const t = await getTranslations('Welcome')
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
-    const meta = (user?.user_metadata ?? {}) as Record<string, unknown>
-    const inviterName = str(meta.inviter_name)
 
-    if (!user || stan === 'wygasl') {
-        return (
-            <WelcomeShell>
-                <WelcomeEnd kind="expired" inviterName={inviterName} />
-            </WelcomeShell>
-        )
+    if (user) {
+        const { data: rows } = await supabase
+            .from('theatre_members')
+            .select('*, theatres(name)')
+            .eq('user_id', user.id)
+        const members = (rows ?? []) as unknown as MemberRow[]
+        // joined_at NULL = zaproszenie czeka.
+        const pending = members.filter(m => m.joined_at == null)
+
+        if (pending.length > 0) {
+            const meta = (user.user_metadata ?? {}) as Record<string, unknown>
+            const { data: activeId } = await supabase.rpc('active_theatre_id')
+            const member = pending.find(m => m.theatre_id === activeId) ?? pending[0]
+            return (
+                <InviteShell>
+                    <InviteFlow
+                        start={{
+                            step: 'details',
+                            who: {
+                                inviterName: str(meta.inviter_name),
+                                theatreName: member.theatres?.name ?? str(meta.theatre_name) ?? t('theatreFallback'),
+                            },
+                            initialName: str(meta.full_name) ?? '',
+                        }}
+                    />
+                </InviteShell>
+            )
+        }
+        // Konto już dołączone i nikt nie podał innego adresu: nie ma tu nic do roboty.
+        if (!email) redirect('/')
     }
 
-    const { data: rows } = await supabase
-        .from('theatre_members')
-        .select('*, theatres(name)')
-        .eq('user_id', user.id)
-    const members = (rows ?? []) as unknown as MemberRow[]
-    // joined_at NULL = zaproszenie czeka. Bez żadnego czekającego członkostwa zaproszenie jest już wykorzystane.
-    const pending = members.filter(m => m.joined_at == null)
-
-    if (pending.length === 0) {
-        return (
-            <WelcomeShell>
-                <WelcomeEnd kind="joined" inviterName={inviterName} />
-            </WelcomeShell>
-        )
+    let start: InviteFlowStart = { step: 'email' }
+    if (email) {
+        const res = await lookupInvite(email)
+        if (!res.ok) {
+            start = { step: 'email', email, error: res.error }
+        } else {
+            const lookup = res.data
+            if (!lookup || lookup.state === 'none') start = { step: 'email', email, notFound: true }
+            else if (lookup.state === 'code') start = { step: 'code', email, lookup }
+            else start = { step: 'state', lookup, email }
+        }
     }
-
-    const { data: activeId } = await supabase.rpc('active_theatre_id')
-    const member = pending.find(m => m.theatre_id === activeId) ?? pending[0]
-
-    const roleKey = member.role === 'admin' ? 'roleAdmin' : member.role === 'viewer' ? 'roleViewer' : 'roleMember'
-    const theatreName = member.theatres?.name ?? str(meta.theatre_name) ?? t('theatreFallback')
-    const inviterLine = str(meta.inviter_line) ?? (inviterName ? t('invitedBy', { name: inviterName }) : t('invitedByManager'))
 
     return (
-        <WelcomeShell>
-            <WelcomeForm
-                theatreName={theatreName}
-                inviterLine={inviterLine}
-                initials={(inviterName ? initialsOf(inviterName) : '') || 'KP'}
-                email={user.email ?? ''}
-                roleLabel={t(roleKey)}
-            />
-        </WelcomeShell>
+        <InviteShell>
+            <InviteFlow start={start} />
+        </InviteShell>
     )
 }

@@ -31,3 +31,27 @@ export function eventStamp(iso: string) {
     const p = (n: number) => String(n).padStart(2, '0')
     return `${d.getDate()}.${p(d.getMonth() + 1)} · ${p(d.getHours())}:${p(d.getMinutes())}`
 }
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/** „26.10” */
+export function dateShort(iso: string) {
+    const d = new Date(iso)
+    return `${d.getDate()}.${pad2(d.getMonth() + 1)}`
+}
+
+/** „26.10.2026” */
+export function dateLong(iso: string) {
+    return `${dateShort(iso)}.${new Date(iso).getFullYear()}`
+}
+
+/** „18:40” */
+export function timeOf(iso: string) {
+    const d = new Date(iso)
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`
+}
+
+/** Kod w formie do wklejenia w SMS: same cyfry, „482 913” → „482913”. */
+export function rawCode(code: string) {
+    return code.replace(/\D/g, '')
+}
