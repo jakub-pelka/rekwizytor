@@ -267,6 +267,24 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_lookup_hits: {
+        Row: {
+          at: string
+          id: number
+          ip_hash: string
+        }
+        Insert: {
+          at?: string
+          id?: never
+          ip_hash: string
+        }
+        Update: {
+          at?: string
+          id?: never
+          ip_hash?: string
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           belongs_to: string | null
@@ -1099,6 +1117,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "theatres"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      theatre_invites: {
+        Row: {
+          attempts: number
+          code_enc: string
+          code_mac: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          locked_at: string | null
+          theatre_id: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_enc: string
+          code_mac: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          locked_at?: string | null
+          theatre_id: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_enc?: string
+          code_mac?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          locked_at?: string | null
+          theatre_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theatre_invites_theatre_id_user_id_fkey"
+            columns: ["theatre_id", "user_id"]
+            isOneToOne: true
+            referencedRelation: "theatre_members"
+            referencedColumns: ["theatre_id", "user_id"]
           },
         ]
       }

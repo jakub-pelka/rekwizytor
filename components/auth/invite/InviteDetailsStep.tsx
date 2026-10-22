@@ -8,20 +8,18 @@ import { Button } from '@/components/ui/Button'
 import { createClient } from '@/utils/supabase/client'
 import { getPasswordStrength, MIN_PASSWORD_STRENGTH } from '@/lib/password-strength'
 
-interface WelcomeFormProps {
-    theatreName: string
-    /** Gotowa linijka „Zaprosiła cię …” albo null, gdy nie wiemy, kto zapraszał. */
-    inviterLine: string | null
-    initials: string
-    email: string
-    roleLabel: string | null
+interface InviteDetailsStepProps {
+    initialName?: string
+    /** Po zapisie. Domyślnie przejście na pulpit (router.replace('/') + refresh). */
+    onDone?: () => void
 }
 
-export function WelcomeForm({ theatreName, inviterLine, initials, email, roleLabel }: WelcomeFormProps) {
+/** Krok „Imię i hasło” (plansze Witaj-kod-dane). Zakłada sesję z kroku z kodem. Zapis: updateUser + rpc complete_invite. */
+export function InviteDetailsStep({ initialName = '', onDone }: InviteDetailsStepProps) {
     const t = useTranslations('Welcome')
     const router = useRouter()
     const [supabase] = useState(() => createClient())
-    const [name, setName] = useState('')
+    const [name, setName] = useState(initialName)
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -74,8 +72,12 @@ export function WelcomeForm({ theatreName, inviterLine, initials, email, roleLab
                 setFormError(t('saveError'))
                 return
             }
-            router.replace('/')
-            router.refresh()
+            if (onDone) {
+                onDone()
+            } else {
+                router.replace('/')
+                router.refresh()
+            }
         } catch {
             setFormError(t('saveError'))
         } finally {
@@ -84,37 +86,25 @@ export function WelcomeForm({ theatreName, inviterLine, initials, email, roleLab
     }
 
     return (
-        <form className="lg-form" onSubmit={handleSubmit} noValidate aria-labelledby="wt-h">
-            <div>
-                <h1 id="wt-h">{t('title')}</h1>
-                <p className="lg-sub">{t('lead', { theatre: theatreName })}</p>
-            </div>
-
-            <div className="np-who">
-                <span className="np-ini" style={{ ['--ini' as string]: '#6E1720' }} aria-hidden="true">{initials}</span>
-                <div>
-                    {inviterLine && <b>{inviterLine}</b>}
-                    <small>{email}</small>
-                </div>
-                {roleLabel && <span className="rk-badge rk-badge--plain">{roleLabel}</span>}
-            </div>
-
+        <form className="kd-pane" onSubmit={handleSubmit} noValidate>
+            <h2>{t('detailsTitle')}</h2>
             <div className="lg-fields">
-                <label className="rk-field">
-                    <span className="rk-label">{t('nameLabel')}</span>
+                <div className="rk-field">
+                    <label className="rk-label" htmlFor="wt-name">{t('nameLabel')}</label>
                     <input
                         className={`rk-input${nameError ? ' rk-input--error' : ''}`}
-                        type="text"
+                        id="wt-name"
                         name="name"
                         autoComplete="name"
                         placeholder={t('namePlaceholder')}
                         value={name}
                         onChange={e => setName(e.target.value)}
                         aria-invalid={nameError ? true : undefined}
+                        aria-describedby={nameError ? 'wt-name-err' : undefined}
+                        autoFocus
                     />
-                    <span className={`rk-hint${nameError ? ' rk-hint--error' : ''}`}>{nameError ?? t('nameHint')}</span>
-                </label>
-
+                    {nameError && <small id="wt-name-err" className="rk-hint rk-hint--error" role="alert">{nameError}</small>}
+                </div>
                 <div className="rk-field">
                     <label className="rk-label" htmlFor="wt-pass">{t('passwordLabel')}</label>
                     <div className="lg-pass">
@@ -141,11 +131,9 @@ export function WelcomeForm({ theatreName, inviterLine, initials, email, roleLab
 
             {formError && <p className="lg-msg lg-msg--error" role="alert">{formError}</p>}
 
-            <Button type="submit" size="lg" className="w-full" isLoading={loading} loadingLabel={t('saving')}>
+            <Button type="submit" size="lg" className="kd-full" isLoading={loading} loadingLabel={t('saving')}>
                 {t('submit')}
             </Button>
-
-            <p className="np-fine">{t('fine')}</p>
         </form>
     )
 }

@@ -21,20 +21,19 @@ function injectQrClass(rawSvg: string): string {
 }
 
 export function Label({ format, item, origin = '', style, className = '' }: LabelProps) {
-    const [qrSvg, setQrSvg] = useState<string>(item.qrSvg || '')
+    // Gotowy kod z serwera ma pierwszeństwo; w przeciwnym razie rysujemy go w przeglądarce.
+    const [generatedSvg, setGeneratedSvg] = useState<string>('')
+    const qrSvg = item.qrSvg || generatedSvg
 
     useEffect(() => {
-        if (item.qrSvg) {
-            setQrSvg(item.qrSvg)
-            return
-        }
+        if (item.qrSvg) return
 
         let isMounted = true
         const url = getLabelQrUrl(item, origin)
 
         QRCode.toString(url, { type: 'svg', margin: 2 })
             .then(svg => {
-                if (isMounted) setQrSvg(svg)
+                if (isMounted) setGeneratedSvg(svg)
             })
             .catch(err => {
                 console.error('Failed to generate QR code SVG:', err)
@@ -43,7 +42,7 @@ export function Label({ format, item, origin = '', style, className = '' }: Labe
         return () => {
             isMounted = false
         }
-    }, [item.qrSvg, item.id, item.kind, item.code, item.shortId, origin])
+    }, [item, origin])
 
     const qrElement = qrSvg ? (
         <span

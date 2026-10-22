@@ -2,9 +2,11 @@
 
 import { useEffect, useId, useRef, useState, useTransition, type ReactNode } from 'react'
 import { useTranslations } from 'next-intl'
-import { Info, Send, Trash2 } from 'lucide-react'
+import { Check, Copy, Info, Send, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { checkInviteEmail, inviteToTeam } from '@/app/actions/team'
+import { notify } from '@/utils/notify'
+import { dateLong, rawCode } from '@/components/team/team-utils'
 import type { TheatreRole } from '@/lib/team'
 
 export const ROLES: TheatreRole[] = ['admin', 'member', 'viewer']
@@ -14,8 +16,8 @@ const ROLE_KEY = { admin: 'roleAdmin', member: 'roleMember', viewer: 'roleViewer
 const DESC_KEY = { admin: 'roleDescAdmin', member: 'roleDescMember', viewer: 'roleDescViewer' } as const
 
 // Tło i okno (karta Modal). Na telefonie okno siada przy dolnej krawędzi jak arkusz (.rk-sheet w planszach).
-function Dialog({ children, onClose, confirm = false, labelId, descId }: {
-    children: ReactNode; onClose: () => void; confirm?: boolean; labelId: string; descId?: string
+function Dialog({ children, onClose, confirm = false, labelId, descId, backdropCloses = true }: {
+    children: ReactNode; onClose: () => void; confirm?: boolean; labelId: string; descId?: string; backdropCloses?: boolean
 }) {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -23,7 +25,7 @@ function Dialog({ children, onClose, confirm = false, labelId, descId }: {
         return () => document.removeEventListener('keydown', onKey)
     }, [onClose])
     return (
-        <div className="rk-overlay fixed inset-0 z-50 rounded-none" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
+        <div className="rk-overlay fixed inset-0 z-50 rounded-none" onMouseDown={e => { if (backdropCloses && e.target === e.currentTarget) onClose() }}>
             <div
                 className={`rk-modal ${confirm ? 'rk-modal--confirm' : ''} max-md:!absolute max-md:!inset-x-0 max-md:!bottom-0 max-md:!w-full max-md:!max-w-none max-md:!rounded-b-none`}
                 role={confirm ? 'alertdialog' : 'dialog'}
@@ -56,7 +58,7 @@ export function RoleChoice({ value, onChange, label }: { value: TheatreRole; onC
 export function InviteDialog({ theatreName, onClose, onDone }: {
     theatreName: string
     onClose: () => void
-    onDone: (result: { email: string; invited: boolean }) => void
+    onDone: (result: { email: string; role: TheatreRole; invited: boolean; code: string | null; expiresAt: string | null }) => void
 }) {
     const t = useTranslations('Team')
     const titleId = useId()
@@ -90,7 +92,7 @@ export function InviteDialog({ theatreName, onClose, onDone }: {
         startTransition(async () => {
             const res = await inviteToTeam(value, role)
             if (!res.ok) return fail(res.error)
-            onDone({ email: value, invited: res.data?.invited ?? true })
+            onDone({ email: value, role, invited: res.data?.invited ?? true, code: res.data?.code ?? null, expiresAt: res.data?.expiresAt ?? null })
         })
     }
 
@@ -210,6 +212,124 @@ export function LastManagerDialog({ kind, onClose, onGoTeam }: { kind: 'remove' 
             <div className="rk-modal__foot">
                 <Button variant="ghost" onClick={onGoTeam}>{t('lastGoTeam')}</Button>
                 <Button onClick={onClose} autoFocus>{t('lastOk')}</Button>
+            </div>
+        </Dialog>
+    )
+}
+
+/** Kopiuje kod bez odstępu (łatwiej wkleić w SMS). Zwraca, czy się udało. */
+export async function copyInviteCode(code: string): Promise<boolean> {
+    try {
+        await navigator.clipboard.writeText(rawCode(code))
+        return true
+    } catch {
+        return false
+    }
+}
+
+// Okno z kodem (plansza „Zespół-kod”). mode „sent”: tuż po wysłaniu zaproszenia, nie zamyka się samo (kodu nie ma w mailu),
+// zamyka je dopiero „Gotowe”. mode „show”: „Pokaż kod” przy osobie oczekującej, z datą wysłania i wygaśnięcia.
+// Kod pokazujemy „482 913”, kopiujemy „482913”. Na telefonie okno siada przy dolnej krawędzi (Dialog), przyciski na całą szerokość.
+export function CodeDialog({ mode, who, roleLabel, code, expiresAt, sentAt, onClose, onNewCode }: {
+    mode: 'sent' | 'show'
+    /** Adres e-mail (albo imię i nazwisko) osoby, dla której jest kod. */
+    who: string
+    roleLabel: string
+    code: string
+    expiresAt: string | null
+    sentAt?: string | null
+    onClose: () => void
+    onNewCode?: () => void
+}) {
+    const t = useTranslations('Team')
+    const titleId = useId()
+    const [copied, setCopied] = useState(false)
+    const copy = async () => {
+        if (await copyInviteCode(code)) setCopied(true)
+        else notify.error(t('codeCopyFailed'))
+    }
+    const sent = mode === 'sent'
+    return (
+        <Dialog onClose={onClose} labelId={titleId} backdropCloses={!sent}>
+            <div className="rk-modal__head">
+                {sent && <span className="rk-modal__icon" style={{ background: 'var(--success-tint)', color: 'var(--success)' }}><Send /></span>}
+                <div>
+                    <h3 className="rk-modal__title" id={titleId}>{sent ? t('codeSentTitle') : t('codeShowTitle', { name: who })}</h3>
+                    <p className="rk-modal__desc">
+                        {sent ? `${who} · ${roleLabel}` : t('codeShowDesc', { role: roleLabel, date: expiresAt ? dateLong(expiresAt) : '' })}
+                    </p>
+                </div>
+            </div>
+            <div className="rk-modal__body rk-stack" style={{ gap: 16 }}>
+                <div className="kd-big">
+                    <small>{t('codeLabel')}</small>
+                    <b>{code}</b>
+                    {expiresAt && <span>{t('codeValid', { date: dateLong(expiresAt) })}</span>}
+                </div>
+                {sent ? (
+                    <ul className="kd-how">
+                        <li><b>{t('codeHow1')}</b>{t('codeHow2')}</li>
+                        <li>{t('codeHow3')}</li>
+                    </ul>
+                ) : expiresAt && sentAt ? (
+                    <p className="rk-hint">{t('codeShowInfo', { sent: dateLong(sentAt), expires: dateLong(expiresAt) })}</p>
+                ) : null}
+            </div>
+            <div className="rk-modal__foot max-md:!flex-col-reverse">
+                {sent ? (
+                    <Button variant="ghost" className="max-md:w-full" onClick={onClose}>{t('codeDone')}</Button>
+                ) : (
+                    <Button variant="ghost" className="max-md:w-full" onClick={onNewCode}>{t('newCodeMenu')}</Button>
+                )}
+                <Button className="max-md:w-full" autoFocus aria-live="polite" leftIcon={copied ? <Check /> : <Copy />} onClick={copy}>
+                    {copied ? t('codeCopied') : t('codeCopy')}
+                </Button>
+            </div>
+        </Dialog>
+    )
+}
+
+// Plansza „Zespół-kod”, stan 4: osoba z kontem weszła od razu, więc nie ma kodu ani maila z zaproszeniem.
+export function ExistingAccountDialog({ email, theatreName, onClose, onGoTeam }: {
+    email: string; theatreName: string; onClose: () => void; onGoTeam: () => void
+}) {
+    const t = useTranslations('Team')
+    const titleId = useId()
+    const descId = useId()
+    return (
+        <Dialog onClose={onClose} confirm labelId={titleId} descId={descId}>
+            <div className="rk-modal__head">
+                <span className="rk-modal__icon"><Info /></span>
+                <div>
+                    <h3 className="rk-modal__title" id={titleId}>{t('existingTitle', { email })}</h3>
+                    <p className="rk-modal__desc" id={descId}>{t('existingDesc', { theatre: theatreName })}</p>
+                </div>
+            </div>
+            <div className="rk-modal__foot">
+                <Button variant="ghost" onClick={onGoTeam}>{t('existingTeam')}</Button>
+                <Button onClick={onClose} autoFocus>{t('codeDone')}</Button>
+            </div>
+        </Dialog>
+    )
+}
+
+// Plansza „Zespół-oczekujące”, pkt 3: mówimy, co zmieni się po kliknięciu, nie „na pewno?”.
+export function NewCodeDialog({ name, onClose, onConfirm }: { name: string; onClose: () => void; onConfirm: () => Promise<void> }) {
+    const t = useTranslations('Team')
+    const titleId = useId()
+    const descId = useId()
+    const [pending, startTransition] = useTransition()
+    return (
+        <Dialog onClose={onClose} confirm labelId={titleId} descId={descId}>
+            <div className="rk-modal__head">
+                <div>
+                    <h3 className="rk-modal__title" id={titleId}>{t('newCodeTitle', { name })}</h3>
+                    <p className="rk-modal__desc" id={descId}>{t('newCodeDesc')}</p>
+                </div>
+            </div>
+            <div className="rk-modal__foot">
+                <Button variant="ghost" onClick={onClose} autoFocus>{t('cancel')}</Button>
+                <Button isLoading={pending} loadingLabel={t('saving')} onClick={() => startTransition(async () => { await onConfirm() })}>{t('newCode')}</Button>
             </div>
         </Dialog>
     )

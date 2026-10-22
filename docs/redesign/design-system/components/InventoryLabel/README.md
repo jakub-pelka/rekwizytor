@@ -2,11 +2,11 @@ Etykiety drukowane z kodem QR, zawsze czarne na białym, niezależnie od motywu.
 
 | Etykieta | Rozmiar (gotowe arkusze A4) | Co na niej jest |
 |---|---|---|
-| Rekwizyt (`.rk-lbl--item`) | 48,5 × 25,4 mm, 44 na arkusz | numer (największy), nazwa do 2 linii, znak, QR 21 mm |
-| Mini (`--mini`) | 38,1 × 21,2 mm, 65 na arkusz | numer i QR 16 mm, czytany z bliska; zamiast napisu „Rekwizytor” sam znak, tuż pod numerem; numer i znak tworzą jedną grupę na środku wysokości, z dala od krawędzi |
-| Flaga (`--flag`) | 70 × 25,4 mm, 33 na arkusz | owijana wokół nitki: z jednej strony numer i nazwa, z drugiej QR 21 mm |
-| Grupa (`--group`) | 105 × 57 mm, 10 na arkusz | rodzaj grupy, nazwa w Boldonse, numer, znak, QR 32 mm |
-| Miejsce (`--place`) | 105 × 57 mm, 10 na arkusz | czarny pas „Miejsce w magazynie”, nazwa miejsca maszynopisem, podmiejsce, numer, QR 32 mm |
+| Rekwizyt (`.rk-lbl--item`) | 48,5 × 25,4 mm, 40 na arkusz (Avery Zweckform, Lyreco 1.099.939 lub 1.099.872) | numer (największy), nazwa do 2 linii, znak, QR 21 mm |
+| Mini (`--mini`) | 38 × 21,2 mm, 65 na arkusz (Lyreco 1.099.859) | numer i QR 16 mm, czytany z bliska; zamiast napisu „Rekwizytor” sam znak, tuż pod numerem; numer i znak tworzą jedną grupę na środku wysokości, z dala od krawędzi |
+| Flaga (`--flag`) | 70 × 32 mm, 27 na arkusz (Lyreco 1.102.236) | owijana wokół nitki: z jednej strony numer i nazwa, z drugiej QR 21 mm |
+| Grupa (`--group`) | 105 × 57 mm, 10 na arkusz (Lyreco 1.100.161) | rodzaj grupy, nazwa w Boldonse, numer, znak, QR 32 mm |
+| Miejsce (`--place`) | 105 × 57 mm, 10 na arkusz (Lyreco 1.100.161) | czarny pas „Miejsce w magazynie”, nazwa miejsca maszynopisem, podmiejsce, numer, QR 32 mm |
 
 **Bez wycinania**: rozmiary odpowiadają gotowym arkuszom samoprzylepnym, więc etykiety drukuje się na zwykłej drukarce i odkleja. Format arkusza sprawdź przy zakupie, a w aplikacji wybierz go przy drukowaniu.
 

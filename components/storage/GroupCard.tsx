@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronRight, Layers, Plus, QrCode } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import { Link, useRouter } from '@/i18n/routing'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
@@ -28,6 +29,19 @@ export function GroupCard({ group, path, usage, canEdit }: Props) {
     const [name, setName] = useState('')
     const parent = path[path.length - 1]
     const room = path[0]
+    const highlight = useSearchParams().get('highlight')
+
+    // Deep link ?highlight= z kodu QR na etykiecie przedmiotu: przewinięcie i mignięcie obwódką (2 px, kolor focus).
+    useEffect(() => {
+        if (!highlight) return
+        const el = document.querySelector<HTMLElement>(`[data-hl="${CSS.escape(highlight)}"]`)
+        if (!el) return
+        el.scrollIntoView({ block: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+        el.style.outline = '2px solid var(--focus)'
+        el.style.outlineOffset = '2px'
+        const id = setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = '' }, 2400)
+        return () => { clearTimeout(id); el.style.outline = ''; el.style.outlineOffset = '' }
+    }, [highlight])
 
     const addItem = async () => {
         if (!name.trim()) { setAdding(false); return }
@@ -101,7 +115,7 @@ export function GroupCard({ group, path, usage, canEdit }: Props) {
                     {group.items.length > 0 && (
                         <ul className="pl-list rk-inv-list">
                             {group.items.map(i => (
-                                <li key={i.id} className="relative">
+                                <li key={i.id} className="relative" data-hl={i.id}>
                                     <span className="rk-inv-row rk-inv-row--item">
                                         <span className="rk-inv-ico"><RkIcon name="metka" /></span>
                                         <span className="rk-inv-text">
