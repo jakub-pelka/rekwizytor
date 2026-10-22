@@ -30,47 +30,50 @@ const FORMAT_KEY = {
     place: 'formatPlace',
 } as const
 
+// Siatki odpowiadają arkuszom Avery Zweckform z Lyreco (A4). Marginesy są wyliczone symetrycznie:
+// (210 - kolumny × szerokość) / 2 oraz (297 - rzędy × wysokość) / 2. Do potwierdzenia wydrukiem próbnym:
+// szablon producenta może się różnić o 1-2 mm.
 export const SHEET_FORMATS: Record<LabelFormat, SheetFormatConfig> = {
     item: {
         key: 'item',
         label: 'Rekwizyt',
-        subLabel: '48,5 × 25,4 mm (44 na A4)',
+        subLabel: '48,5 × 25,4 mm · 40 na A4 · Lyreco 1.099.939 lub 1.099.872',
         widthMm: 48.5,
         heightMm: 25.4,
         columns: 4,
-        rows: 11,
-        perSheet: 44,
+        rows: 10,
+        perSheet: 40,
         paddingX: 8,
-        paddingY: 8.8,
+        paddingY: 21.5,
     },
     mini: {
         key: 'mini',
         label: 'Mini',
-        subLabel: '38,1 × 21,2 mm (65 na A4)',
-        widthMm: 38.1,
+        subLabel: '38 × 21,2 mm · 65 na A4 · Lyreco 1.099.859',
+        widthMm: 38,
         heightMm: 21.2,
         columns: 5,
         rows: 13,
         perSheet: 65,
-        paddingX: 9.75,
+        paddingX: 10,
         paddingY: 10.7,
     },
     flag: {
         key: 'flag',
         label: 'Flaga',
-        subLabel: '70 × 25,4 mm (33 na A4)',
+        subLabel: '70 × 32 mm · 27 na A4 · Lyreco 1.102.236',
         widthMm: 70,
-        heightMm: 25.4,
+        heightMm: 32,
         columns: 3,
-        rows: 11,
-        perSheet: 33,
+        rows: 9,
+        perSheet: 27,
         paddingX: 0,
-        paddingY: 8.8,
+        paddingY: 4.5,
     },
     group: {
         key: 'group',
         label: 'Grupa',
-        subLabel: '105 × 57 mm (10 na A4)',
+        subLabel: '105 × 57 mm · 10 na A4 · Lyreco 1.100.161',
         widthMm: 105,
         heightMm: 57,
         columns: 2,
@@ -82,7 +85,7 @@ export const SHEET_FORMATS: Record<LabelFormat, SheetFormatConfig> = {
     place: {
         key: 'place',
         label: 'Miejsce',
-        subLabel: '105 × 57 mm (10 na A4)',
+        subLabel: '105 × 57 mm · 10 na A4 · Lyreco 1.100.161',
         widthMm: 105,
         heightMm: 57,
         columns: 2,
@@ -174,7 +177,7 @@ export function LabelSheet({
     }
 
     return (
-        <div className="flex flex-col min-h-screen bg-[var(--bg)] text-[var(--ink)]">
+        <div className="rk-label-page flex flex-col min-h-screen bg-[var(--bg)] text-[var(--ink)]">
             <style dangerouslySetInnerHTML={{ __html: `
                 @page {
                     size: A4 portrait;
@@ -208,11 +211,18 @@ export function LabelSheet({
                         color: #000000 !important;
                         margin: 0 !important;
                         padding: 0 !important;
+                        height: auto !important;
+                        min-height: 0 !important;
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }
 
-                    aside, nav, header, .rk-sidebar, .rk-tabbar, .rk-no-print {
+                    .rk-label-page {
+                        min-height: 0 !important;
+                        display: block !important;
+                    }
+
+                    aside, nav, header, footer, .rk-sidebar, .rk-tabbar, .rk-no-print {
                         display: none !important;
                     }
 
@@ -341,6 +351,8 @@ export function LabelSheet({
                                 })}
                             </div>
                         </div>
+
+                        <p className="w-full text-xs text-[var(--ink-muted)]">{formatConfig.subLabel}</p>
 
                         {/* Start offset */}
                         <div className="flex items-center gap-2">

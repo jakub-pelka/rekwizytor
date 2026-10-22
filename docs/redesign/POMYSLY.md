@@ -43,11 +43,11 @@ Priorytety: **P1** przed pilotażem w teatrze, **P2** w trakcie pilotażu, **P3*
 
     | Etykieta | Rozmiar | Na arkuszu A4 | Uwagi |
     |---|---|---|---|
-    | rekwizyt | 48,5 × 25,4 mm | 44 | — |
-    | mini | 38,1 × 21,2 mm | 65 | QR 16 mm, zamiast napisu „Rekwizytor” sam znak, numer i znak wyśrodkowane w pionie |
-    | flaga | 70 × 25,4 mm | 33 | środek bez nadruku, owijana wokół nitki |
-    | grupa | 105 × 57 mm | 10 | — |
-    | miejsce | 105 × 57 mm | 10 | — |
+    | rekwizyt | 48,5 × 25,4 mm | 40 | Avery Zweckform, Lyreco 1.099.939 lub 1.099.872 |
+    | mini | 38 × 21,2 mm | 65 | Lyreco 1.099.859; QR 16 mm, zamiast napisu „Rekwizytor” sam znak, numer i znak wyśrodkowane w pionie |
+    | flaga | 70 × 32 mm | 27 | Lyreco 1.102.236; środek bez nadruku, owijana wokół nitki |
+    | grupa | 105 × 57 mm | 10 | Lyreco 1.100.161 |
+    | miejsce | 105 × 57 mm | 10 | Lyreco 1.100.161 |
 
   - QR min. 20 mm (mini 16 mm). Tekst min. 7 pt. Tylko czerń.
   - Wymiary w CSS liczone przez `--mm`, ten sam komponent do podglądu i druku (klasy `.rk-lbl*`).

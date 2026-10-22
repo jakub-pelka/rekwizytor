@@ -632,13 +632,13 @@
 .rk-lbl--place .rk-lbl__id { font-size: calc(3 * var(--mm)); }
 .rk-lbl--place .rk-lbl__qr { align-self: center; width: calc(32 * var(--mm)); }
 
-.rk-lbl--mini { width: calc(38.1 * var(--mm)); height: calc(21.2 * var(--mm)); padding: calc(2 * var(--mm)); grid-template-columns: calc(16 * var(--mm)) 1fr; gap: calc(2 * var(--mm)); align-items: center; }
+.rk-lbl--mini { width: calc(38 * var(--mm)); height: calc(21.2 * var(--mm)); padding: calc(2 * var(--mm)); grid-template-columns: calc(16 * var(--mm)) 1fr; gap: calc(2 * var(--mm)); align-items: center; }
 .rk-lbl--mini .rk-lbl__id { font-size: calc(3.4 * var(--mm)); }
 .rk-lbl--mini .rk-lbl__foot img { width: calc(3.4 * var(--mm)); height: calc(3.4 * var(--mm)); }
 .rk-lbl--mini .rk-lbl__brand { display: none; } /* na mini nazwa marki się nie mieści: zostaje sam znak */
 .rk-lbl--mini .rk-lbl__text { justify-content: center; gap: calc(1.5 * var(--mm)); } /* numer i znak to jedna grupa na środku, z dala od krawędzi arkusza */
 /* Flaga: składana wokół nitki, sznurka, kabla. Środek bez druku przykleja się do nitki, połówki sklejają się ze sobą. */
-.rk-lbl--flag { width: calc(70 * var(--mm)); height: calc(25.4 * var(--mm)); grid-template-columns: 1fr calc(10 * var(--mm)) 1fr; }
+.rk-lbl--flag { width: calc(70 * var(--mm)); height: calc(32 * var(--mm)); grid-template-columns: 1fr calc(10 * var(--mm)) 1fr; }
 .rk-lbl--flag .rk-lbl__half { display: flex; flex-direction: column; justify-content: space-between; padding: calc(2 * var(--mm)); min-width: 0; }
 .rk-lbl--flag .rk-lbl__half--qr { align-items: center; justify-content: center; }
 .rk-lbl--flag .rk-lbl__half--qr .rk-lbl__qr { width: calc(21 * var(--mm)); }
