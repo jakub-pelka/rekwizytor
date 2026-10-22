@@ -252,3 +252,16 @@ Dwie ścieżki.
 - **Zamknięcie, okno „Co z tym?”:** (1) wróciło / znalazło się / naprawione: na miejscu, notatka czyszczona; (2) kupiono nowe: nowa rzecz zajmuje miejsce starej, rekwizyty w spektaklach przechodzą na nią, stara zostaje w historii; (3) zamiennik z magazynu: rekwizyty tego spektaklu (albo wszystkich) wskazują inną rzecz, oryginał zachowuje swój problem; (4) rezygnujemy: rekwizyt zdjęty z rozpiski albo „pomijamy”.
 - **Zamiennik po zdjęciu albo opisie (pomysł Kuby, 11.10):** przy problemie „znajdź podobne”, żeby znaleźć w magazynie coś, co może zastąpić brakującą rzecz. Embeddingi grup i wyszukiwanie hybrydowe po nich są; stara funkcja `match_items` odwołuje się do usuniętej tabeli `items` i jest martwa.
 - **Kolejność:** pilotaż: ustawianie stanu, notatka, okno z opcjami 1, 3 (ręczny wybór) i 4. Później: zamiennik po zdjęciu, „kupiono nowe” z przenoszeniem rekwizytów, historia zmian stanu.
+
+## 20. Siła hasła: jedna reguła, twarda długość (P1)
+
+- **Źródło:** test zespołu modeli (reviewer Sonnet + drugi przegląd agy) na `lib/password-strength.ts`, 21 października 2026. Oba przeglądy zgodne co do punktów 1–3.
+- **Co:**
+  1. Minimalna długość 8 znaków jako **warunek konieczny**, a nie jeden z czterech punktów. Dziś `A1` i osiem spacji przechodzą próg `MIN_PASSWORD_STRENGTH = 2`, a długie hasło z samych małych liter jest odrzucane. Komunikat `meterEmpty` obiecuje „co najmniej 8 znaków”.
+  2. Jedna funkcja w `lib/password-strength.ts` dla wszystkich miejsc: `app/[locale]/login/page.tsx` (linie 29–39 i 48) ma własną kopię z progiem `< 2`, a `components/auth/ChangePasswordForm.tsx:35` używa liczby `2` zamiast stałej `MIN_PASSWORD_STRENGTH`.
+  3. Polskie litery: `/[A-Z]/` nie łapie `Ą Ć Ę Ł Ń Ó Ś Ź Ż`, a `/[^A-Za-z0-9]/` liczy wszystkie polskie litery jako „znak specjalny”. Użyć flagi `/u` z `\p{Lu}` i `\p{L}`.
+  4. Spacje same nie liczą się jako znak specjalny.
+  5. Testy funkcji: pusty ciąg, `A1`, osiem spacji, długie małe litery, polskie litery.
+- **Do sprawdzenia:** czy Supabase Auth ma po stronie serwera własną minimalną długość (panel poza repo). Zdecyduje, czy sama walidacja po stronie aplikacji wystarcza.
+- **Kto:** plan architekta, implementacja `implementator`, drugi przegląd agy (dotyczy uprawnień i bezpieczeństwa).
+- **Raporty z testu:** w rozmowie, nie zapisane w `.agent/raporty/`.
