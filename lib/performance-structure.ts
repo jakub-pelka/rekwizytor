@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase'
-import { roman, sceneCode } from './rk-format'
+import { roman, sceneCode, theatreDate } from './rk-format'
 
 type PropRow = Database['public']['Tables']['performance_props']['Row']
 type SceneRow = Database['public']['Tables']['scenes']['Row']
@@ -203,12 +203,22 @@ export function listProgress(structure: PerformanceStructure, kind: string, cast
 /** Jak długo po godzinie rozpoczęcia lista jest w stanie „na żywo” (spektakl z przerwą). */
 const LIVE_WINDOW_MS = 4 * 60 * 60 * 1000
 
-/** Stan „na żywo” włącza się sam o godzinie spektaklu; nie ma przycisku startu (POMYSLY 7). */
-export function isLiveNow(kind: string, showDate: string, now: string) {
+/** Jak długo trwa tryb „na żywo” od startu (okno 4 h): od godziny spektaklu albo od ręcznego „Zaczynamy”. */
+export const LIVE_WINDOW = LIVE_WINDOW_MS
+
+/**
+ * Stan „na żywo” włącza się sam o godzinie spektaklu (POMYSLY 7). Cichy przycisk „Zaczynamy” zapisuje
+ * chwilę ręcznego startu w live_act_started_at (timestamptz); wtedy tryb działa też przed godziną z kalendarza.
+ * Spóźniony start nie wyłącza trybu, tylko przesuwa zegar aktu.
+ */
+export function isLiveNow(kind: string, showDate: string, now: string, startedAt?: string | null) {
     if (kind !== 'show') return false
-    const start = new Date(showDate).getTime()
     const t = new Date(now).getTime()
-    return t >= start && t < start + LIVE_WINDOW_MS
+    const start = new Date(showDate).getTime()
+    if (t >= start && t < start + LIVE_WINDOW_MS) return true
+    if (!startedAt) return false
+    const manual = theatreDate(startedAt).getTime()
+    return t >= manual && t < manual + LIVE_WINDOW_MS
 }
 
 /** Sceny grane po kolei (bez przygotowania i przerw), z aktem. */

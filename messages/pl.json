@@ -1386,6 +1386,16 @@
         "actTitle": "Akt {act}",
         "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
     },
+    "LiveStart": {
+        "button": "Zaczynamy",
+        "hint": "Spektakl rusza później albo wcześniej niż w kalendarzu? Zacznij od teraz.",
+        "started": "Start zapisany o {time}.",
+        "undo": "Cofnij",
+        "undone": "Start cofnięty.",
+        "pending": "Start czeka na sieć. Tryb na żywo włączy się, gdy wróci połączenie.",
+        "failed": "Nie udało się zapisać startu. Spróbuj jeszcze raz.",
+        "undoFailed": "Nie udało się cofnąć startu. Spróbuj jeszcze raz."
+    },
     "Sync": {
         "offline": "Brak sieci. Odhaczaj dalej, zapiszemy, gdy połączenie wróci.",
         "pending": "{count, plural, one {# zmiana czeka} few {# zmiany czekają} other {# zmian czeka}}",
