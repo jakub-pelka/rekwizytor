@@ -15,6 +15,7 @@ import { playOrder, skippedForCast, type PerformanceStructure, type StructuredSc
 import { castLabel, plural, roman, theatreDate, theatreNaiveToInstant, time } from '@/lib/rk-format'
 import { useListChecks } from './useListChecks'
 import { SyncBanner } from './SyncBanner'
+import { EARLY_START_MS } from '@/lib/performance-structure'
 import { LiveStartButton } from './LiveStartButton'
 import { useLiveStart } from './useLiveStart'
 
@@ -74,7 +75,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
             const s = Math.max(0, Math.floor((Date.now() - start) / 1000))
             // Tylko przy pierwszej scenie, do godziny po terminie (i nie dalej niż pół doby przed nim).
             const since = Date.now() - start
-            setCanRestart(!actStartedAt && sceneNumber === firstScene && since < 60 * 60 * 1000 && since > -12 * 60 * 60 * 1000)
+            setCanRestart(!actStartedAt && sceneNumber === firstScene && since < 60 * 60 * 1000 && since > -EARLY_START_MS)
             setClock(`${Math.floor(s / 3600) > 0 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}` : Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`)
         }
         tick()

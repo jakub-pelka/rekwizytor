@@ -206,19 +206,26 @@ const LIVE_WINDOW_MS = 4 * 60 * 60 * 1000
 /** Jak długo trwa tryb „na żywo” od startu (okno 4 h): od godziny spektaklu albo od ręcznego „Zaczynamy”. */
 export const LIVE_WINDOW = LIVE_WINDOW_MS
 
+/** Najwcześniej ile przed godziną spektaklu można go wystartować ręcznie („Zaczynamy”). */
+export const EARLY_START_MS = 12 * 60 * 60 * 1000
+
 /**
- * Stan „na żywo” włącza się sam o godzinie spektaklu (POMYSLY 7). Cichy przycisk „Zaczynamy” zapisuje
- * chwilę ręcznego startu w live_act_started_at (timestamptz); wtedy tryb działa też przed godziną z kalendarza.
- * Spóźniony start nie wyłącza trybu, tylko przesuwa zegar aktu.
+ * Stan „na żywo” włącza się sam o godzinie spektaklu (POMYSLY 7) i trwa 4 h od niej. Cichy przycisk „Zaczynamy”
+ * zapisuje chwilę startu w live_act_started_at (timestamptz) i może tylko przyspieszyć początek okna (start przed
+ * godziną z kalendarza); koniec okna zawsze liczy się od godziny spektaklu. Uwaga: ta kolumna jest współdzielona
+ * z zegarem aktu (LiveView zapisuje ją też przy zmianie aktu), więc późniejsza wartość nie może przedłużać trybu.
  */
 export function isLiveNow(kind: string, showDate: string, now: string, startedAt?: string | null) {
     if (kind !== 'show') return false
     const t = new Date(now).getTime()
     const start = new Date(showDate).getTime()
-    if (t >= start && t < start + LIVE_WINDOW_MS) return true
-    if (!startedAt) return false
-    const manual = theatreDate(startedAt).getTime()
-    return t >= manual && t < manual + LIVE_WINDOW_MS
+    let from = start
+    if (startedAt) {
+        const manual = theatreDate(startedAt).getTime()
+        // Wcześniejszy start liczy się tylko w rozsądnym zakresie (nie dalej niż pół doby przed terminem).
+        if (manual < start && start - manual <= EARLY_START_MS) from = manual
+    }
+    return t >= from && t < start + LIVE_WINDOW_MS
 }
 
 /** Sceny grane po kolei (bez przygotowania i przerw), z aktem. */

@@ -12,7 +12,7 @@ import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { EmptyState } from '@/components/rk/EmptyState'
 import { StatusBanner } from '@/components/rk/StatusBanner'
 import {
-    isBlocking, isLiveNow, propInStage, skippedForCast, stagesFor,
+    EARLY_START_MS, isBlocking, isLiveNow, propInStage, skippedForCast, stagesFor,
     type PerformanceStructure, type Stage, type StructuredProp,
 } from '@/lib/performance-structure'
 import { castLabel, dayMonth, duration, isSameDay, plural, relativeDay, time, weekdayShort } from '@/lib/rk-format'
@@ -115,7 +115,7 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
         list.cast && t('cast', { cast: castLabel(list.cast) ?? '' }),
     ].filter(Boolean).join(' · ')
     // Cichy „Zaczynamy”: spektakl dziś, którego tryb na żywo jeszcze nie ruszył ręcznie (rusza później albo wcześniej niż w kalendarzu).
-    const canStartNow = canEdit && list.kind === 'show' && !list.startedAt && (startsToday || isLiveNow(list.kind, list.showDate, now))
+    const canStartNow = canEdit && list.kind === 'show' && !list.startedAt && ((startsIn > 0 && startsIn <= EARLY_START_MS) || isLiveNow(list.kind, list.showDate, now))
     const subline = [startsToday && t('startsIn', { time: duration(startsIn) }), performance.venue].filter(Boolean).join(' · ')
 
     const visible = (p: StructuredProp) => {
