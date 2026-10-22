@@ -143,6 +143,7 @@ export default async function LabelsPage({ searchParams }: Props) {
             missingNames={missingCode.map(m => m.name)}
             initialKind={kind}
             origin={origin}
+            fromMenu={!hasIdsParam}
         />
     )
 }
