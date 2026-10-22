@@ -611,7 +611,7 @@
 .rk-lbl__id { font: 700 calc(4.2 * var(--mm))/1.1 var(--font-typewriter); letter-spacing: .04em; }
 .rk-lbl__name { font: 600 calc(3.2 * var(--mm))/1.2 var(--font-sans); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .rk-lbl__kind { font: 400 calc(2.6 * var(--mm))/1.2 var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; }
-.rk-lbl__foot { display: flex; align-items: center; gap: calc(1 * var(--mm)); font: 700 calc(2.4 * var(--mm))/1 var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; }
+.rk-lbl__foot { display: flex; align-items: center; gap: calc(1 * var(--mm)); font: 700 calc(2.5 * var(--mm))/1 var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; }
 .rk-lbl__foot img { width: calc(3 * var(--mm)); height: calc(3 * var(--mm)); display: block; }
 .rk-lbl__text { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
 

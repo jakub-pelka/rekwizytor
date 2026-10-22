@@ -22,6 +22,14 @@ export interface SheetFormatConfig {
     paddingY: number
 }
 
+const FORMAT_KEY = {
+    item: 'formatItem',
+    mini: 'formatMini',
+    flag: 'formatFlag',
+    group: 'formatGroup',
+    place: 'formatPlace',
+} as const
+
 export const SHEET_FORMATS: Record<LabelFormat, SheetFormatConfig> = {
     item: {
         key: 'item',
@@ -91,6 +99,8 @@ interface LabelSheetProps {
     missingNames?: string[]
     initialKind?: 'group' | 'item' | 'place'
     origin?: string
+    /** Wejście z menu (bez wybranych pozycji): nie ma do czego wracać. */
+    fromMenu?: boolean
 }
 
 export function LabelSheet({
@@ -99,6 +109,7 @@ export function LabelSheet({
     missingNames = [],
     initialKind = 'group',
     origin = '',
+    fromMenu = false,
 }: LabelSheetProps) {
     const t = useTranslations('Labels')
 
@@ -251,6 +262,12 @@ export function LabelSheet({
                         color: #000000 !important;
                     }
 
+                    /* Tylko czerń: szare linie zgięcia flagi i ramki krawędzi nie idą na papier. */
+                    .rk-sheet-page .rk-lbl--flag .rk-lbl__wrap::before,
+                    .rk-sheet-page .rk-lbl--flag .rk-lbl__wrap::after {
+                        display: none !important;
+                    }
+
                     .rk-lbl-slot--empty {
                         outline: none !important;
                         border: none !important;
@@ -266,13 +283,16 @@ export function LabelSheet({
                     {/* Top Row: Title, Back & Print */}
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <Link
-                                href="/groups"
-                                className="rk-btn rk-btn--ghost rk-btn--sm rk-btn--icon"
-                                title={t('backToStorage')}
-                            >
-                                <ArrowLeft className="w-4 h-4" />
-                            </Link>
+                            {!fromMenu && (
+                                <Link
+                                    href="/groups"
+                                    className="rk-btn rk-btn--ghost rk-btn--sm rk-btn--icon"
+                                    title={t('backToStorage')}
+                                    aria-label={t('backToStorage')}
+                                >
+                                    <ArrowLeft className="w-4 h-4" />
+                                </Link>
+                            )}
                             <div>
                                 <h1 className="text-lg font-semibold text-[var(--ink)] leading-snug">
                                     {t('title')}
@@ -314,7 +334,7 @@ export function LabelSheet({
                                             aria-pressed={isActive}
                                             onClick={() => handleFormatChange(key)}
                                         >
-                                            <span>{fmt.label}</span>
+                                            <span>{t(FORMAT_KEY[key])}</span>
                                             <span className="rk-chip__n">{fmt.perSheet}</span>
                                         </button>
                                     )
@@ -357,7 +377,7 @@ export function LabelSheet({
                             count: missingCount,
                             names:
                                 missingNames.slice(0, 4).join(', ') +
-                                (missingNames.length > 4 ? ` i ${missingNames.length - 4} innych` : ''),
+                                (missingNames.length > 4 ? ` ${t('andOthers', { count: missingNames.length - 4 })}` : ''),
                         })}{' '}
                         {t('missingCodeHint')}
                     </StatusBanner>
@@ -371,12 +391,14 @@ export function LabelSheet({
                         art="closed"
                         title={t('emptyTitle')}
                         actions={
-                            <Link href="/groups">
-                                <Button variant="secondary">{t('backToStorage')}</Button>
-                            </Link>
+                            fromMenu ? undefined : (
+                                <Link href="/groups">
+                                    <Button variant="secondary">{t('backToStorage')}</Button>
+                                </Link>
+                            )
                         }
                     >
-                        {t('emptyDescription')}
+                        {t(fromMenu ? 'emptyDescription' : 'emptyDescriptionIds')}
                     </EmptyState>
                 </div>
             ) : (
