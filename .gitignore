@@ -45,28 +45,41 @@ next-env.d.ts
 
 # learning & notes
 LEARNING.md
-EMBEDDING_TESTS_SETUP.md
 
 # admin tools (local only)
 /components/admin/
 app/*/admin/
 
-# Docker & PocketBase test data
-pocketbase_data/
-pocketbase_public/
+# keys and certificates (never commit)
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+id_ecdsa*
 
-# Test data (may contain sensitive information)
+# Claude Code (local)
+.claude/settings.local.json
+.claude/worktrees/
+
+# experiments: data exports, vectors, test results
 test_data_export*.json
+migration_chunk_*
+migration_vectors.sql
+.supabase_temp_*
+keyword-count-results.json
+query_analysis.txt
 *_backup.sql
 *_dump.sql
+*.sqlite
+*.db
 
-# Wandb experiments (may contain test data)
+# experiment tools (local data)
+pocketbase_data/
+pocketbase_public/
 wandb/
-
-# Ollama data
 ollama_data/
 
-# Temporary files
+# temporary files
 *.tmp
 *.temp
-.DS_Store
