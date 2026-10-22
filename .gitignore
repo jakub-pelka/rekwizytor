@@ -83,3 +83,6 @@ ollama_data/
 # temporary files
 *.tmp
 *.temp
+
+# Supabase CLI cache
+supabase/.temp/
