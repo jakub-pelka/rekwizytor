@@ -15,19 +15,22 @@ export type ScannedScene = {
     source_index?: number
 }
 
-export async function scanSceneImage(formData: FormData): Promise<{ scenes: ScannedScene[], error?: string }> {
+// `error` to klucz tekstu z sekcji SceneImport w messages/pl.json; okno wczytywania pokazuje go po polsku.
+export type ScanSceneError = 'errNoFile' | 'errNoAi' | 'errUnauthorized' | 'errBadResponse' | 'errProcessing'
+
+export async function scanSceneImage(formData: FormData): Promise<{ scenes: ScannedScene[], error?: ScanSceneError }> {
     const file = formData.get('file') as File
     const supabase = await createClient()
 
     if (!file) {
-        return { scenes: [], error: 'No file provided' }
+        return { scenes: [], error: 'errNoFile' }
     }
 
     if (!isAIAvailable()) {
-        return { scenes: [], error: 'AI service not available (API Key missing)' }
+        return { scenes: [], error: 'errNoAi' }
     }
     if (!(await isAIAllowed())) {
-        return { scenes: [], error: 'Unauthorized' }
+        return { scenes: [], error: 'errUnauthorized' }
     }
 
     try {
@@ -73,7 +76,7 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
             const data = parseAIJson<{ scenes?: { scene_number: number, act_number: number | null, name: string | null }[] }>(text)
 
             if (!data.scenes || !Array.isArray(data.scenes)) {
-                return { scenes: [], error: 'Invalid AI response structure' }
+                return { scenes: [], error: 'errBadResponse' }
             }
 
             // Post-process to fit ScannedScene type
@@ -89,11 +92,11 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
             return { scenes }
         } catch (e) {
             console.error('Failed to parse AI response:', text)
-            return { scenes: [], error: 'Failed to parse AI response' }
+            return { scenes: [], error: 'errBadResponse' }
         }
 
     } catch (error) {
         console.error('Error scanning scenes:', error)
-        return { scenes: [], error: 'Error processing image' }
+        return { scenes: [], error: 'errProcessing' }
     }
 }

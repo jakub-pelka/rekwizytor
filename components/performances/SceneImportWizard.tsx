@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Upload, X, Wand2, Loader2, Save } from 'lucide-react'
-import { Modal } from '@/components/ui/Modal'
+import { useEffect, useState } from 'react'
+import { Camera } from 'lucide-react'
+import { useTranslations } from 'next-intl'
+import { Steps } from '@/components/rk/Steps'
+import { notify } from '@/utils/notify'
 import { ImageCropper } from '@/components/ui/ImageCropper'
 import { Button } from '@/components/ui/Button'
 import { scanSceneImage, ScannedScene } from '@/app/actions/scan-scenes'
@@ -34,8 +36,21 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
     const [scannedScenes, setScannedScenes] = useState<ScannedScene[]>([])
     const [isAnalyzing, setIsAnalyzing] = useState(false)
 
+    const t = useTranslations('SceneImport')
     const supabase = createClient()
     const router = useRouter()
+
+    // Esc działa jak „Anuluj”, ale nie w polu tekstowym (tam nie ma gubić rozpoznanych scen), nie przy kadrowaniu
+    // (zamyka je sam kadr) i nie w trakcie przygotowania i rozpoznawania zdjęć.
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape' || isCropping || step === 'crop') return
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+            onClose()
+        }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [isCropping, step, onClose])
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -91,7 +106,7 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
 
                 const result = await scanSceneImage(formData)
                 if (result.error) {
-                    alert(`Error scanning image ${i + 1}: ${result.error}`)
+                    notify.error(t('scanFailed', { n: i + 1, reason: t(result.error) }))
                 }
                 if (result.scenes) {
                     const mappedScenes = result.scenes.map(s => ({ ...s, source_index: i }))
@@ -119,7 +134,7 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
 
         } catch (e) {
             console.error(e)
-            alert('Analysis failed')
+            notify.error(t('analysisFailed'))
         } finally {
             setIsAnalyzing(false)
         }
@@ -153,33 +168,43 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
 
             if (error) throw error
 
+            notify.success(t('saved'))
             router.refresh()
             onClose()
 
         } catch (error) {
             console.error(error)
-            alert('Failed to save scenes. Check for duplicates.')
+            notify.error(t('saveFailed'))
         }
     }
 
+    const steps = [
+        { label: t('stepPhotos') },
+        { label: t('stepCrop') },
+        { label: t('stepCheck'), note: step === 'staging' ? t('stepCheckNote', { count: scannedScenes.length }) : undefined },
+    ]
+    const currentStep = step === 'upload' ? 0 : step === 'crop' ? 1 : 2
+
     return (
-        <Modal
-            isOpen={true}
-            onClose={onClose}
-            title={
-                <div className="flex items-center gap-2">
-                    <Wand2 className="w-5 h-5 text-purple-400" />
-                    Import Scenes with AI
+        <div className="rk-overlay fixed inset-0 z-50 overflow-y-auto rounded-none">
+            <div
+                className={`rk-modal ${step === 'staging' ? 'max-w-[1040px]' : ''}`}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="scene-import-title"
+            >
+                <div className="rk-modal__head">
+                    <div>
+                        <h3 className="rk-modal__title" id="scene-import-title">{t('title')}</h3>
+                        <p className="rk-modal__desc">{t('description')}</p>
+                    </div>
                 </div>
-            }
-            description="Scan paper breakdowns using AI vision"
-            maxWidth="4xl"
-        >
-            <div className="flex flex-col h-[70vh] relative">
-                <div className="flex-1 overflow-y-auto p-1 relative custom-scrollbar">
+
+                <div className="rk-modal__body rk-stack">
+                    <Steps steps={steps} current={currentStep} label={t('stepsLabel')} />
 
                     {step === 'upload' && (
-                        <div
+                        <label
                             onDragOver={(e) => {
                                 e.preventDefault()
                                 setIsDragging(true)
@@ -197,36 +222,20 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
                                     startCropFlow(Array.from(e.dataTransfer.files))
                                 }
                             }}
-                            className={`h-64 border-2 border-dashed rounded-xl flex flex-col items-center justify-center transition-all bg-neutral-950 ${isDragging ? 'border-purple-500 bg-purple-500/10' : 'border-neutral-800 hover:border-neutral-600'
-                                }`}
+                            className={`rk-drop-zone cursor-pointer ${isDragging ? 'is-over' : ''}`}
                         >
-                            <Upload className={`w-10 h-10 mb-4 ${isDragging ? 'text-purple-400' : 'text-neutral-600'}`} />
-                            <p className="text-neutral-400 mb-2">
-                                {isDragging ? 'Drop images here' : 'Upload photos of your breakdown'}
-                            </p>
-                            <label className="cursor-pointer">
-                                <span className="bg-white text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-neutral-200 transition-colors">
-                                    Select Photos
-                                </span>
-                                <input type="file" multiple accept="image/*" className="hidden" onChange={handleFileSelect} />
-                            </label>
-                            <p className="text-xs text-neutral-600 mt-4">Supports JPG, PNG, WEBP</p>
-                        </div>
+                            <span className="rk-drop-zone__icon"><Camera /></span>
+                            <b>{isDragging ? t('dropOver') : t('dropTitle')}</b>
+                            <small>{t('dropHint')}</small>
+                            <input type="file" multiple accept="image/*" className="sr-only" onChange={handleFileSelect} />
+                        </label>
                     )}
 
                     {step === 'crop' && (
-                        <div className="flex flex-col items-center justify-center h-full space-y-4">
-                            {isAnalyzing ? (
-                                <div className="text-center space-y-4">
-                                    <div className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
-                                    <h3 className="text-lg font-medium text-white">Analyzing with AI...</h3>
-                                    <p className="text-neutral-400">Extracting structure, acts, and names</p>
-                                </div>
-                            ) : (
-                                <div className="text-center">
-                                    <p className="text-neutral-400">Preparing images...</p>
-                                </div>
-                            )}
+                        <div className="flex flex-col items-center gap-3 py-8 text-center" role="status">
+                            <span className="rk-bells" aria-hidden="true"><i></i><i></i><i></i></span>
+                            <b className="text-ink">{isAnalyzing ? t('analyzing') : t('preparing')}</b>
+                            {isAnalyzing && <p className="rk-hint">{t('analyzingHint')}</p>}
                         </div>
                     )}
 
@@ -240,47 +249,30 @@ export function SceneImportWizard({ performanceId, existingScenes, onClose }: Pr
                             onReorder={handleReorder}
                         />
                     )}
-
-                    {/* Image Cropper Overlay */}
-                    {isCropping && currentImageSrc && (
-                        <ImageCropper
-                            imageSrc={currentImageSrc}
-                            onCropComplete={handleCropComplete}
-                            onCancel={() => {
-                                setIsCropping(false)
-                                setStep('upload') // Reset if cancelled
-                            }}
-                        />
-                    )}
-
                 </div>
 
-                {/* Footer */}
-                <div className="pt-4 mt-4 border-t border-neutral-800 flex justify-between items-center">
-                    <div className="text-xs text-neutral-500">
-                        {step === 'crop' && `Processing image ${currentCropIndex + 1} of ${images.length}`}
-                        {step === 'staging' && `${scannedScenes.length} scenes found`}
-                    </div>
-
-                    <div className="flex gap-3">
-                        <Button
-                            onClick={onClose}
-                            variant="ghost"
-                        >
-                            Cancel
-                        </Button>
-                        {step === 'staging' && (
-                            <Button
-                                onClick={handleSave}
-                                variant="primary"
-                                leftIcon={<Save className="w-4 h-4" />}
-                            >
-                                Save to Performance
-                            </Button>
-                        )}
-                    </div>
+                <div className="rk-modal__foot">
+                    <span className="rk-tally mr-auto self-center">
+                        {step === 'crop' && t('progress', { current: Math.min(currentCropIndex + 1, images.length), total: images.length })}
+                        {step === 'staging' && t('found', { count: scannedScenes.length })}
+                    </span>
+                    <Button onClick={onClose} variant="ghost">{t('cancel')}</Button>
+                    {step === 'staging' && (
+                        <Button onClick={handleSave} variant="primary">{t('save')}</Button>
+                    )}
                 </div>
             </div>
-        </Modal>
+
+            {isCropping && currentImageSrc && (
+                <ImageCropper
+                    imageSrc={currentImageSrc}
+                    onCropComplete={handleCropComplete}
+                    onCancel={() => {
+                        setIsCropping(false)
+                        setStep('upload') // Reset if cancelled
+                    }}
+                />
+            )}
+        </div>
     )
 }

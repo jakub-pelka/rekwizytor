@@ -1,121 +1,116 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
-import { RefreshCw, Trash2, Calendar } from 'lucide-react'
-import { format } from 'date-fns'
-import { pl, enUS } from 'date-fns/locale'
-import { useLocale } from 'next-intl'
-import NextImage from 'next/image'
+import { Trash2, Undo2 } from 'lucide-react'
+import { useRouter } from '@/i18n/routing'
+import { deletePerformanceForever, restorePerformance, trashPerformance } from '@/app/actions/performance-trash'
+import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/rk/EmptyState'
+import { notify } from '@/utils/notify'
+import { longDate, plural, theatreDate } from '@/lib/rk-format'
+import type { Database } from '@/types/supabase'
 
-import { Database } from '@/types/supabase'
+type Performance = Database['public']['Tables']['performances']['Row']
 
-interface TrashListProps {
-    readonly initialPerformances: Database['public']['Tables']['performances']['Row'][]
-}
+const byDeletedDesc = (a: Performance, b: Performance) => (b.deleted_at ?? '').localeCompare(a.deleted_at ?? '')
 
-export function TrashList({ initialPerformances }: TrashListProps) {
+// Kosz: usunięte spektakle. Przywrócenie ma „Cofnij” (wraca do kosza), usunięcie na zawsze pyta o potwierdzenie.
+export function TrashList({ initialPerformances }: { readonly initialPerformances: Performance[] }) {
     const t = useTranslations('Trash')
-    const locale = useLocale()
-    const dateLocale = locale === 'pl' ? pl : enUS
     const router = useRouter()
-    const supabase = createClient()
+    const [pending, start] = useTransition()
 
     const [performances, setPerformances] = useState(initialPerformances)
-    const [loading, setLoading] = useState<string | null>(null)
+    const [busy, setBusy] = useState<string | null>(null)
+    const [confirming, setConfirming] = useState<Performance | null>(null)
+    const cancelRef = useRef<HTMLButtonElement>(null)
 
-    const handleRestore = async (id: string) => {
-        setLoading(id)
-        const { error } = await supabase
-            .from('performances')
-            .update({ deleted_at: null })
-            .eq('id', id)
+    useEffect(() => {
+        if (!confirming) return
+        cancelRef.current?.focus()
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setConfirming(null) }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [confirming])
 
-        if (!error) {
-            setPerformances(performances.filter(p => p.id !== id))
+    const restore = async (perf: Performance) => {
+        setBusy(perf.id)
+        const result = await restorePerformance(perf.id)
+        setBusy(null)
+        if (!result.ok) { notify.error(t('restoreFailed')); return }
+        setPerformances(prev => prev.filter(p => p.id !== perf.id))
+        notify.undo(t('restored', { title: perf.title }), t('undo'), async () => {
+            const back = await trashPerformance(perf.id)
+            if (!back.ok) { notify.error(back.error ?? t('undoFailed')); return }
+            setPerformances(prev => [...prev, { ...perf, deleted_at: new Date().toISOString() }].sort(byDeletedDesc))
             router.refresh()
-        }
-        setLoading(null)
+        }, `trash-restore-${perf.id}`)
+        router.refresh()
     }
 
-    const handleDeleteForever = async (id: string) => {
-        if (!confirm(t('deleteForeverConfirm'))) return
-
-        setLoading(id)
-        const { error } = await supabase
-            .from('performances')
-            .delete()
-            .eq('id', id)
-
-        if (!error) {
-            setPerformances(performances.filter(p => p.id !== id))
+    const deleteForever = (perf: Performance) => {
+        setConfirming(null)
+        start(async () => {
+            const result = await deletePerformanceForever(perf.id)
+            if (!result.ok) { notify.error(result.error ?? t('deleteFailed')); return }
+            setPerformances(prev => prev.filter(p => p.id !== perf.id))
+            notify.success(t('deleted', { title: perf.title }))
             router.refresh()
-        }
-        setLoading(null)
+        })
+    }
+
+    if (performances.length === 0) {
+        return <EmptyState art="up" title={t('emptyTitle')}>{t('emptyText')}</EmptyState>
     }
 
     return (
-        <div className="space-y-6">
-            <div className="space-y-4">
-                <h2 className="text-lg font-medium text-white mb-4">
-                    {t('performances')} ({performances.length})
-                </h2>
+        <section className="pl-sect" aria-labelledby="trash-performances">
+            <div className="pl-sect-head pl-sect-head--rule">
+                <h2 className="pl-h2" id="trash-performances">{t('performances')}</h2>
+                <span className="rk-tally">{plural(performances.length, ['spektakl', 'spektakle', 'spektakli'])}</span>
+            </div>
+            <ul className="pl-list">
+                {performances.map(perf => (
+                    <li key={perf.id}>
+                        {perf.image_url ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <span className="rk-poster"><img src={perf.image_url} alt="" loading="lazy" /></span>
+                        ) : (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <span className="rk-poster rk-poster--empty" title={t('noPoster')}><img src="/brand/rekwizytor-znak-mono-bialy.svg" alt="" /></span>
+                        )}
+                        <span className="pl-main">
+                            <b className="sl-title">{perf.title}</b>
+                            {perf.deleted_at && <small>{t('deletedOn', { date: longDate(theatreDate(perf.deleted_at)).toLowerCase() })}</small>}
+                        </span>
+                        <Button variant="secondary" size="sm" leftIcon={<Undo2 />} onClick={() => restore(perf)} disabled={busy === perf.id || pending}>
+                            {t('restore')}
+                        </Button>
+                        <Button variant="ghost" size="sm" leftIcon={<Trash2 />} onClick={() => setConfirming(perf)} disabled={busy === perf.id || pending}>
+                            <span className="max-md:sr-only">{t('deleteForever')}</span>
+                        </Button>
+                    </li>
+                ))}
+            </ul>
 
-                {performances.length === 0 ? (
-                    <div className="text-center py-12 text-neutral-500">
-                        <Calendar className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                        <p>{t('noDeletedPerformances')}</p>
-                    </div>
-                ) : (
-                    performances.map(perf => (
-                        <div key={perf.id} className="flex items-center justify-between p-4 bg-neutral-900 rounded-xl border border-neutral-800">
-                            <div className="flex items-center gap-4">
-                                <div className="h-12 w-12 relative bg-neutral-800 rounded-lg overflow-hidden flex items-center justify-center shrink-0">
-                                    {perf.image_url ? ( // performances uses image_url or thumbnail_url? types say images...
-                                        <NextImage
-                                            src={perf.image_url}
-                                            alt={perf.title}
-                                            fill
-                                            className="object-cover opacity-50 grayscale"
-                                            sizes="48px"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
-                                            <span className="text-xs font-bold text-neutral-600">{perf.title[0]}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className="font-medium text-neutral-300 line-through decoration-neutral-500">{perf.title}</h3>
-                                    <p className="text-xs text-neutral-500">
-                                        {t('deletedOn', { date: format(new Date(perf.deleted_at || new Date()), 'PPP', { locale: dateLocale }) })}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleRestore(perf.id)}
-                                    disabled={loading === perf.id}
-                                    className="p-2 rounded-lg bg-neutral-800 text-neutral-400 hover:bg-green-900/20 hover:text-green-400 transition-colors"
-                                    title={t('restore')}
-                                >
-                                    <RefreshCw className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteForever(perf.id)}
-                                    disabled={loading === perf.id}
-                                    className="p-2 rounded-lg bg-neutral-800 text-neutral-400 hover:bg-red-900/20 hover:text-red-400 transition-colors"
-                                    title={t('deleteForever')}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
+            {confirming && (
+                <div className="rk-overlay fixed inset-0 z-50 overflow-y-auto rounded-none">
+                    <div className="rk-modal rk-modal--confirm" role="alertdialog" aria-modal="true" aria-labelledby="trash-del-title" aria-describedby="trash-del-desc">
+                        <div className="rk-modal__head">
+                            <span className="rk-modal__icon rk-modal__icon--danger"><Trash2 /></span>
+                            <div>
+                                <h3 className="rk-modal__title" id="trash-del-title">{t('deleteTitle', { title: confirming.title })}</h3>
+                                <p className="rk-modal__desc" id="trash-del-desc">{t('deleteDesc')}</p>
                             </div>
                         </div>
-                    ))
-                )}
-            </div>
-        </div>
+                        <div className="rk-modal__foot">
+                            <Button ref={cancelRef} variant="ghost" onClick={() => setConfirming(null)}>{t('cancel')}</Button>
+                            <Button variant="danger" onClick={() => deleteForever(confirming)}>{t('deleteConfirm')}</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </section>
     )
 }
