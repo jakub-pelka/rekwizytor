@@ -40,10 +40,14 @@ export function TrashList({ initialPerformances }: { readonly initialPerformance
         setBusy(null)
         if (!result.ok) { notify.error(t('restoreFailed')); return }
         setPerformances(prev => prev.filter(p => p.id !== perf.id))
+        // „Cofnij” działa raz: drugie kliknięcie (toast znika z opóźnieniem) nie dokłada spektaklu drugi raz.
+        let undone = false
         notify.undo(t('restored', { title: perf.title }), t('undo'), async () => {
+            if (undone) return
+            undone = true
             const back = await trashPerformance(perf.id)
-            if (!back.ok) { notify.error(back.error ?? t('undoFailed')); return }
-            setPerformances(prev => [...prev, { ...perf, deleted_at: new Date().toISOString() }].sort(byDeletedDesc))
+            if (!back.ok) { undone = false; notify.error(back.error ?? t('undoFailed')); return }
+            setPerformances(prev => [...prev.filter(p => p.id !== perf.id), { ...perf, deleted_at: new Date().toISOString() }].sort(byDeletedDesc))
             router.refresh()
         }, `trash-restore-${perf.id}`)
         router.refresh()
