@@ -1,7 +1,0 @@
-{"time":"2026-01-21T21:35:16.670316+01:00","level":"INFO","msg":"stream: starting","core version":"0.24.0"}
-{"time":"2026-01-21T21:35:16.908754+01:00","level":"INFO","msg":"stream: created new stream","id":"zfpnf90g1ympcey"}
-{"time":"2026-01-21T21:35:16.908812+01:00","level":"INFO","msg":"handler: started","stream_id":"zfpnf90g1ympcey"}
-{"time":"2026-01-21T21:35:16.909051+01:00","level":"INFO","msg":"stream: started","id":"zfpnf90g1ympcey"}
-{"time":"2026-01-21T21:35:16.909067+01:00","level":"INFO","msg":"sender: started","stream_id":"zfpnf90g1ympcey"}
-{"time":"2026-01-21T21:35:16.909087+01:00","level":"INFO","msg":"writer: started","stream_id":"zfpnf90g1ympcey"}
-{"time":"2026-01-21T21:35:21.047+01:00","level":"INFO","msg":"stream: closing","id":"zfpnf90g1ympcey"}
