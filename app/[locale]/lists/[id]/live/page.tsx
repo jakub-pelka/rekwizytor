@@ -15,7 +15,7 @@ export default async function LiveListPage({ params }: Props) {
 
     const { data: list } = await supabase
         .from('show_lists')
-        .select('id, performance_id, show_date, kind, cast, live_scene_number, live_act_started_at, performance:performances(id, title, venue)')
+        .select('id, performance_id, show_date, kind, cast, title, venue, note, with_props, live_scene_number, live_act_started_at, performance:performances(id, title, venue)')
         .eq('id', id)
         .single()
     if (!list || !list.performance) notFound()
@@ -49,6 +49,7 @@ export default async function LiveListPage({ params }: Props) {
                 actStartedAt: list.live_act_started_at,
             }}
             performance={list.performance}
+            term={{ id: list.id, performanceId: list.performance_id, performanceTitle: list.performance.title, showDate: list.show_date, kind: list.kind, cast: list.cast, title: list.title, venue: list.venue, note: list.note, withProps: list.with_props }}
             structure={structure}
             initialChecks={checks.filter(c => c.stage === 'live').map<LiveCheck>(c => ({
                 propId: c.performance_prop_id,

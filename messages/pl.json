@@ -1778,6 +1778,17 @@
         "deleteDesc": "Termin zniknie z kalendarza. Powiązana lista zadań zostanie usunięta.",
         "deleteFailed": "Nie udało się usunąć terminu."
     },
+    "TermActions": {
+        "edit": "Edytuj termin",
+        "remove": "Usuń termin",
+        "confirmTitle": "Usunąć termin {label}?",
+        "confirmDesc": "Znikną też odhaczenia i zgłoszenia z tego terminu.",
+        "cancel": "Anuluj",
+        "delete": "Usuń",
+        "deleting": "Usuwanie",
+        "deleted": "Termin usunięty.",
+        "deleteFailed": "Nie udało się usunąć terminu."
+    },
     "SettingsPage": {
         "title": "Ustawienia",
         "back": "Pulpit",
