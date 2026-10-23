@@ -2051,7 +2051,7 @@
         "roleAdmin": "Kierownik pracowni",
         "roleMember": "Rekwizytor",
         "roleViewer": "Podgląd",
-        "haveAccount": "Masz już konto? Zaloguj się",
+        "haveAccount": "Masz już konto?",
         "signIn": "Zaloguj się",
         "backToLogin": "Wróć do logowania",
         "inviteLine": "Zaprasza cię <b>{name}</b> · <b>{theatre}</b>",
