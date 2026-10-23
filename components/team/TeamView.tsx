@@ -389,7 +389,7 @@ export function TeamView({ data }: { data: TeamData }) {
                     {canManage && <Button className="max-md:hidden" leftIcon={<UserPlus />} onClick={invite}>{t('invite')}</Button>}
                 </header>
 
-                <div className="zp-grid max-md:!block">
+                <div>
                     <div className="zp-list">
                         {canManage && (
                             <div className="rk-tabs zp-tabs" role="tablist" aria-label={t('tabs')} style={{ alignSelf: 'flex-start' }}>
@@ -402,19 +402,6 @@ export function TeamView({ data }: { data: TeamData }) {
                         )}
                         {list()}
                     </div>
-
-                    <aside className="zp-side max-md:hidden">
-                        <section>
-                            <h3>{t('sideRoles')}</h3>
-                            <dl>
-                                <div><dt>{t('roleAdmin')}</dt><dd>{t('sideRoleAdmin')}</dd></div>
-                                <div><dt>{t('roleMember')}</dt><dd>{t('sideRoleMember')}</dd></div>
-                                <div><dt>{t('roleViewer')}</dt><dd>{t('sideRoleViewer')}</dd></div>
-                            </dl>
-                        </section>
-                        <section><h3>{t('sideRules')}</h3><p>{t('sideRulesText')}</p></section>
-                        {canManage && <section><h3>{t('sideInvites')}</h3><p>{t('sideInvitesText')}</p></section>}
-                    </aside>
                 </div>
             </div>
 
