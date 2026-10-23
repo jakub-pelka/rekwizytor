@@ -2248,6 +2248,7 @@
         "errUnauthorized": "zaloguj się i spróbuj jeszcze raz.",
         "errBadResponse": "odpowiedź była nieczytelna.",
         "errProcessing": "zdjęcia nie dało się przetworzyć.",
+        "errBudget": "limit AI tego teatru jest wyczerpany.",
         "cropTitle": "Zaznacz listę scen",
         "cropDescription": "Przeciągnij ramkę tak, żeby obejmowała samą listę scen.",
         "cropRotate": "Obróć",
@@ -2271,5 +2272,9 @@
         "zoomIn": "Powiększ",
         "zoomOut": "Pomniejsz",
         "noImage": "Nie ma zdjęcia do podglądu."
+    },
+    "AiLimit": {
+        "warn": "Zużyto {percent}% limitu AI tego teatru ({spent} z {budget}). Po wyczerpaniu rozpoznawanie zdjęć i podpowiedzi przestaną działać, reszta aplikacji tak.",
+        "exceeded": "Limit AI tego teatru jest wyczerpany ({spent} z {budget}). Rozpoznawanie zdjęć i podpowiedzi nie działają, reszta aplikacji tak. O zwiększenie limitu poproś administratora Rekwizytora."
     }
 }

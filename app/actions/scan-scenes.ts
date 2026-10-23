@@ -1,8 +1,8 @@
 'use server'
 
-import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { generateAI, isAIAvailable, parseAIJson } from '@/utils/ai/client'
+import { AIBudgetExceededError } from '@/utils/ai/budget'
 import { isAIAllowed } from '@/utils/ai/auth'
-import { createClient } from '@/utils/supabase/server'
 import { randomUUID } from 'crypto'
 
 export type ScannedScene = {
@@ -16,12 +16,10 @@ export type ScannedScene = {
 }
 
 // `error` to klucz tekstu z sekcji SceneImport w messages/pl.json; okno wczytywania pokazuje go po polsku.
-export type ScanSceneError = 'errNoFile' | 'errNoAi' | 'errUnauthorized' | 'errBadResponse' | 'errProcessing'
+export type ScanSceneError = 'errNoFile' | 'errNoAi' | 'errUnauthorized' | 'errBadResponse' | 'errProcessing' | 'errBudget'
 
 export async function scanSceneImage(formData: FormData): Promise<{ scenes: ScannedScene[], error?: ScanSceneError }> {
     const file = formData.get('file') as File
-    const supabase = await createClient()
-
     if (!file) {
         return { scenes: [], error: 'errNoFile' }
     }
@@ -62,13 +60,12 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
 
         const result = await generateAI({
             task: 'vision',
+            operation: 'scan_scenes',
             prompt,
             images: [{ data: base64Image, mimeType: file.type || 'image/jpeg' }],
             json: true,
             maxTokens: 8192
         })
-
-        await logAIUsage(supabase, result, 'scan_scenes')
 
         const text = result.text
 
@@ -97,6 +94,6 @@ export async function scanSceneImage(formData: FormData): Promise<{ scenes: Scan
 
     } catch (error) {
         console.error('Error scanning scenes:', error)
-        return { scenes: [], error: 'errProcessing' }
+        return { scenes: [], error: error instanceof AIBudgetExceededError ? 'errBudget' : 'errProcessing' }
     }
 }

@@ -1,5 +1,7 @@
 import { embeddingModel } from './gemini'
 import { TaskType } from '@google/generative-ai'
+import { openAIBudget, recordAIUsage } from './ai/budget'
+import { estimateCostUsd } from './ai/pricing'
 
 // In-memory cache for query embeddings
 const queryEmbeddingCache = new Map<string, number[]>()
@@ -35,13 +37,17 @@ export async function generateEmbedding(
     // Cache key includes model name to prevent collisions between different dimension embeddings
     const cacheKey = taskType === TaskType.RETRIEVAL_QUERY ? `${modelName}:${text.toLowerCase().trim()}` : null
 
-    if (cacheKey && queryEmbeddingCache.has(cacheKey)) {
-        return queryEmbeddingCache.get(cacheKey)!
-    }
-
     // Validate input - reject empty strings
     if (!text || text.trim().length === 0) {
         throw new Error('Cannot generate embedding for empty string')
+    }
+
+    // Limit kosztów teatru: przed pamięcią podręczną (jest wspólna dla teatrów, więc teatr po limicie nie dostaje cudzego trafienia)
+    // i przed wywołaniem dostawcy. Poza try, żeby komunikat o limicie nie zginął w „Failed to generate”.
+    const budget = await openAIBudget()
+
+    if (cacheKey && queryEmbeddingCache.has(cacheKey)) {
+        return queryEmbeddingCache.get(cacheKey)!
     }
 
     let embedding: number[]
@@ -71,8 +77,16 @@ export async function generateEmbedding(
             queryEmbeddingCache.set(cacheKey, embedding)
         }
 
-        // Log usage (async)
-        logAIUsage(text, modelName, taskType)
+        // Dostawcy embeddingów nie zwracają zużytych tokenów, więc liczymy z długości tekstu (ok. 4 znaki na token).
+        const estimatedTokens = Math.ceil(text.length / 4)
+        await recordAIUsage(budget, {
+            operation: taskType === TaskType.RETRIEVAL_QUERY ? 'smart_search' : 'embedding_indexing',
+            model: modelName,
+            tokensInput: estimatedTokens,
+            tokensOutput: 0,
+            cost: { usd: estimateCostUsd(config.model, estimatedTokens, 0), source: 'estimate' },
+            details: { taskType, textLength: text.length },
+        })
 
         return embedding
     } catch (error) {
@@ -163,26 +177,6 @@ async function generateMistralEmbedding(text: string, model: string): Promise<nu
 
     const result = await response.json()
     return result.data[0].embedding
-}
-
-async function logAIUsage(text: string, modelName: string, taskType: TaskType) {
-    try {
-        const { createClient } = await import('@/utils/supabase/server')
-        const supabase = await createClient()
-        const estimatedTokens = Math.ceil(text.length / 4)
-        const operationType = taskType === TaskType.RETRIEVAL_QUERY ? 'smart_search' : 'embedding_indexing'
-
-        await supabase.from('ai_usage_logs').insert({
-            model_name: modelName,
-            tokens_input: estimatedTokens,
-            tokens_output: 0,
-            total_tokens: estimatedTokens,
-            operation_type: operationType,
-            details: { taskType, textLength: text.length }
-        })
-    } catch (err) {
-        console.error('Failed to log embedding usage:', err)
-    }
 }
 
 export function clearEmbeddingCache() {

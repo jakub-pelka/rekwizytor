@@ -17,6 +17,8 @@ export type Database = {
       ai_usage_logs: {
         Row: {
           context: string | null
+          cost_source: string
+          cost_usd: number
           created_at: string | null
           details: Json | null
           id: string
@@ -29,6 +31,8 @@ export type Database = {
         }
         Insert: {
           context?: string | null
+          cost_source?: string
+          cost_usd?: number
           created_at?: string | null
           details?: Json | null
           id?: string
@@ -41,6 +45,8 @@ export type Database = {
         }
         Update: {
           context?: string | null
+          cost_source?: string
+          cost_usd?: number
           created_at?: string | null
           details?: Json | null
           id?: string
@@ -1271,6 +1277,7 @@ export type Database = {
       }
       theatres: {
         Row: {
+          ai_budget_usd: number
           created_at: string
           created_by: string | null
           id: string
@@ -1278,6 +1285,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          ai_budget_usd?: number
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1285,6 +1293,7 @@ export type Database = {
           name: string
         }
         Update: {
+          ai_budget_usd?: number
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1315,6 +1324,13 @@ export type Database = {
     }
     Functions: {
       active_theatre_id: { Args: never; Returns: string }
+      ai_budget_status: {
+        Args: never
+        Returns: {
+          budget_usd: number
+          spent_usd: number
+        }[]
+      }
       calculate_test_metrics: {
         Args: { test_run_id: string }
         Returns: {

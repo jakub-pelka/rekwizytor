@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
-import { generateAI, isAIAvailable, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { generateAI, isAIAvailable, parseAIJson } from '@/utils/ai/client'
+import { AIBudgetExceededError } from '@/utils/ai/budget'
 import { isAIAllowed } from '@/utils/ai/auth'
 import { sanitizeAIOutput } from '@/utils/ai-security'
 
@@ -126,10 +127,9 @@ export async function scanPhoto(imageBase64: string, mode: ScanMode, size: ScanI
         const format = boxFormat(model)
         try {
             const result = await generateAI({
-                task: 'vision', prompt: PROMPTS[mode] + FORMATS[format](size.width, size.height), images: [{ data, mimeType }], json: true,
+                task: 'vision', operation: mode === 'groups' ? 'scan_groups' : 'scan_items', prompt: PROMPTS[mode] + FORMATS[format](size.width, size.height), images: [{ data, mimeType }], json: true,
                 models: [model], maxTokens: SCAN_MAX_TOKENS, timeoutMs: SCAN_TIMEOUT_MS,
             })
-            await logAIUsage(await createClient(), result, mode === 'groups' ? 'scan_groups' : 'scan_items')
 
             const parsed = parseAIJson<{ findings?: Raw[] } | Raw[]>(result.text)
             const raw = Array.isArray(parsed) ? parsed : parsed.findings ?? []
@@ -151,6 +151,7 @@ export async function scanPhoto(imageBase64: string, mode: ScanMode, size: ScanI
             }
             return { findings }
         } catch (error) {
+            if (error instanceof AIBudgetExceededError) return { error: error.message }
             console.error(`Skan zdjęcia (${model}) nie powiódł się:`, error)
         }
     }

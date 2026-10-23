@@ -1,12 +1,10 @@
 'use server'
 
-import { createClient } from '@/utils/supabase/server'
-import { generateAI, logAIUsage } from '@/utils/ai/client'
+import { generateAI } from '@/utils/ai/client'
+import { aiErrorMessage } from '@/utils/ai/budget'
 import { isAIAllowed } from '@/utils/ai/auth'
 
 export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
-    const supabase = await createClient()
-
     if (!(await isAIAllowed())) {
         return { success: false, error: 'Unauthorized' }
     }
@@ -63,12 +61,11 @@ export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
 
         const result = await generateAI({
             task: 'vision',
+            operation: 'mapping_ai',
             prompt,
             images: [{ data: base64Image, mimeType }],
             maxTokens: 16384
         })
-
-        await logAIUsage(supabase, result, 'mapping_ai')
 
         let svgContent = result.text
 
@@ -82,6 +79,6 @@ export async function analyzeFloorPlan(locationId: string, imageUrl: string) {
 
     } catch (error) {
         console.error('Error analyzing floor plan:', error)
-        return { success: false, error: 'Błąd analizy AI' }
+        return { success: false, error: aiErrorMessage(error, 'Błąd analizy AI') }
     }
 }
