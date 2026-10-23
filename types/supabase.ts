@@ -1034,6 +1034,7 @@ export type Database = {
           id: string
           kind: string
           live_act_started_at: string | null
+          live_ended_at: string | null
           live_scene_number: number | null
           live_updated_by: string | null
           note: string | null
@@ -1050,6 +1051,7 @@ export type Database = {
           id?: string
           kind?: string
           live_act_started_at?: string | null
+          live_ended_at?: string | null
           live_scene_number?: number | null
           live_updated_by?: string | null
           note?: string | null
@@ -1066,6 +1068,7 @@ export type Database = {
           id?: string
           kind?: string
           live_act_started_at?: string | null
+          live_ended_at?: string | null
           live_scene_number?: number | null
           live_updated_by?: string | null
           note?: string | null

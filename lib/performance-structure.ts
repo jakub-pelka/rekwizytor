@@ -214,8 +214,10 @@ export const EARLY_START_MS = 12 * 60 * 60 * 1000
  * zapisuje chwilę startu w live_act_started_at (timestamptz) i może tylko przyspieszyć początek okna (start przed
  * godziną z kalendarza); koniec okna zawsze liczy się od godziny spektaklu. Uwaga: ta kolumna jest współdzielona
  * z zegarem aktu (LiveView zapisuje ją też przy zmianie aktu), więc późniejsza wartość nie może przedłużać trybu.
+ * „Zakończ spektakl” zapisuje chwilę końca w live_ended_at: zakończenie z bieżącego okna (nie starsze niż jego początek)
+ * wyłącza tryb od razu; zakończenie sprzed okna (np. z poprzedniego dnia) go nie blokuje.
  */
-export function isLiveNow(kind: string, showDate: string, now: string, startedAt?: string | null) {
+export function isLiveNow(kind: string, showDate: string, now: string, startedAt?: string | null, endedAt?: string | null) {
     if (kind !== 'show') return false
     const t = new Date(now).getTime()
     const start = new Date(showDate).getTime()
@@ -225,7 +227,17 @@ export function isLiveNow(kind: string, showDate: string, now: string, startedAt
         // Wcześniejszy start liczy się tylko w rozsądnym zakresie (nie dalej niż pół doby przed terminem).
         if (manual < start && start - manual <= EARLY_START_MS) from = manual
     }
+    if (endedAt && theatreDate(endedAt).getTime() >= from) return false
     return t >= from && t < start + LIVE_WINDOW_MS
+}
+
+/**
+ * Czy na liście zadań pokazać „Wznów tryb na żywo”: spektakl jest w bieżącym oknie 4 h, ale został wcześniej
+ * ręcznie zakończony (live_ended_at). Działa także wtedy, gdy live_act_started_at jest już ustawione.
+ */
+export function canResumeLive(kind: string, showDate: string, now: string, endedAt?: string | null, startedAt?: string | null) {
+    if (!endedAt) return false
+    return !isLiveNow(kind, showDate, now, startedAt, endedAt) && isLiveNow(kind, showDate, now, startedAt, null)
 }
 
 /** Sceny grane po kolei (bez przygotowania i przerw), z aktem. */
