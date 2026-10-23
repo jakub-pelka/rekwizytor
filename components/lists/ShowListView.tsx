@@ -12,6 +12,7 @@ import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { EmptyState } from '@/components/rk/EmptyState'
 import { StatusBanner } from '@/components/rk/StatusBanner'
 import { Button } from '@/components/ui/Button'
+import { TermActions, type TermActionsTerm } from './TermActions'
 import {
     EARLY_START_MS, canResumeLive, isBlocking, isLiveNow, propInStage, skippedForCast, stagesFor,
     type PerformanceStructure, type Stage, type StructuredProp,
@@ -35,6 +36,7 @@ export type CrewMember = { id: string; name: string; role: string | null; count:
 type Props = {
     list: ListInfo
     performance: { id: string; title: string; venue: string | null }
+    term: TermActionsTerm
     structure: PerformanceStructure
     initialChecks: ListCheck[]
     crew: CrewMember[]
@@ -45,7 +47,7 @@ type Props = {
 
 // Lista zadań na termin („Lista”, „Lista-telefon”): etapy w motywie biletu, „Blokuje gotowość”,
 // rekwizyty pogrupowane po miejscu albo scenie, odhaczanie i przygotowanie na następny spektakl.
-export function ShowListView({ list, performance, structure, initialChecks, crew, next, canEdit, now }: Props) {
+export function ShowListView({ list, performance, term, structure, initialChecks, crew, next, canEdit, now }: Props) {
     const t = useTranslations('ShowList')
     const tn = useTranslations('Navigation')
     const nowDate = new Date(now)
@@ -207,6 +209,7 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
                                     </Button>
                                 </div>
                             )}
+                            <TermActions term={term} canEdit={canEdit} />
                         </div>
                         {startsToday && (
                             <div className="pl-countdown hidden md:flex">

@@ -21,7 +21,7 @@ export default async function ShowListPage({ params, searchParams }: Props) {
 
     const { data: list } = await supabase
         .from('show_lists')
-        .select('id, performance_id, show_date, kind, cast, live_act_started_at, live_ended_at, performance:performances(id, title, venue)')
+        .select('id, performance_id, show_date, kind, cast, title, venue, note, with_props, live_act_started_at, live_ended_at, performance:performances(id, title, venue)')
         .eq('id', id)
         .single()
 
@@ -70,6 +70,7 @@ export default async function ShowListPage({ params, searchParams }: Props) {
         <ShowListView
             list={{ id: list.id, showDate: list.show_date, kind: list.kind, cast: list.cast, startedAt: list.live_act_started_at, endedAt: list.live_ended_at }}
             performance={list.performance}
+            term={{ id: list.id, performanceId: list.performance_id, performanceTitle: list.performance.title, showDate: list.show_date, kind: list.kind, cast: list.cast, title: list.title, venue: list.venue, note: list.note, withProps: list.with_props }}
             structure={structure}
             initialChecks={checkRows.map(c => ({ performance_prop_id: c.performance_prop_id, stage: c.stage }))}
             crew={crew}

@@ -10,6 +10,7 @@ import { notify } from '@/utils/notify'
 import { MobileTop } from '@/components/rk/MobileTop'
 import { ShowTitle } from '@/components/rk/ShowTitle'
 import { Button } from '@/components/ui/Button'
+import { TermActions, type TermActionsTerm } from './TermActions'
 import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { playOrder, skippedForCast, type PerformanceStructure, type StructuredScene } from '@/lib/performance-structure'
 import { castLabel, plural, roman, theatreDate, theatreNaiveToInstant, time } from '@/lib/rk-format'
@@ -33,6 +34,7 @@ export type LiveReport = {
 type Props = {
     list: { id: string; showDate: string; cast: string | null; sceneNumber: number | null; actStartedAt: string | null }
     performance: { id: string; title: string; venue: string | null }
+    term: TermActionsTerm
     structure: PerformanceStructure
     initialChecks: LiveCheck[]
     initialReports: LiveReport[]
@@ -45,7 +47,7 @@ type Props = {
 
 // Tryb na żywo (karta NaZywo, ekrany „Na-zywo-telefon” i „Na-zywo”): telefon rekwizytora
 // podąża za sceną przełączaną przez inspicjenta na komputerze („Następna scena” albo spacja).
-export function LiveView({ list, performance, structure, initialChecks, initialReports, crew, userId, canWrite, now }: Props) {
+export function LiveView({ list, performance, term, structure, initialChecks, initialReports, crew, userId, canWrite, now }: Props) {
     const t = useTranslations('Live')
     const scenes = playOrder(structure)
     const [sceneNumber, setSceneNumber] = useState<number | null>(list.sceneNumber ?? scenes[0]?.number ?? null)
@@ -119,11 +121,11 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
         if (error) notify.error(t('switchFailed'))
     }, [canWrite, nextScene, act, actStartedAt, userId, list.id, t])
 
-    // „Następna scena” spacją (komputer inspicjenta), poza polami formularza.
+    // „Następna scena” spacją (komputer inspicjenta), poza polami formularza i oknami dialogowymi.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             const el = e.target as HTMLElement
-            if (e.code !== 'Space' || reporting || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(el.tagName)) return
+            if (e.code !== 'Space' || reporting || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(el.tagName) || document.querySelector('[role="dialog"]')) return
             if (window.matchMedia('(min-width: 768px)').matches) { e.preventDefault(); void goNext() }
         }
         document.addEventListener('keydown', onKey)
@@ -176,6 +178,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                     <div className="flex flex-col gap-1">
                         <span className="rk-tally">{t('nowFollowing')}</span>
                         {scene && <h1 className="rk-live-scene"><span>{scene.code}</span>{scene.name}</h1>}
+                        <TermActions term={term} canEdit={canWrite} />
                     </div>
 
                     <section className="pl-sect" aria-labelledby="lv-give">
@@ -232,6 +235,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                             {[t('eyebrow'), t('liveLower'), list.cast && t('cast', { cast: castLabel(list.cast) ?? '' })].filter(Boolean).join(' · ')}
                         </span>
                         <ShowTitle title={performance.title} />
+                        <TermActions term={term} canEdit={canWrite} />
                     </div>
                     {canWrite && (
                         <div className="flex items-center gap-4">
