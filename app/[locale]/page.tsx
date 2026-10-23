@@ -29,7 +29,7 @@ export default async function Home() {
     const today = theatreNow()
     // Limit AI widzi kierownik pracowni (i superadmin); przed migracją limitu albo przy błędzie bazy paska nie ma.
     const aiStatus = access.role === 'admin' || access.isSuperadmin
-        ? await getAIBudgetStatus(supabase).catch(() => null)
+        ? await getAIBudgetStatus(supabase).catch(error => { console.error('Limit AI: nie udało się odczytać stanu limitu', error); return null })
         : null
 
     return (
