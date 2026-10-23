@@ -76,6 +76,7 @@ Agent pokazuje wynik, a nie pisze „gotowe”.
 - **Bez sieci:** test na telefonie w kulisach.
 - **Stan rzeczy, okno „Co z tym?”:** najpierw szkic w design systemie, potem kod.
 - **Regulamin wersji testowej i zgoda na AI:** szkic od agenta, treść zatwierdza Kuba.
+- **Przegląd i porządki w bazie (ryzyko: wysokie):** w bazie jest wiele tabel i danych z testów. Agent robi **tylko odczyt**: lista tabel, kolumn, polityk RLS i wierszy testowych, z podziałem na „używane przez kod”, „sieroty” i „śmieci z testów” (np. konta i teatry testowe, zostaje „Teatr próbny” i konto `rekwizytorka.test@example.com`). Kuba czyta raport i sam uruchamia czyszczenie w SQL Editor. Przed usunięciem kopia (zrzut) i SQL do cofnięcia. Zrobić przed zaproszeniem pierwszego prawdziwego teatru.
 
 ### Fala 4 · przed demo
 - Przegląd Pulpitu i Kalendarza (scenariusz 5), tylko odczyt.
