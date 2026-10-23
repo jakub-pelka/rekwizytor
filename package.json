@@ -13,17 +13,6 @@
     "test:coverage": "jest --coverage",
     "sync-types": "npx supabase gen types typescript --project-id rjxcpqxhkbfhedhhxbau > types/supabase.ts",
     "export:supabase": "npx tsx scripts/export-from-supabase.ts",
-    "import:pocketbase": "npx tsx scripts/import-to-pocketbase.ts",
-    "test:compare": "npx tsx scripts/compare-embeddings.ts",
-    "test:clean-db": "npx tsx scripts/clean-pocketbase.ts",
-    "test:create-tables": "npx tsx scripts/create-pocketbase-tables.ts",
-    "test:start": "chmod +x scripts/test-env-start.sh && ./scripts/test-env-start.sh",
-    "test:stop": "chmod +x scripts/test-env-stop.sh && ./scripts/test-env-stop.sh",
-    "test:clean": "chmod +x scripts/test-env-clean.sh && ./scripts/test-env-clean.sh",
-    "test:setup": "npx tsx scripts/pocketbase-helper.ts setup",
-    "test:seed": "npx tsx scripts/pocketbase-helper.ts seed",
-    "test:reset": "npx tsx scripts/pocketbase-helper.ts reset",
-    "test:init": "npx tsx scripts/pocketbase-helper.ts all",
     "ds:sync": "node scripts/sync-design-system.mjs"
   },
   "dependencies": {
@@ -71,7 +60,6 @@
     "tailwind-merge": "^3.4.0",
     "tippy.js": "^6.3.7",
     "uuid": "^13.0.0",
-    "wandb": "^0.1.0",
     "xlsx": "^0.18.5",
     "zod": "^4.1.13"
   },
