@@ -1,5 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
-import { generateAI, isAIAvailable, logAIUsage } from '@/utils/ai/client'
+import { generateAI, isAIAvailable } from '@/utils/ai/client'
 
 /**
  * Try to correct typos in search query using fuzzy search + AI
@@ -47,10 +47,8 @@ Przykłady:
 
 Odpowiedź (tylko poprawiony tekst):`
 
-                const result = await generateAI({ task: 'text', prompt, maxTokens: 512 })
+                const result = await generateAI({ task: 'text', operation: 'query_correction', prompt, maxTokens: 512 })
                 const corrected = result.text.replaceAll(/['"]/g, '')
-
-                await logAIUsage(supabase, result, 'query_correction', { originalQuery: query, correctedQuery: corrected })
 
                 // Only use AI correction if it's different and reasonable
                 if (corrected && corrected !== query && corrected.length < query.length + 5) {

@@ -8,6 +8,8 @@ import { AccountMenuButton } from '@/components/rk/AccountMenuButton'
 import { SearchButton } from '@/components/rk/SearchButton'
 import { StatusBanner } from '@/components/rk/StatusBanner'
 import { PendingUsersAlert } from '@/components/dashboard/PendingUsersAlert'
+import { AiLimitBanner } from '@/components/dashboard/AiLimitBanner'
+import { getAIBudgetStatus } from '@/utils/ai/budget'
 import { DashboardView } from '@/components/dashboard/DashboardView'
 import { loadDashboard } from '@/lib/dashboard'
 import { activeTheatreName } from '@/lib/theatre'
@@ -25,9 +27,14 @@ export default async function Home() {
         activeTheatreName(supabase),
     ])
     const today = theatreNow()
+    // Limit AI widzi kierownik pracowni (i superadmin); przed migracją limitu albo przy błędzie bazy paska nie ma.
+    const aiStatus = access.role === 'admin' || access.isSuperadmin
+        ? await getAIBudgetStatus(supabase).catch(error => { console.error('Limit AI: nie udało się odczytać stanu limitu', error); return null })
+        : null
 
     return (
         <>
+            {aiStatus && <AiLimitBanner status={aiStatus} />}
             {user ? <PendingUsersAlert /> : (
                 // Te same odstępy co treść pulpitu (DashboardView: px-4, na komputerze md:px-12).
                 <div className="mx-auto w-full max-w-[1184px] px-4 pt-4 md:px-12 md:pt-8">

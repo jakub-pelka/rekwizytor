@@ -5,6 +5,7 @@ import { generateEmbedding } from '@/utils/embeddings'
 import { TaskType } from '@google/generative-ai'
 import { refreshSearchIndex } from '@/app/actions/unified-search'
 
+import { AIBudgetExceededError } from '@/utils/ai/budget'
 import { enrichGroupNameForEmbedding } from '@/utils/group-embedding-enrichment'
 
 /**
@@ -149,6 +150,8 @@ export async function generateAllGroupEmbeddings(): Promise<{
             console.error(`   ❌ [ERROR] ${embeddingError.message}`)
             failed++
             errors.push(`${group.name}: ${embeddingError.message}`)
+            // Limit AI wyczerpany: kolejne grupy też się nie uda, nie czekamy na każdą z osobna.
+            if (embeddingError instanceof AIBudgetExceededError) break
         }
 
         console.log(`   📊 Progress: ${processed} processed, ${failed} failed`)

@@ -4,8 +4,10 @@ import { useState, useRef, useEffect } from 'react'
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import getCroppedImg from '@/utils/canvasUtils'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
-import { Check, X, RotateCw } from 'lucide-react'
+import { notify } from '@/utils/notify'
+import { RotateCw } from 'lucide-react'
 
 type Props = {
     imageSrc: string
@@ -30,6 +32,7 @@ function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: numbe
 }
 
 export function ImageCropper({ imageSrc, onCropComplete, onCancel }: Props) {
+    const t = useTranslations('SceneImport')
     const [crop, setCrop] = useState<Crop>()
     const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
     const [rotation, setRotation] = useState(0)
@@ -59,7 +62,7 @@ export function ImageCropper({ imageSrc, onCropComplete, onCancel }: Props) {
 
     const handleSave = async () => {
         if (!completedCrop || !imgRef.current) {
-            alert('Please select an area to crop')
+            notify.error(t('cropNone'))
             return
         }
 
@@ -90,7 +93,7 @@ export function ImageCropper({ imageSrc, onCropComplete, onCancel }: Props) {
             }
         } catch (e) {
             console.error(e)
-            alert('Failed to crop image')
+            notify.error(t('cropFailed'))
         } finally {
             setProcessing(false)
         }
@@ -101,54 +104,52 @@ export function ImageCropper({ imageSrc, onCropComplete, onCancel }: Props) {
     // Note: react-image-crop doesn't inherently support rotating the *source* easily without canvas, 
     // so visual rotation might be tricky. We'll rotate the container.
 
+    // Esc działa jak „Anuluj”.
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel() }
+        document.addEventListener('keydown', onKey)
+        return () => document.removeEventListener('keydown', onKey)
+    }, [onCancel])
+
     return (
-        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-4">
-            <div className="bg-neutral-900 rounded-xl border border-neutral-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] max-w-5xl w-full">
+        <div className="rk-overlay fixed inset-0 z-[60] overflow-y-auto rounded-none">
+            <div className="rk-modal max-w-[1040px]" role="dialog" aria-modal="true" aria-labelledby="image-crop-title">
+                <div className="rk-modal__head">
+                    <div>
+                        <h3 className="rk-modal__title" id="image-crop-title">{t('cropTitle')}</h3>
+                        <p className="rk-modal__desc">{t('cropDescription')}</p>
+                    </div>
+                    <button type="button" className="rk-btn rk-btn--secondary rk-btn--sm" onClick={() => setRotation(r => r + 90)}>
+                        <RotateCw />{t('cropRotate')}
+                    </button>
+                </div>
 
-                {/* Header */}
-                <div className="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900">
-                    <h3 className="text-white font-medium">Crop Scene List</h3>
-                    <div className="flex gap-2">
-                        <Button
-                            onClick={() => setRotation(r => r + 90)}
-                            className="bg-neutral-800 hover:bg-neutral-700 text-white p-2 h-auto"
-                            title="Rotate Image"
-                        >
-                            <RotateCw className="w-4 h-4" />
-                        </Button>
+                <div className="rk-modal__body">
+                    <div className="rk-ai__photo flex min-h-[320px] items-center justify-center overflow-auto p-4">
+                        <div style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 0.3s' }}>
+                            <ReactCrop
+                                crop={crop}
+                                onChange={(_, percentCrop) => setCrop(percentCrop)}
+                                onComplete={(c) => setCompletedCrop(c)}
+                                aspect={undefined} // Fully freeform
+                                ruleOfThirds
+                            >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                    ref={imgRef}
+                                    alt={t('cropAlt')}
+                                    src={imageSrc}
+                                    onLoad={onImageLoad}
+                                    style={{ maxHeight: '60vh', maxWidth: '100%', objectFit: 'contain' }}
+                                />
+                            </ReactCrop>
+                        </div>
                     </div>
                 </div>
 
-                {/* Editor Area */}
-                <div className="flex-1 overflow-auto p-4 bg-neutral-950 flex items-center justify-center relative min-h-[400px]">
-                    <div style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 0.3s' }}>
-                        <ReactCrop
-                            crop={crop}
-                            onChange={(_, percentCrop) => setCrop(percentCrop)}
-                            onComplete={(c) => setCompletedCrop(c)}
-                            aspect={undefined} // Fully freeform
-                            ruleOfThirds
-                        >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                ref={imgRef}
-                                alt="Crop me"
-                                src={imageSrc}
-                                onLoad={onImageLoad}
-                                style={{ maxHeight: '70vh', maxWidth: '100%', objectFit: 'contain' }}
-                            />
-                        </ReactCrop>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="p-4 border-t border-neutral-800 bg-neutral-900 flex justify-end gap-3">
-                    <Button onClick={onCancel} variant="secondary" className="bg-neutral-800 hover:bg-neutral-700 text-white">
-                        <X className="w-4 h-4 mr-2" /> Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={processing} className="bg-white text-black hover:bg-neutral-200">
-                        {processing ? 'Processing...' : <><Check className="w-4 h-4 mr-2" /> Confirm Crop</>}
-                    </Button>
+                <div className="rk-modal__foot">
+                    <Button onClick={onCancel} variant="ghost">{t('cropCancel')}</Button>
+                    <Button onClick={handleSave} isLoading={processing}>{t('cropConfirm')}</Button>
                 </div>
             </div>
         </div>

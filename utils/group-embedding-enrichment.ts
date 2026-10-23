@@ -1,10 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { generateAI } from './ai/client'
+import { AIBudgetExceededError } from './ai/budget'
 import { getPerformanceContextForGroup } from './performance-group-linking'
-
-const geminiKey = process.env.GEMINI_API_KEY
-const openaiKey = process.env.OPENAI_API_KEY
-const mistralKey = process.env.MISTRAL_API_KEY
 
 export interface GroupEnrichmentResult {
     identity: string
@@ -13,16 +9,14 @@ export interface GroupEnrichmentResult {
 }
 
 /**
- * Enrich a group name with AI-generated keywords segments for Multi-Vector Search
- * 
+ * Enrich a group name with AI-generated keywords segments for Multi-Vector Search.
+ * Model idzie przez wspólny klient (utils/ai/client.ts), więc koszt trafia do limitu teatru.
+ * Po wyczerpaniu limitu, albo gdy model zawodzi, zostaje sama nazwa grupy.
+ *
  * @param name - The group name
- * @param enrichmentModel - The AI model to use for enrichment (default: 'default' = shared AI client)
  * @returns Structured enrichment data (identity, physical, context)
  */
-export async function enrichGroupNameForEmbedding(
-    name: string,
-    enrichmentModel: string = 'default'
-): Promise<GroupEnrichmentResult> {
+export async function enrichGroupNameForEmbedding(name: string): Promise<GroupEnrichmentResult> {
     const fallbackResult: GroupEnrichmentResult = {
         identity: name,
         physical: '',
@@ -30,52 +24,29 @@ export async function enrichGroupNameForEmbedding(
     }
 
     const maxRetries = 3
-    let lastError: any = null
 
     // Check if group is linked to a performance
     const performanceContext = await getPerformanceContextForGroup(name)
 
-    // Determine provider from model name
-    const getProvider = (model: string): 'default' | 'openai' | 'mistral' | 'gemini' => {
-        if (model === 'default') return 'default'
-        if (model.includes('gpt')) return 'openai'
-        if (model.includes('mistral')) return 'mistral'
-        return 'gemini'
-    }
-    const provider = getProvider(enrichmentModel)
-
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-            let enriched: GroupEnrichmentResult
+            const enriched = parseEnrichmentResponse(
+                (await generateAI({ task: 'text', operation: 'group_enrichment', prompt: buildPrompt(name, performanceContext), json: true })).text,
+                name
+            )
 
-            // Route to appropriate provider
-            switch (provider) {
-                case 'default':
-                    enriched = parseEnrichmentResponse(
-                        (await generateAI({ task: 'text', prompt: buildPrompt(name, performanceContext), json: true })).text,
-                        name
-                    )
-                    break
-                case 'openai':
-                    enriched = await enrichWithOpenAI(name, enrichmentModel, performanceContext)
-                    break
-                case 'mistral':
-                    enriched = await enrichWithMistral(name, enrichmentModel, performanceContext)
-                    break
-                case 'gemini':
-                default:
-                    enriched = await enrichWithGemini(name, enrichmentModel, performanceContext)
-                    break
-            }
-
-            console.log(`✅ [ENRICH] Success for "${name}" using ${provider}`)
+            console.log(`✅ [ENRICH] Success for "${name}"`)
             if (performanceContext) {
                 console.log(`✨ Enriched "${name}" with performance context`)
             }
             return enriched
 
         } catch (e) {
-            lastError = e
+            // Limit wyczerpany: ponowna próba niczego nie zmieni.
+            if (e instanceof AIBudgetExceededError) {
+                console.warn(`[ENRICH] Limit AI teatru wyczerpany, "${name}" zostaje bez wzbogacenia.`)
+                return fallbackResult
+            }
             console.error(`❌ [ENRICH] Attempt ${attempt + 1}/${maxRetries} failed:`, e)
 
             if (attempt < maxRetries - 1) {
@@ -89,129 +60,6 @@ export async function enrichGroupNameForEmbedding(
     return fallbackResult
 }
 
-// Helper: Enrich with Gemini
-async function enrichWithGemini(
-    name: string,
-    model: string,
-    performanceContext: any
-): Promise<GroupEnrichmentResult> {
-    if (!geminiKey) throw new Error('GEMINI_API_KEY not set')
-
-    const genAI = new GoogleGenerativeAI(geminiKey)
-    const geminiModel = genAI.getGenerativeModel({
-        model: model,
-        generationConfig: {
-            // responseMimeType: "application/json", // Disable strict JSON to avoid early stops/loops
-            maxOutputTokens: 8192
-        }
-    })
-
-    const prompt = buildPrompt(name, performanceContext)
-    const result = await geminiModel.generateContent(prompt)
-    const response = result.response
-    const responseText = response.text().trim()
-
-    // Debug finish reason
-    if (response.candidates && response.candidates.length > 0) {
-        const candidate = response.candidates[0]
-        console.log(`🏁 [Gemini] Finish Reason: ${candidate.finishReason}`)
-        if (candidate.finishReason !== "STOP") {
-            console.warn(`⚠️ [Gemini] Abnormal finish! Reason: ${candidate.finishReason}`)
-            console.warn(`⚠️ [Gemini] Safety Ratings:`, candidate.safetyRatings)
-        }
-    }
-
-    console.log(`📄 [Gemini] Response preview: ${responseText.substring(0, 100)}...`)
-
-    return parseEnrichmentResponse(responseText, name)
-}
-
-// Helper: Enrich with OpenAI
-async function enrichWithOpenAI(
-    name: string,
-    model: string,
-    performanceContext: any
-): Promise<GroupEnrichmentResult> {
-    if (!openaiKey) throw new Error('OPENAI_API_KEY not set')
-
-    const prompt = buildPrompt(name, performanceContext)
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${openaiKey}`
-        },
-        body: JSON.stringify({
-            model: model,
-            messages: [
-                { role: 'system', content: 'You are a theater props expert. Always respond with valid JSON.' },
-                { role: 'user', content: prompt }
-            ],
-            response_format: { type: 'json_object' },
-            max_completion_tokens: 4096,
-            reasoning_effort: "low",
-            temperature: 1
-        })
-    })
-
-    if (!response.ok) {
-        const error = await response.json()
-        throw new Error(`OpenAI API error: ${JSON.stringify(error)}`)
-    }
-
-    const result = await response.json()
-    console.log(`📦 [OpenAI] Full api response:`, JSON.stringify(result, null, 2))
-
-    const responseText = result.choices?.[0]?.message?.content?.trim() || ''
-
-    console.log(`📄 [OpenAI] Response preview: ${responseText.substring(0, 100)}...`)
-
-    return parseEnrichmentResponse(responseText, name)
-}
-
-// Helper: Enrich with Mistral
-async function enrichWithMistral(
-    name: string,
-    model: string,
-    performanceContext: any
-): Promise<GroupEnrichmentResult> {
-    if (!mistralKey) throw new Error('MISTRAL_API_KEY not set')
-
-    const prompt = buildPrompt(name, performanceContext)
-
-    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${mistralKey}`
-        },
-        body: JSON.stringify({
-            model: model,
-            messages: [
-                { role: 'system', content: 'You are a theater props expert. Always respond with valid JSON.' },
-                { role: 'user', content: prompt }
-            ],
-            response_format: { type: 'json_object' },
-            max_tokens: 1024,
-            temperature: 0.7
-        })
-    })
-
-    if (!response.ok) {
-        const error = await response.json()
-        throw new Error(`Mistral API error: ${JSON.stringify(error)}`)
-    }
-
-    const result = await response.json()
-    const responseText = result.choices[0].message.content.trim()
-
-    console.log(`📄 [Mistral] Response preview: ${responseText.substring(0, 100)}...`)
-
-    return parseEnrichmentResponse(responseText, name)
-}
-
-// Helper: Build prompt (shared across providers)
 function buildPrompt(name: string, performanceContext: any): string {
     if (performanceContext) {
         return `Jesteś ekspertem od kategoryzacji rekwizytów teatralnych.

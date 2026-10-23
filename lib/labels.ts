@@ -16,10 +16,8 @@ export interface PrintableLabelItem {
 
 export function getLabelQrUrl(item: PrintableLabelItem, origin: string): string {
     const base = origin || (typeof window !== 'undefined' ? window.location.origin : '')
-    // Starsze naklejki grup prowadzą przez /g/<short_id>; bez short_id używamy numeru GRP-.
-    if (item.kind === 'group' && item.shortId) {
-        return `${base}/g/${item.shortId}`
-    }
+    // Każda etykieta prowadzi przez numer (GRP-, REK-, MSC-) do nowego ekranu Magazynu. Dawne naklejki grup z /g/<short_id>
+    // nadal działają (trasa /g i resolveCode zostają), ale nowych nie drukujemy w starym formacie.
     return `${base}/scan/resolve?code=${encodeURIComponent(item.code)}`
 }
 

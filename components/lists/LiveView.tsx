@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { StatusBanner } from '@/components/rk/StatusBanner'
 import { useTranslations } from 'next-intl'
 import { Check, ChevronRight, Eye, MapPin, TriangleAlert, User } from 'lucide-react'
-import { Link } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
 import { MobileTop } from '@/components/rk/MobileTop'
@@ -15,6 +15,9 @@ import { playOrder, skippedForCast, type PerformanceStructure, type StructuredSc
 import { castLabel, plural, roman, theatreDate, theatreNaiveToInstant, time } from '@/lib/rk-format'
 import { useListChecks } from './useListChecks'
 import { SyncBanner } from './SyncBanner'
+import { EARLY_START_MS } from '@/lib/performance-structure'
+import { LiveStartButton } from './LiveStartButton'
+import { useLiveStart } from './useLiveStart'
 
 export type LiveCheck = { propId: string; at: string; by: { id: string; name: string } | null }
 export type LiveReport = {
@@ -52,7 +55,11 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
     const [reports, setReports] = useState(initialReports)
     const [reporting, setReporting] = useState(false)
     const [clock, setClock] = useState('0:00')
+    const router = useRouter()
+    // „Zaczynamy” przy opóźnieniu: do godziny po terminie, dopóki nikt nie zapisał startu ani nie przełączył aktu.
+    const [canRestart, setCanRestart] = useState(false)
 
+    const firstScene = scenes[0]?.number
     const index = Math.max(0, scenes.findIndex(s => s.number === sceneNumber))
     const scene: StructuredScene | undefined = scenes[index]
     const nextScene = scenes[index + 1]
@@ -66,12 +73,15 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
         const start = actStartedAt ? new Date(actStartedAt).getTime() : theatreNaiveToInstant(list.showDate)
         const tick = () => {
             const s = Math.max(0, Math.floor((Date.now() - start) / 1000))
+            // Tylko przy pierwszej scenie, do godziny po terminie (i nie dalej niż pół doby przed nim).
+            const since = Date.now() - start
+            setCanRestart(!actStartedAt && sceneNumber === firstScene && since < 60 * 60 * 1000 && since > -EARLY_START_MS)
             setClock(`${Math.floor(s / 3600) > 0 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}` : Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`)
         }
         tick()
         const id = setInterval(tick, 1000)
         return () => clearInterval(id)
-    }, [actStartedAt, list.showDate])
+    }, [actStartedAt, list.showDate, sceneNumber, firstScene])
 
     // Realtime: scena, potwierdzenia i zgłoszenia z innych urządzeń.
     useEffect(() => {
@@ -118,6 +128,15 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
         document.addEventListener('keydown', onKey)
         return () => document.removeEventListener('keydown', onKey)
     }, [goNext, reporting])
+
+    const liveStart = useLiveStart(list.id, at => setActStartedAt(at), () => {
+        setActStartedAt(null)
+        // Start sprzed godziny z kalendarza: bez niego to nie jest jeszcze „na żywo”, wracamy do listy.
+        if (Date.now() < theatreNaiveToInstant(list.showDate)) router.push(`/lists/${list.id}`)
+    })
+    const startButton = canWrite && canRestart && (
+        <LiveStartButton onStart={liveStart.start} starting={liveStart.starting} pending={!!liveStart.pending} />
+    )
 
     const strip = (wide: boolean) => (
         <div className={`rk-live-strip ${wide ? 'rk-live-strip--wide' : ''}`} role="status">
@@ -178,6 +197,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                             <small>{[plural(sceneProps(nextScene).length, ['rekwizyt', 'rekwizyty', 'rekwizytów']), sceneProps(nextScene)[0]?.area].filter(Boolean).join(' · ')}</small>
                         </div>
                     )}
+                    {startButton}
                 </div>
                 {canWrite && (
                     <div className="rk-live-bottom sticky bottom-0" style={{ paddingBottom: 'calc(var(--space-6) + env(safe-area-inset-bottom))' }}>
@@ -200,10 +220,15 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                         </span>
                         <ShowTitle title={performance.title} />
                     </div>
-                    {canWrite && nextScene && (
+                    {canWrite && (nextScene || startButton) && (
                         <div className="flex items-center gap-4">
-                            <span className="pl-meta">{t('orSpace')}</span>
-                            <Button size="lg" rightIcon={<ChevronRight />} onClick={goNext}>{t('nextScene', { code: nextScene.code })}</Button>
+                            {nextScene && (
+                                <>
+                                    <span className="pl-meta">{t('orSpace')}</span>
+                                    <Button size="lg" rightIcon={<ChevronRight />} onClick={goNext}>{t('nextScene', { code: nextScene.code })}</Button>
+                                </>
+                            )}
+                            {startButton}
                         </div>
                     )}
                 </div>

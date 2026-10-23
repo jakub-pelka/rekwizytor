@@ -1,8 +1,11 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { openAIBudget, recordAIUsage } from './budget'
+import { costFromUsage } from './pricing'
 
 // Provider-agnostic AI client (OpenAI-compatible chat completions API).
 // OPENROUTER_API_KEY set → OpenRouter (with model fallbacks), otherwise OPENAI_API_KEY → OpenAI.
 // Models can be overridden per task with AI_MODEL_VISION / AI_MODEL_TEXT.
+// Każde wywołanie sprawdza limit kosztów teatru przed modelem i zapisuje koszt po nim (utils/ai/budget.ts).
+// Po przekroczeniu limitu rzuca AIBudgetExceededError, którą wołający zamienia na komunikat po polsku (aiErrorMessage).
 
 export type AITask = 'vision' | 'text'
 
@@ -13,6 +16,10 @@ export interface AIImage {
 
 export interface AIRequest {
     task: AITask
+    /** Nazwa operacji w ai_usage_logs.operation_type (np. 'scan_items'). */
+    operation: string
+    /** Dodatkowe dane do ai_usage_logs.details. */
+    details?: Record<string, unknown>
     prompt: string
     images?: AIImage[]
     json?: boolean
@@ -30,6 +37,8 @@ export interface AIResponse {
     text: string
     model: string
     usage: { input: number; output: number; total: number } | null
+    /** Koszt w dolarach (od dostawcy albo z cennika), już zapisany w ai_usage_logs. */
+    costUsd: number
 }
 
 type Provider = 'openrouter' | 'openai'
@@ -66,9 +75,11 @@ export function isAIAvailable(): boolean {
     return getProvider() !== null
 }
 
-export async function generateAI({ task, prompt, images = [], json = false, maxTokens = 4096, models: modelsOverride, timeoutMs }: AIRequest): Promise<AIResponse> {
+export async function generateAI({ task, operation, details, prompt, images = [], json = false, maxTokens = 4096, models: modelsOverride, timeoutMs }: AIRequest): Promise<AIResponse> {
     const config = getProvider()
     if (!config) throw new Error('AI not configured - set OPENROUTER_API_KEY or OPENAI_API_KEY')
+
+    const budget = await openAIBudget()
 
     const { provider, apiKey } = config
     const models = provider === 'openrouter' && modelsOverride?.length ? modelsOverride : getModels(provider, task)
@@ -88,6 +99,7 @@ export async function generateAI({ task, prompt, images = [], json = false, maxT
 
     if (provider === 'openrouter') {
         body.reasoning = { effort: 'low' }
+        body.usage = { include: true } // OpenRouter dołącza wtedy usage.cost (dolary)
     } else {
         body.reasoning_effort = 'low'
     }
@@ -130,13 +142,22 @@ export async function generateAI({ task, prompt, images = [], json = false, maxT
 
     const result = await response.json()
     const text: string = result.choices?.[0]?.message?.content?.trim() ?? ''
+    const model: string = result.model ?? models[0]
+    const cost = costFromUsage(model, result.usage)
+
+    await recordAIUsage(budget, {
+        operation, model, details, cost,
+        tokensInput: result.usage?.prompt_tokens ?? 0,
+        tokensOutput: result.usage?.completion_tokens ?? 0,
+    })
 
     return {
         text,
-        model: result.model ?? models[0],
+        model,
         usage: result.usage
             ? { input: result.usage.prompt_tokens, output: result.usage.completion_tokens, total: result.usage.total_tokens }
             : null,
+        costUsd: cost.usd,
     }
 }
 
@@ -149,26 +170,5 @@ export function parseAIJson<T = unknown>(text: string): T {
         const match = /[[{][\s\S]*[\]}]/.exec(cleaned)
         if (!match) throw new Error('No JSON found in AI response')
         return JSON.parse(match[0]) as T
-    }
-}
-
-export async function logAIUsage(
-    supabase: SupabaseClient,
-    response: AIResponse,
-    operationType: string,
-    details?: Record<string, unknown>
-): Promise<void> {
-    if (!response.usage) return
-    try {
-        await supabase.from('ai_usage_logs').insert({
-            tokens_input: response.usage.input,
-            tokens_output: response.usage.output,
-            total_tokens: response.usage.total,
-            model_name: response.model,
-            operation_type: operationType,
-            ...(details && { details }),
-        })
-    } catch (error) {
-        console.warn('Failed to log AI usage:', error)
     }
 }
