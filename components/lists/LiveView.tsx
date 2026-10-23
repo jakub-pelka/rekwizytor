@@ -141,7 +141,9 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
 
     // „Zakończ spektakl”: zawsze cichy (ghost), a na ostatniej scenie główny, w miejscu „Następna scena”.
     // Po zapisie wracamy na listę zadań; „Cofnij” w komunikacie wraca do trybu na żywo.
-    const liveEnd = useLiveEnd(list.id, userId, () => router.push(`/lists/${list.id}`), () => router.push(`/lists/${list.id}/live`))
+    // Po zakończeniu idziemy na ?view=list: zwykły adres listy bywa w pamięci routera (staleTimes 30 s) jako przekierowanie
+    // na tryb na żywo sprzed zakończenia, więc widok wracałby do trybu na żywo.
+    const liveEnd = useLiveEnd(list.id, userId, () => router.push(`/lists/${list.id}?view=list`), () => router.push(`/lists/${list.id}/live`))
     const endButton = canWrite && (
         <div className="flex">
             <Button variant={nextScene ? 'ghost' : 'primary'} size={nextScene ? 'sm' : 'lg'} onClick={liveEnd.end} isLoading={liveEnd.ending} loadingLabel={t('endShow')} title={t('endHint')}>

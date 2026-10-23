@@ -53,7 +53,7 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
     const { isChecked, toggle, sync, retry } = useListChecks(list.id, initialChecks, { localOnly: !canEdit })
     const router = useRouter()
     const liveStart = useLiveStart(list.id, () => router.push(`/lists/${list.id}/live`), () => router.push(`/lists/${list.id}`))
-    const liveResume = useLiveResume(list.id, list.endedAt, () => router.push(`/lists/${list.id}/live`), () => router.push(`/lists/${list.id}`))
+    const liveResume = useLiveResume(list.id, list.endedAt, () => router.push(`/lists/${list.id}/live`), () => router.push(`/lists/${list.id}?view=list`))
 
     const stages = stagesFor(list.kind, structure.actCount)
     const stageProps = (stage: Stage) => structure.props.filter(p => propInStage(p, stage))
