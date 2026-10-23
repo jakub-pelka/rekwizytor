@@ -29,6 +29,8 @@ export type TermDialogProps = {
         with_props?: boolean
     } | null
     defaultDate?: string
+    hideDelete?: boolean
+    onSaved?: () => void
     onClose: () => void
 }
 
@@ -40,6 +42,8 @@ export function TermDialog({
     performances,
     term,
     defaultDate,
+    hideDelete = false,
+    onSaved,
     onClose,
 }: TermDialogProps) {
     const t = useTranslations('Terms')
@@ -133,6 +137,7 @@ export function TermDialog({
             }
 
             router.refresh()
+            onSaved?.()
             onClose()
         })
     }
@@ -329,7 +334,7 @@ export function TermDialog({
                 </form>
 
                 <div className="rk-modal__foot">
-                    {mode === 'edit' && term && (
+                    {mode === 'edit' && term && !hideDelete && (
                         <Button variant="ghost" className="mr-auto" onClick={() => setConfirmDelete(true)}>
                             {t('deleteEllipsis')}
                         </Button>

@@ -21,6 +21,7 @@ type Props = {
     email: string
     roleLabel: string
     isAdmin: boolean
+    canManageTeam: boolean
     theatreName: string
     theatreMeta: string
     team: { members: number; pending: number }
@@ -32,12 +33,13 @@ const SECTIONS = ['account', 'look', 'lists', 'theatre', 'about'] as const
 
 // Ustawienia (karta Ustawienia, ekrany „Ustawienia” i „Ustawienia-telefon”): jedna kolumna sekcji, wiersze
 // .rk-setting z opisem po lewej i kontrolką po prawej; na komputerze spis sekcji po lewej.
-export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreName, theatreMeta, team, aiScans, version }: Props) {
+export function SettingsView({ userId, name, email, roleLabel, isAdmin, canManageTeam, theatreName, theatreMeta, team, aiScans, version }: Props) {
     const t = useTranslations('SettingsPage')
     const router = useRouter()
     const pathname = usePathname()
     const locale = useLocale()
-    const sections = SECTIONS.filter(s => s !== 'theatre' || isAdmin)
+    const showTheatre = isAdmin || canManageTeam
+    const sections = SECTIONS.filter(s => s !== 'theatre' || showTheatre)
     const [current, setCurrent] = useState<(typeof SECTIONS)[number]>('account')
 
     // Spis sekcji pokazuje, która jest teraz na ekranie.
@@ -49,7 +51,7 @@ export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreN
         sections.forEach(s => { const el = document.getElementById(`set-${s}`); if (el) observer.observe(el) })
         return () => observer.disconnect()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAdmin])
+    }, [showTheatre])
 
     const supabase = createClient()
 
@@ -191,17 +193,19 @@ export function SettingsView({ userId, name, email, roleLabel, isAdmin, theatreN
                                 </label>)}
                         </>)}
 
-                        {isAdmin && section('theatre', t('nav_theatre'), <>
+                        {showTheatre && section('theatre', t('nav_theatre'), <>
                             {/* Nazwę teatru zmienia tylko administrator aplikacji, w Ustawieniach → Teatry. */}
                             {theatreName && <div className="pb-2"><TheatreBanner name={theatreName} meta={theatreMeta} /></div>}
                             {row('theatreName', t('theatreName'), null,
                                 <span className="text-ink" style={{ fontSize: 14, lineHeight: '20px' }}>{theatreName || t('theatreNone')}</span>)}
                             {row('team', t('team'), t('teamHint', { members: team.members, pending: team.pending }),
+                                <Link className="rk-btn rk-btn--secondary rk-btn--sm" href="/settings/team">{t('manage')}</Link>)}
+                            {isAdmin && row('allTheatres', t('allTheatres'), t('allTheatresHint'),
                                 <Link className="rk-btn rk-btn--secondary rk-btn--sm" href="/settings/theatres">{t('manage')}</Link>)}
-                            {aiScans !== null && row('ai', t('ai'), t('aiHint', { count: aiScans }),
+                            {isAdmin && aiScans !== null && row('ai', t('ai'), t('aiHint', { count: aiScans }),
                                 <Link className="pl-link" href="/ai-stats">{t('details')}<ChevronRight /></Link>)}
-                            <div id="set-team-list" className="scroll-mt-6 pt-2"><UserApprovalList /></div>
-                        </>, <span className="rk-badge rk-badge--plain">{t('adminTag')}</span>)}
+                            {isAdmin && <div id="set-team-list" className="scroll-mt-6 pt-2"><UserApprovalList /></div>}
+                        </>, isAdmin ? <span className="rk-badge rk-badge--plain">{t('adminTag')}</span> : undefined)}
 
                         {section('about', t('nav_about'), <>
                             {row('trash', t('trash'), t('trashHint'), <Link className="pl-link" href="/trash">{t('open')}<ChevronRight /></Link>)}

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, ClipboardList, Eye, Minus, Users } from 'lucide-react'
-import { Link } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { MobileTop } from '@/components/rk/MobileTop'
 import { ShowTitle } from '@/components/rk/ShowTitle'
 import { PropEntry } from '@/components/rk/PropEntry'
@@ -11,18 +11,23 @@ import { GROUP_STATUS, GroupStatusBadge, GroupStatusIcon } from '@/components/rk
 import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { EmptyState } from '@/components/rk/EmptyState'
 import { StatusBanner } from '@/components/rk/StatusBanner'
+import { Button } from '@/components/ui/Button'
+import { TermActions, type TermActionsTerm } from './TermActions'
 import {
-    isBlocking, propInStage, skippedForCast, stagesFor,
+    EARLY_START_MS, canResumeLive, isBlocking, isLiveNow, propInStage, skippedForCast, stagesFor,
     type PerformanceStructure, type Stage, type StructuredProp,
 } from '@/lib/performance-structure'
 import { castLabel, dayMonth, duration, isSameDay, plural, relativeDay, time, weekdayShort } from '@/lib/rk-format'
 import { useListChecks, type ListCheck } from './useListChecks'
 import { useListPrefs, type ListDetail } from '@/lib/use-list-prefs'
 import { SyncBanner } from './SyncBanner'
+import { LiveStartButton } from './LiveStartButton'
+import { useLiveStart } from './useLiveStart'
+import { useLiveResume } from './useLiveEnd'
 
 export type { ListCheck }
 
-type ListInfo = { id: string; showDate: string; kind: string; cast: string | null }
+type ListInfo = { id: string; showDate: string; kind: string; cast: string | null; startedAt?: string | null; endedAt?: string | null }
 type Filter = 'todo' | 'done' | 'all'
 type Grouping = 'area' | 'scene'
 type Detail = ListDetail
@@ -31,6 +36,7 @@ export type CrewMember = { id: string; name: string; role: string | null; count:
 type Props = {
     list: ListInfo
     performance: { id: string; title: string; venue: string | null }
+    term: TermActionsTerm
     structure: PerformanceStructure
     initialChecks: ListCheck[]
     crew: CrewMember[]
@@ -41,12 +47,15 @@ type Props = {
 
 // Lista zadań na termin („Lista”, „Lista-telefon”): etapy w motywie biletu, „Blokuje gotowość”,
 // rekwizyty pogrupowane po miejscu albo scenie, odhaczanie i przygotowanie na następny spektakl.
-export function ShowListView({ list, performance, structure, initialChecks, crew, next, canEdit, now }: Props) {
+export function ShowListView({ list, performance, term, structure, initialChecks, crew, next, canEdit, now }: Props) {
     const t = useTranslations('ShowList')
     const tn = useTranslations('Navigation')
     const nowDate = new Date(now)
     const showDate = new Date(list.showDate)
     const { isChecked, toggle, sync, retry } = useListChecks(list.id, initialChecks, { localOnly: !canEdit })
+    const router = useRouter()
+    const liveStart = useLiveStart(list.id, () => router.push(`/lists/${list.id}/live`), () => router.push(`/lists/${list.id}`))
+    const liveResume = useLiveResume(list.id, list.endedAt, () => router.push(`/lists/${list.id}/live`), () => router.push(`/lists/${list.id}?view=list`))
 
     const stages = stagesFor(list.kind, structure.actCount)
     const stageProps = (stage: Stage) => structure.props.filter(p => propInStage(p, stage))
@@ -110,6 +119,9 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
         list.kind === 'rehearsal' && t('rehearsal'),
         list.cast && t('cast', { cast: castLabel(list.cast) ?? '' }),
     ].filter(Boolean).join(' · ')
+    // Cichy „Zaczynamy”: spektakl dziś, którego tryb na żywo jeszcze nie ruszył ręcznie (rusza później albo wcześniej niż w kalendarzu).
+    const canResume = canEdit && canResumeLive(list.kind, list.showDate, now, list.endedAt, list.startedAt)
+    const canStartNow = canEdit && !canResume && list.kind === 'show' && !list.startedAt && ((startsIn > 0 && startsIn <= EARLY_START_MS) || isLiveNow(list.kind, list.showDate, now, list.startedAt, list.endedAt))
     const subline = [startsToday && t('startsIn', { time: duration(startsIn) }), performance.venue].filter(Boolean).join(' · ')
 
     const visible = (p: StructuredProp) => {
@@ -187,6 +199,17 @@ export function ShowListView({ list, performance, structure, initialChecks, crew
                             <div className="md:hidden"><ShowTitle title={performance.title} phone id="list-title" /></div>
                             <div className="hidden md:block"><ShowTitle title={performance.title} /></div>
                             {subline && <span className="rk-tally md:hidden">{subline}</span>}
+                            {canStartNow && (
+                                <LiveStartButton className="mt-1" onStart={liveStart.start} starting={liveStart.starting} pending={!!liveStart.pending} />
+                            )}
+                            {canResume && (
+                                <div className="mt-1 flex">
+                                    <Button variant="ghost" size="sm" onClick={liveResume.resume} isLoading={liveResume.resuming} loadingLabel={t('resumeLive')} title={t('resumeLiveHint')}>
+                                        {t('resumeLive')}
+                                    </Button>
+                                </div>
+                            )}
+                            <TermActions term={term} canEdit={canEdit} />
                         </div>
                         {startsToday && (
                             <div className="pl-countdown hidden md:flex">

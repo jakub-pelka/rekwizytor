@@ -1,7 +1,6 @@
 import { ruleBasedClassifier, IntentClassificationResult, IntentWeights } from './intent-classifier-rules'
 import { intentLogger } from './intent-pattern-extractor'
-import { generateAI, isAIAvailable, logAIUsage } from './ai/client'
-import { createClient } from './supabase/server'
+import { generateAI, isAIAvailable } from './ai/client'
 
 /**
  * LLM-based Intent Classifier (fallback when rules are uncertain)
@@ -37,7 +36,7 @@ Zasady:
 WAŻNE: Odpowiedz TYLKO tym JSON (bez markdown, bez wyjaśnień):
 {"identity": 0.X, "physical": 0.X}`
 
-            const result = await generateAI({ task: 'text', prompt, json: true, maxTokens: 512 })
+            const result = await generateAI({ task: 'text', operation: 'intent_classification', details: { query }, prompt, json: true, maxTokens: 512 })
             const latencyMs = Date.now() - startTime
             const responseText = result.text
 
@@ -59,13 +58,6 @@ WAŻNE: Odpowiedz TYLKO tym JSON (bez markdown, bez wyjaśnień):
             // Normalize if needed (ensure 0-1 range)
             weights.identity = Math.max(0, Math.min(1, weights.identity))
             weights.physical = Math.max(0, Math.min(1, weights.physical))
-
-            // Log token usage (ONLY in production)
-            const isProduction = process.env.NODE_ENV === 'production' && process.env.ENABLE_INTENT_LOGGING === 'true'
-
-            if (isProduction) {
-                await logAIUsage(await createClient(), result, 'intent_classification', { query, weights })
-            }
 
             return {
                 ...weights,

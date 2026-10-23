@@ -481,12 +481,54 @@
 .rk-banner--ok { background: var(--success-tint); } .rk-banner--ok > svg { color: var(--success); }
 .rk-banner--readonly > svg { color: var(--ink-muted); }
 .rk-banner--pending { background: var(--kurtyna-tint); } .rk-banner--pending > svg { color: var(--kurtyna-text); }
+.rk-banner--error { background: var(--danger-tint); } .rk-banner--error > svg { color: var(--danger); }
 @keyframes rk-spin-step { to { transform: rotate(360deg); } }
 .rk-banner--sync > svg { animation: rk-spin-step 1200ms linear infinite; }
 [data-motion="lite"] .rk-banner--sync > svg { animation-timing-function: steps(8, end); }
 .rk-sync { display: inline-flex; align-items: center; gap: 6px; font: 400 12px/16px var(--font-sans); color: var(--ink-muted); }
 .rk-sync svg { width: 14px; height: 14px; }
 .rk-sync--ok svg { color: var(--success); } .rk-sync--wait svg { color: var(--warning); }
+.rk-sync--sync svg { color: var(--info); animation: rk-spin-step 1200ms linear infinite; }
+[data-motion="lite"] .rk-sync--sync svg { animation-timing-function: steps(8, end); }
+@media (prefers-reduced-motion: reduce) { .rk-sync--sync svg { animation: none; } }
+.rk-sync--err svg { color: var(--danger); } .rk-sync--err b { color: var(--danger); }
+.rk-sync__act { margin-left: var(--space-1); font-weight: 500; color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+/* W menu bocznym: osobny wiersz nad stopką z użytkownikiem */
+.rk-sidebar__status { display: flex; padding: var(--space-2) var(--space-3) var(--space-1); margin: 0 var(--space-3); }
+.rk-sidebar__status .rk-sync { flex: 1; min-height: 32px; padding: 6px var(--space-2); margin: 0 calc(var(--space-2) * -1); border-radius: var(--radius-sm); box-sizing: border-box; }
+/* Zwinięte menu: sama ikona 44 px, treść w podpowiedzi, liczba zmian jako znacznik */
+.rk-sync.rk-sync--icon { position: relative; width: 44px; height: 36px; min-height: 0; justify-content: center; padding: 0; margin: 0; }
+.rk-sync--icon svg { width: 18px; height: 18px; }
+.rk-sync__n { position: absolute; top: 0; right: 4px; min-width: 16px; height: 16px; padding: 1px 4px 0; border-radius: var(--radius-full); font: 700 10px/15px var(--font-typewriter); text-align: center; box-sizing: border-box; }
+.rk-sync--wait .rk-sync__n { background: var(--warning-tint); color: var(--warning); }
+.rk-sync--err .rk-sync__n { background: var(--danger-tint); color: var(--danger); }
+.rk-sidebar--rail .rk-sidebar__status { padding: 0; margin: 0 0 var(--space-1); justify-content: center; }
+
+/* ── Baner teatru (tożsamość teatru w ustawieniach): logo na płytce + kolor akcentu ── */
+.rk-tbanner { --tb: var(--kurtyna); position: relative; isolation: isolate; display: flex; align-items: center; gap: var(--space-6); min-height: 144px; padding: var(--space-8) var(--space-6) var(--space-6); border-radius: var(--radius-lg); overflow: hidden; color: #fff;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.10), transparent 38%, rgba(0,0,0,.34) 100%),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.20), transparent 16px, rgba(255,255,255,.06) 28px, transparent 40px, rgba(0,0,0,.20) 60px),
+    linear-gradient(100deg, var(--tb), color-mix(in oklab, var(--tb) 45%, #000)); transition: background-color var(--dur-base) linear; }
+.rk-tbanner::before { content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: 0; height: 14px; background: radial-gradient(circle at 18px 0, rgba(0,0,0,.30) 13px, transparent 14px) 0 0 / 36px 14px repeat-x; } /* lambrekin */
+.rk-tbanner__logo { flex: none; display: grid; place-items: center; width: 72px; height: 72px; border-radius: var(--radius-md); background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+.rk-tbanner__logo img { max-width: 52px; max-height: 52px; display: block; }
+.rk-tbanner__text { min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); }
+.rk-tbanner__name { margin: 0; font: 600 28px/36px var(--font-sans); letter-spacing: -.01em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-shadow: 0 1px 8px rgba(0,0,0,.35); }
+.rk-tbanner__sub { margin: 0; font: 400 14px/20px var(--font-sans); color: rgba(255,255,255,.82); }
+.rk-tbanner--empty .rk-tbanner__logo { background: rgba(255,255,255,.14); box-shadow: none; border: 1px dashed rgba(255,255,255,.55); }
+.rk-tbanner__ini { font: 600 24px/32px var(--font-sans); letter-spacing: .02em; color: #fff; }
+.rk-tbanner--phone .rk-tbanner__ini { font-size: 18px; line-height: 24px; }
+.rk-tbanner--phone { min-height: 112px; gap: var(--space-4); padding: var(--space-6) var(--space-4) var(--space-4); }
+.rk-tbanner--phone .rk-tbanner__logo { width: 56px; height: 56px; } .rk-tbanner--phone .rk-tbanner__logo img { max-width: 40px; max-height: 40px; }
+.rk-tbanner--phone .rk-tbanner__name { font-size: 20px; line-height: 28px; }
+@media (prefers-reduced-motion: reduce) { .rk-tbanner { transition: none; } }
+/* Wybór koloru akcentu: osiem gotowych barw, każda daje czytelny biały tekst */
+.rk-swatches { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.rk-swatch { width: 32px; height: 32px; padding: 0; border-radius: var(--radius-full); border: 0; background: var(--sw); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); cursor: pointer; }
+.rk-swatch[aria-checked="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.rk-swatch:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.rk-swatch--own { display: grid; place-items: center; background: var(--surface-raised); color: var(--ink-muted); box-shadow: inset 0 0 0 1px var(--border-strong); } .rk-swatch--own svg { width: 16px; height: 16px; }
 
 /* ── Data i godzina ── */
 .rk-date-field { display: flex; align-items: center; gap: var(--space-2); height: 40px; padding: 0 var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); font: 400 14px/20px var(--font-sans); cursor: pointer; }
@@ -569,7 +611,7 @@
 .rk-lbl__id { font: 700 calc(4.2 * var(--mm))/1.1 var(--font-typewriter); letter-spacing: .04em; }
 .rk-lbl__name { font: 600 calc(3.2 * var(--mm))/1.2 var(--font-sans); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .rk-lbl__kind { font: 400 calc(2.6 * var(--mm))/1.2 var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; }
-.rk-lbl__foot { display: flex; align-items: center; gap: calc(1 * var(--mm)); font: 700 calc(2.4 * var(--mm))/1 var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; }
+.rk-lbl__foot { display: flex; align-items: center; gap: calc(1 * var(--mm)); font: 700 calc(2.5 * var(--mm))/1 var(--font-typewriter); text-transform: uppercase; letter-spacing: .06em; }
 .rk-lbl__foot img { width: calc(3 * var(--mm)); height: calc(3 * var(--mm)); display: block; }
 .rk-lbl__text { display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
 
@@ -578,7 +620,7 @@
 
 .rk-lbl--group { width: calc(105 * var(--mm)); height: calc(57 * var(--mm)); padding: calc(5 * var(--mm)); grid-template-columns: 1fr calc(32 * var(--mm)); gap: calc(4 * var(--mm)); align-items: center; }
 .rk-lbl--group .rk-lbl__text { height: 100%; }
-.rk-lbl--group .rk-lbl__name { font: 400 calc(6 * var(--mm))/1.25 var(--font-display); letter-spacing: .03em; }
+.rk-lbl--group .rk-lbl__name { font: 400 calc(6 * var(--mm))/1.25 var(--font-display); letter-spacing: .03em; padding-bottom: .3em; } /* Boldonse: zejścia „y”, „ą” do .35em pod linią, a line-clamp ucina na krawędzi pudełka */
 .rk-lbl--group .rk-lbl__id { font-size: calc(3.6 * var(--mm)); }
 
 .rk-lbl--place { width: calc(105 * var(--mm)); height: calc(57 * var(--mm)); grid-template-columns: 1fr calc(37 * var(--mm)); grid-template-rows: calc(11 * var(--mm)) 1fr; column-gap: calc(4 * var(--mm)); }
@@ -590,13 +632,13 @@
 .rk-lbl--place .rk-lbl__id { font-size: calc(3 * var(--mm)); }
 .rk-lbl--place .rk-lbl__qr { align-self: center; width: calc(32 * var(--mm)); }
 
-.rk-lbl--mini { width: calc(38.1 * var(--mm)); height: calc(21.2 * var(--mm)); padding: calc(2 * var(--mm)); grid-template-columns: calc(16 * var(--mm)) 1fr; gap: calc(2 * var(--mm)); align-items: center; }
+.rk-lbl--mini { width: calc(38 * var(--mm)); height: calc(21.2 * var(--mm)); padding: calc(2 * var(--mm)); grid-template-columns: calc(16 * var(--mm)) 1fr; gap: calc(2 * var(--mm)); align-items: center; }
 .rk-lbl--mini .rk-lbl__id { font-size: calc(3.4 * var(--mm)); }
 .rk-lbl--mini .rk-lbl__foot img { width: calc(3.4 * var(--mm)); height: calc(3.4 * var(--mm)); }
 .rk-lbl--mini .rk-lbl__brand { display: none; } /* na mini nazwa marki się nie mieści: zostaje sam znak */
 .rk-lbl--mini .rk-lbl__text { justify-content: center; gap: calc(1.5 * var(--mm)); } /* numer i znak to jedna grupa na środku, z dala od krawędzi arkusza */
 /* Flaga: składana wokół nitki, sznurka, kabla. Środek bez druku przykleja się do nitki, połówki sklejają się ze sobą. */
-.rk-lbl--flag { width: calc(70 * var(--mm)); height: calc(25.4 * var(--mm)); grid-template-columns: 1fr calc(10 * var(--mm)) 1fr; }
+.rk-lbl--flag { width: calc(70 * var(--mm)); height: calc(32 * var(--mm)); grid-template-columns: 1fr calc(10 * var(--mm)) 1fr; }
 .rk-lbl--flag .rk-lbl__half { display: flex; flex-direction: column; justify-content: space-between; padding: calc(2 * var(--mm)); min-width: 0; }
 .rk-lbl--flag .rk-lbl__half--qr { align-items: center; justify-content: center; }
 .rk-lbl--flag .rk-lbl__half--qr .rk-lbl__qr { width: calc(21 * var(--mm)); }

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/supabase'
-import { roman, sceneCode } from './rk-format'
+import { roman, sceneCode, theatreDate } from './rk-format'
 
 type PropRow = Database['public']['Tables']['performance_props']['Row']
 type SceneRow = Database['public']['Tables']['scenes']['Row']
@@ -203,12 +203,41 @@ export function listProgress(structure: PerformanceStructure, kind: string, cast
 /** Jak długo po godzinie rozpoczęcia lista jest w stanie „na żywo” (spektakl z przerwą). */
 const LIVE_WINDOW_MS = 4 * 60 * 60 * 1000
 
-/** Stan „na żywo” włącza się sam o godzinie spektaklu; nie ma przycisku startu (POMYSLY 7). */
-export function isLiveNow(kind: string, showDate: string, now: string) {
+/** Jak długo trwa tryb „na żywo” od startu (okno 4 h): od godziny spektaklu albo od ręcznego „Zaczynamy”. */
+export const LIVE_WINDOW = LIVE_WINDOW_MS
+
+/** Najwcześniej ile przed godziną spektaklu można go wystartować ręcznie („Zaczynamy”). */
+export const EARLY_START_MS = 12 * 60 * 60 * 1000
+
+/**
+ * Stan „na żywo” włącza się sam o godzinie spektaklu (POMYSLY 7) i trwa 4 h od niej. Cichy przycisk „Zaczynamy”
+ * zapisuje chwilę startu w live_act_started_at (timestamptz) i może tylko przyspieszyć początek okna (start przed
+ * godziną z kalendarza); koniec okna zawsze liczy się od godziny spektaklu. Uwaga: ta kolumna jest współdzielona
+ * z zegarem aktu (LiveView zapisuje ją też przy zmianie aktu), więc późniejsza wartość nie może przedłużać trybu.
+ * „Zakończ spektakl” zapisuje chwilę końca w live_ended_at: zakończenie z bieżącego okna (nie starsze niż jego początek)
+ * wyłącza tryb od razu; zakończenie sprzed okna (np. z poprzedniego dnia) go nie blokuje.
+ */
+export function isLiveNow(kind: string, showDate: string, now: string, startedAt?: string | null, endedAt?: string | null) {
     if (kind !== 'show') return false
-    const start = new Date(showDate).getTime()
     const t = new Date(now).getTime()
-    return t >= start && t < start + LIVE_WINDOW_MS
+    const start = new Date(showDate).getTime()
+    let from = start
+    if (startedAt) {
+        const manual = theatreDate(startedAt).getTime()
+        // Wcześniejszy start liczy się tylko w rozsądnym zakresie (nie dalej niż pół doby przed terminem).
+        if (manual < start && start - manual <= EARLY_START_MS) from = manual
+    }
+    if (endedAt && theatreDate(endedAt).getTime() >= from) return false
+    return t >= from && t < start + LIVE_WINDOW_MS
+}
+
+/**
+ * Czy na liście zadań pokazać „Wznów tryb na żywo”: spektakl jest w bieżącym oknie 4 h, ale został wcześniej
+ * ręcznie zakończony (live_ended_at). Działa także wtedy, gdy live_act_started_at jest już ustawione.
+ */
+export function canResumeLive(kind: string, showDate: string, now: string, endedAt?: string | null, startedAt?: string | null) {
+    if (!endedAt) return false
+    return !isLiveNow(kind, showDate, now, startedAt, endedAt) && isLiveNow(kind, showDate, now, startedAt, null)
 }
 
 /** Sceny grane po kolei (bez przygotowania i przerw), z aktem. */

@@ -8,6 +8,7 @@ import { useRouter } from '@/i18n/routing'
 import { Button } from '@/components/ui/Button'
 import { ActionMenu } from '@/components/rk/ActionMenu'
 import { notify } from '@/utils/notify'
+import { CodeDialog } from '@/components/team/TeamDialogs'
 import {
     addTheatreMember, createTheatre, removeTheatreMember, renameTheatre, setTheatreMemberRole, switchTheatre,
     type TheatreRole,
@@ -109,6 +110,7 @@ function TheatreSection({ theatre, current, myId, pending, onGoTo, run }: {
     const [renaming, setRenaming] = useState(false)
     const [name, setName] = useState(theatre.name)
     const [showHistory, setShowHistory] = useState(false)
+    const [sentCode, setSentCode] = useState<{ who: string; role: TheatreRole; code: string; expiresAt: string } | null>(null)
 
     const add = () => {
         const address = email.trim()
@@ -117,7 +119,9 @@ function TheatreSection({ theatre, current, myId, pending, onGoTo, run }: {
             const result = await addTheatreMember(theatre.id, address, role)
             if (result.ok) {
                 setEmail('')
-                notify.success(result.data?.invited ? t('invited', { email: address }) : t('added', { email: address }))
+                // Osoba bez konta dostaje mail, a kod do wejścia pokazujemy tu, bo nie ma go w mailu.
+                if (result.data?.invited && result.data.code && result.data.expiresAt) setSentCode({ who: address, role, code: result.data.code, expiresAt: result.data.expiresAt })
+                else notify.success(result.data?.invited ? t('invited', { email: address }) : t('added', { email: address }))
             }
             return result
         })
@@ -197,6 +201,10 @@ function TheatreSection({ theatre, current, myId, pending, onGoTo, run }: {
                 <Button type="submit" variant="secondary" disabled={!email.trim() || pending}>{t('addPerson')}</Button>
             </form>
             <p className="rk-hint">{t('addHint')}</p>
+
+            {sentCode && (
+                <CodeDialog mode="sent" who={sentCode.who} roleLabel={roleLabel(sentCode.role)} code={sentCode.code} expiresAt={sentCode.expiresAt} onClose={() => setSentCode(null)} />
+            )}
 
             {theatre.history.length > 0 && (
                 <div className="flex flex-col gap-3">

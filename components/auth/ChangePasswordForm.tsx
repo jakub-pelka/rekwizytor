@@ -6,6 +6,7 @@ import { Lock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
+import { getPasswordStrength } from '@/lib/password-strength'
 
 export function ChangePasswordForm({ redirectTo = '/settings' }: { redirectTo?: string }) {
     const t = useTranslations('Login')
@@ -16,16 +17,6 @@ export function ChangePasswordForm({ redirectTo = '/settings' }: { redirectTo?: 
     const [message, setMessage] = useState<string | null>(null)
     const supabase = createClient()
     const router = useRouter()
-
-    const getPasswordStrength = (pass: string) => {
-        if (!pass) return 0
-        let score = 0
-        if (pass.length >= 8) score += 1
-        if (/[A-Z]/.test(pass)) score += 1
-        if (/[0-9]/.test(pass)) score += 1
-        if (/[^A-Za-z0-9]/.test(pass)) score += 1
-        return score
-    }
 
     const passwordStrength = getPasswordStrength(password)
 

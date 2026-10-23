@@ -15,7 +15,7 @@ Zasady: wygląd tylko z `design-system/`, a gdy czegoś brakuje, najpierw dopisu
 | 4 | Przyjęcie rzeczy do magazynu: zdjęcie, opis, miejsce, etykiety QR | do zrobienia |
 | 5 | Poniedziałek rano: Pulpit i Kalendarz (co gramy, które listy nie są gotowe) | do zrobienia |
 | 6 | Przekazanie na papierze: eksport PDF i druk dla inspicjenta albo zastępstwa | do zrobienia |
-| 7 | Pierwsze 5 minut nowego teatru: logowanie, pusty pulpit, pierwsze uruchomienie | do zrobienia, ważne dla pilotażu |
+| 7 | Pierwsze 5 minut nowego teatru: logowanie, pusty pulpit, pierwsze uruchomienie | przejście 18.10 (Teatr próbny), czeka na decyzje i projekty (`BRIEF-PIERWSZE-WEJSCIE.md`) |
 
 Proponowana kolejność: 1b + 2 (ten sam ciąg pracy), potem 7, potem 3–6.
 
@@ -75,3 +75,63 @@ Pytanie dodatkowe: czy po Enterze w oknie rekwizytu ma się otwierać następne 
 ## Notatki z przeglądu (uzupełniać)
 
 _Tu dopisujemy niedorobki graficzne i inne tarcia, które wychodzą przy kolejnych scenariuszach._
+
+### 18.10: pierwszy przegląd z jev-browser (scenariusz 5, tylko odczyt)
+
+Agent z małym modelem dostawał cel po polsku („znajdź najbliższy spektakl”), a jego wahania pokazywały tarcia.
+
+- **Poprawione:** link „Kalendarz spektakli” na Pulpicie prowadził do listy spektakli; teraz do `/calendar`.
+- **Poprawione:** w karcie Magazyn na Pulpicie link nazywał się „Przejdź do rekwizytów” / „Rekwizyty”, a prowadzi do Magazynu; teraz „Przejdź do magazynu” / „Cały magazyn”.
+- **Poprawione:** pusty tydzień w Kalendarzu odsyłał „do kolejnego tygodnia” także wtedy, gdy dalej nic nie ma. Teraz mówi „Najbliższy termin: środa, 22 kwietnia.” z przyciskiem „Przejdź do tego tygodnia” (wzorzec EmptyState, akcja `rk-btn--secondary`), a gdy nic nie zaplanowano: „Dalej też nic nie zaplanowano…”. Agent trafia jednym kliknięciem zamiast klikać na ślepo.
+- **Do decyzji:** na liście spektakli każdy ma „Premiera” z datą, co wygląda jak najbliższy termin. W „Teatr demo” wszystkie premiery już minęły.
+- **Drobne:** podpowiedź klawisza w polu rozpiski jest w tekście strony sklejona z etykietą („Przejdź do opisuEnter”), więc tak samo przeczyta ją czytnik ekranu.
+- **Dane testowe:** „Teatr demo” nie ma żadnych przyszłych terminów, więc scenariusza 5 nie da się na nim przejść do końca.
+
+### 18.10: przegląd ekranów względem design systemu (zrzuty, komputer, motyw Kulisy)
+
+**Poprawione od razu:**
+- Ekran spektaklu, kolumna „Powiązane”: „1 zaginiony” miał na sztywno kolor `warning`. Teraz kolor bierze się ze stanu (`GROUP_STATUS`), więc zaginiony jest `danger`.
+
+- Etykieta „Grupa”: nazwa w Boldonse z `line-height: 1.25` i `overflow: hidden` ucinała dolne części liter („banknoty” jak „banknotv”). Boldonse ma deklarowany górny margines 1,52 em, a „y”/„ą” schodzą do 0,35 em pod linię, więc sama interlinia nie pomaga. Poprawka: `padding-bottom: .3em` przy interlinii 1.25, w `bundle.css` design systemu i w `styles/rk/components.css` (za zgodą Kuby, 18.10).
+
+**Do design systemu:**
+- Magazyn: kafelki pomieszczeń mają różne barwy, w tym fioletową (klucz). Do potwierdzenia, czy paleta pomieszczeń jest w systemie, bo „Rób i nie rób” zakazuje fioletu.
+
+**Stary wygląd, do migracji (punkt 1 w POMYSLY):**
+- **Notatki:** żółta ikona w kafelku, „Nowa Notatka” (Title Case), „Szukaj w Notatki”, pole szukania w osobnej karcie, nagłówki grup wersalikami w Geist, fioletowy pasek przy „Spektakl A”. Cały ekran poza systemem.
+- **Etykiety QR:** nagłówek inny niż na pozostałych ekranach (strzałka wstecz na ekranie z menu głównego, własny pasek narzędzi zamiast `.rk-page-header`).
+- **Kosz:** „Przedstawienia” zamiast „Spektakle”, „przedmiotami”, stary układ (znane).
+- **Pulpit, pusty stan:** tytuł „Brak zaplanowanych spektakli” łamie zasadę „bez »Brak…«”. Opis odsyła do „ekranu spektaklu”, a terminy dodaje się dziś także w Kalendarzu.
+
+**Dla wątku funkcjonalnego:**
+- Nowy spektakl zakłada od razu grupę w Magazynie (`CreatePerformanceForm`, `handleFinalize`) i grupę w Notatkach. Usunięcie spektaklu ich nie sprząta: „test ux”, „test ux 2”, „test ux3” są w Koszu, a ich grupy wciąż stoją w Magazynie („Nieprzypisane”) i w Notatkach.
+- „Spektakl B” jest jednocześnie na liście spektakli i w Koszu (usunięty 20.03). Do sprawdzenia, czy to dwa rekordy o tej samej nazwie.
+- Magazyn: „Nowe Pomieszczenie” (Title Case) to pewnie domyślna nazwa przy zakładaniu pomieszczenia.
+
+**Wygląda dobrze:** Rozpiska, Kalendarz, Lista spektakli, Ustawienia i Magazyn (poza kafelkami) trzymają system: nagłówek strony, liczniki w maszynopisie, linie sekcji, jedna akcja główna.
+
+### 18.10: scenariusz 7, pierwsze przejście („Teatr próbny”, konto superadmina, tylko odczyt)
+
+Teatr założony przez MCP Supabase: `theatres` „Teatr próbny” + Kuba jako kierownik w `theatre_members`. Nowe konto nie powstało (wymaga panelu Supabase), więc wejście przez zaproszenie i `/update-password` nie było przechodzone.
+
+**Blokuje pilotaż:**
+- Kierownik pracowni nie może nikogo zaprosić. Sekcję „Teatr” w Ustawieniach i `/settings/theatres` widzi tylko superadmin (`profiles.role = 'admin'`), a `addTheatreMember` też wymaga superadmina. Pulpit pokazuje mu dwa przyciski „Zaproś zespół”, które prowadzą w ślepy zaułek. (`docs/TEATRY.md`, „Otwarte”: brak ekranu zespołu dla kierownika.)
+- Nawet superadmin trafia do zapraszania w czterech krokach: „Zaproś zespół” otwiera Ustawienia na „Konto”, dalej Teatr → Zarządzaj → lista wszystkich teatrów. Agent zgubił się po pierwszym kroku.
+
+**Tarcia:**
+- „Pierwsze kroki 0/3” nigdy nie rosną: postęp nie jest nigdzie zapisany, a pierwsze uruchomienie rozpoznaje pusty magazyn, nie nową osobę.
+- Kolejność kroków na Pulpicie (rekwizyty → spektakl → zespół) różni się od POMYSLY 9 (teatr → ty → spektakl → rozpiska → magazyn → zespół → etykiety). Do decyzji.
+- Karta „Zespół” obiecuje „garderoba kostiumy”, a aplikacja kostiumów nie ma.
+- Kalendarz w pustym teatrze: okno dodawania terminu nazywa się „Nowy spektakl”, a lista „Wybierz spektakl…” jest pusta, bez podpowiedzi, że najpierw trzeba założyć spektakl.
+- Notatki w pustym teatrze: „Brak notatek.” i po angielsku „Create a new note to get started.”
+- Etykiety w pustym teatrze: „Nie wybrano żadnych pozycji lub wybrane pozycje nie mają nadanych numerów inwentarzowych.”, przycisk „Drukuj” aktywny przy 0 etykiet, „Wróć do magazynu”, choć wchodzi się z menu.
+- Spektakle: „Brak spektakli w tym sezonie” (zasada „bez »Brak…«”). Nowy spektakl: nagłówek „Uzupełnij szczegóły”, opis plakatu technicznym językiem („wyodrębnimy kolor motywu”).
+
+**Działa dobrze:** Pulpit pierwszego uruchomienia zgodny z ekranem „Pierwsze-uruchomienie”; pusty Magazyn z akcjami; pusty Kalendarz z nowym komunikatem „Dalej też nic nie zaplanowano”.
+
+### 18.10: etap 1 scenariusza 7 wdrożony (zaproszenie i zespół), do poprawy jutro
+
+- Wdrożone: `/witaj` (hasło i imię, stany), ekran `Zespół` (`/settings/team`) dla kierownika, migracje `20261018_team_managers.sql`, `20261018_fix_handle_new_user.sql`, `20261018_fix_profile_guard.sql` (uruchomione ręcznie w SQL Editor), przekierowanie niedokończonych zaproszeń na `/witaj` w `proxy`, żywe wideo pod kurtyną po zalogowaniu.
+- **Do projektu (Kuba, 18.10):** `/witaj` jest za bardzo podobne do logowania (ten sam układ z kurtyną), więc osoba z linku nie odróżnia „ustawiam konto” od „loguję się”. Do wyboru: nowy projekt ekranu pierwszego wejścia w Claude Design albo inna forma, np. ekran od razu po linku z widocznym mailem zaproszenia.
+- Testowe konto `rekwizytorka.test@example.com` (Rekwizytor w „Teatr próbny”) do usunięcia po pracach.
+- Zostaje: szablony maili i Redirect URLs w panelu Supabase (`docs/TEATRY.md`, „Maile”), etapy 2–4 (Dokończ konfigurację, kreator, wejście na telefonie).

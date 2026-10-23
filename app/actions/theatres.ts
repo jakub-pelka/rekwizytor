@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/utils/supabase/admin'
+import { addMemberWithInvite } from '@/lib/team'
 
 // Teatry (migracja 20261011_theatres): baza pokazuje każdemu tylko jego bieżący teatr (profiles.current_theatre_id),
 // więc reszta aplikacji nie filtruje po teatrze. Tu: przełączanie teatru, a dla superadmina zakładanie teatrów
@@ -59,44 +59,28 @@ export async function renameTheatre(theatreId: string, name: string): Promise<Re
 }
 
 /**
- * Dodanie osoby do teatru po adresie e-mail (superadmin). Gdy konta jeszcze nie ma, wysyłamy zaproszenie
- * z linkiem do ustawienia hasła. Osoba dodana do teatru jest od razu zatwierdzona i ma go jako bieżący.
+ * Dodanie osoby do teatru po adresie e-mail (superadmin). Gdy konta jeszcze nie ma (albo nie przyjęło zaproszenia),
+ * wysyłamy zaproszenie z linkiem do /witaj i generujemy kod 6 cyfr (code „482 913”, expiresAt). Konto aktywne dodajemy
+ * od razu (invited=false, code null). Osoba dodana do teatru jest zatwierdzona i ma go jako bieżący, jeśli nie miała innego.
  */
-export async function addTheatreMember(theatreId: string, email: string, role: TheatreRole): Promise<Result<{ invited: boolean }>> {
+export async function addTheatreMember(theatreId: string, email: string, role: TheatreRole): Promise<Result<{ invited: boolean; code: string | null; expiresAt: string | null }>> {
     const s = await session()
     if (!s) return { ok: false, error: AUTH_ERROR }
     if (!s.isSuperadmin) return { ok: false, error: SUPERADMIN_ERROR }
     const address = email.trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) return { ok: false, error: 'Wpisz poprawny adres e-mail, np. anna@teatr.pl.' }
 
-    let invited = false
-    let { data: profile } = await s.supabase.from('profiles').select('id, status, current_theatre_id').ilike('email', address).maybeSingle()
-
-    if (!profile) {
-        // Zaproszenie wymaga klucza serwisowego (tworzy konto w auth); profil zakłada wyzwalacz handle_new_user.
-        const admin = createAdminClient()
-        // Szablon maila „Invite user” w Supabase prowadzi na /auth/confirm (docs/TEATRY.md, „Maile”); imię osoba poda przy pierwszym wejściu.
-        const { data: invite, error: inviteError } = await admin.auth.admin.inviteUserByEmail(address)
-        if (inviteError || !invite.user) {
-            console.error('addTheatreMember invite:', inviteError)
-            return { ok: false, error: 'Nie udało się wysłać zaproszenia. Sprawdź adres i spróbuj jeszcze raz.' }
-        }
-        invited = true
-        profile = { id: invite.user.id, status: 'pending', current_theatre_id: null }
-    }
-
-    const { error: memberError } = await s.supabase.from('theatre_members')
-        .upsert({ theatre_id: theatreId, user_id: profile.id, role }, { onConflict: 'theatre_id,user_id' })
-    if (memberError) return { ok: false, error: 'Nie udało się dodać osoby do teatru. Spróbuj jeszcze raz.' }
-
-    const { error: profileError } = await s.supabase.from('profiles').update({
-        status: 'approved',
-        ...(profile.current_theatre_id ? {} : { current_theatre_id: theatreId }),
-    }).eq('id', profile.id)
-    if (profileError) console.error('addTheatreMember profile:', profileError)
-
+    const result = await addMemberWithInvite({
+        supabase: s.supabase,
+        inviter: s.user,
+        theatreId,
+        email: address,
+        role,
+        memberError: 'Nie udało się dodać osoby do teatru. Spróbuj jeszcze raz.',
+    })
+    if (!result.ok) return result
     revalidatePath('/[locale]/settings/theatres', 'page')
-    return { ok: true, data: { invited } }
+    return { ok: true, data: result.data }
 }
 
 export async function setTheatreMemberRole(theatreId: string, userId: string, role: TheatreRole): Promise<Result> {

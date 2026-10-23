@@ -74,7 +74,7 @@ export async function DashboardView({ data, now, canEdit, theatreName }: Props) 
                                 })}
                             </ul>
                         ) : <p className="pl-meta">{t('weekEmpty')}</p>}
-                        <Link className="pl-link" href="/performances">{t('calendar')}<ChevronRight /></Link>
+                        <Link className="pl-link" href="/calendar">{t('calendar')}<ChevronRight /></Link>
                     </section>
                     )}
                 </div>
@@ -251,7 +251,7 @@ function FirstRunAside({ t }: { t: T }) {
     const steps = [
         { title: t('step1'), text: t('step1Text'), href: '/scan' },
         { title: t('step2'), text: t('step2Text'), href: '/performances/new' },
-        { title: t('step3'), text: t('step3Text'), href: '/settings' },
+        { title: t('step3'), text: t('step3Text'), href: '/settings/team' },
     ]
     return (
         <div className="flex flex-col gap-12 md:flex-[1_1_280px]">
@@ -274,7 +274,7 @@ function FirstRunAside({ t }: { t: T }) {
                     <span className="rk-tally">{t('onlyYou')}</span>
                 </div>
                 <p className="pl-meta" style={{ font: '400 14px/20px var(--font-sans)' }}>{t('teamText')}</p>
-                <Link className="rk-btn rk-btn--secondary self-start" href="/settings"><Mail />{t('invite')}</Link>
+                <Link className="rk-btn rk-btn--secondary self-start" href="/settings/team"><Mail />{t('invite')}</Link>
             </section>
         </div>
     )

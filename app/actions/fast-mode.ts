@@ -3,7 +3,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-import { generateAI, logAIUsage, parseAIJson } from '@/utils/ai/client'
+import { generateAI, parseAIJson } from '@/utils/ai/client'
 import { sanitizeAIOutput, validateAIResponse, FastModeSchema } from '@/utils/ai-security'
 import { Database } from '@/types/supabase'
 
@@ -69,12 +69,12 @@ async function processImageWithAI(
 
         const result = await generateAI({
             task: 'vision',
+            operation: 'fast_add',
+            details: { fileName },
             prompt: AI_PROMPT,
             images: [{ data: base64Data, mimeType: image.type || 'image/jpeg' }],
             json: true
         })
-
-        await logAIUsage(supabase, result, 'fast_add', { fileName })
 
         const rawAnalysis = parseAIJson(result.text)
 

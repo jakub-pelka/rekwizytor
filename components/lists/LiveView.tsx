@@ -4,17 +4,22 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { StatusBanner } from '@/components/rk/StatusBanner'
 import { useTranslations } from 'next-intl'
 import { Check, ChevronRight, Eye, MapPin, TriangleAlert, User } from 'lucide-react'
-import { Link } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { createClient } from '@/utils/supabase/client'
 import { notify } from '@/utils/notify'
 import { MobileTop } from '@/components/rk/MobileTop'
 import { ShowTitle } from '@/components/rk/ShowTitle'
 import { Button } from '@/components/ui/Button'
+import { TermActions, type TermActionsTerm } from './TermActions'
 import { RkAvatar, avatarFor } from '@/components/rk/RkAvatar'
 import { playOrder, skippedForCast, type PerformanceStructure, type StructuredScene } from '@/lib/performance-structure'
 import { castLabel, plural, roman, theatreDate, theatreNaiveToInstant, time } from '@/lib/rk-format'
 import { useListChecks } from './useListChecks'
 import { SyncBanner } from './SyncBanner'
+import { EARLY_START_MS } from '@/lib/performance-structure'
+import { LiveStartButton } from './LiveStartButton'
+import { useLiveStart } from './useLiveStart'
+import { useLiveEnd } from './useLiveEnd'
 
 export type LiveCheck = { propId: string; at: string; by: { id: string; name: string } | null }
 export type LiveReport = {
@@ -29,6 +34,7 @@ export type LiveReport = {
 type Props = {
     list: { id: string; showDate: string; cast: string | null; sceneNumber: number | null; actStartedAt: string | null }
     performance: { id: string; title: string; venue: string | null }
+    term: TermActionsTerm
     structure: PerformanceStructure
     initialChecks: LiveCheck[]
     initialReports: LiveReport[]
@@ -41,7 +47,7 @@ type Props = {
 
 // Tryb na żywo (karta NaZywo, ekrany „Na-zywo-telefon” i „Na-zywo”): telefon rekwizytora
 // podąża za sceną przełączaną przez inspicjenta na komputerze („Następna scena” albo spacja).
-export function LiveView({ list, performance, structure, initialChecks, initialReports, crew, userId, canWrite, now }: Props) {
+export function LiveView({ list, performance, term, structure, initialChecks, initialReports, crew, userId, canWrite, now }: Props) {
     const t = useTranslations('Live')
     const scenes = playOrder(structure)
     const [sceneNumber, setSceneNumber] = useState<number | null>(list.sceneNumber ?? scenes[0]?.number ?? null)
@@ -52,7 +58,11 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
     const [reports, setReports] = useState(initialReports)
     const [reporting, setReporting] = useState(false)
     const [clock, setClock] = useState('0:00')
+    const router = useRouter()
+    // „Zaczynamy” przy opóźnieniu: do godziny po terminie, dopóki nikt nie zapisał startu ani nie przełączył aktu.
+    const [canRestart, setCanRestart] = useState(false)
 
+    const firstScene = scenes[0]?.number
     const index = Math.max(0, scenes.findIndex(s => s.number === sceneNumber))
     const scene: StructuredScene | undefined = scenes[index]
     const nextScene = scenes[index + 1]
@@ -66,12 +76,15 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
         const start = actStartedAt ? new Date(actStartedAt).getTime() : theatreNaiveToInstant(list.showDate)
         const tick = () => {
             const s = Math.max(0, Math.floor((Date.now() - start) / 1000))
+            // Tylko przy pierwszej scenie, do godziny po terminie (i nie dalej niż pół doby przed nim).
+            const since = Date.now() - start
+            setCanRestart(!actStartedAt && sceneNumber === firstScene && since < 60 * 60 * 1000 && since > -EARLY_START_MS)
             setClock(`${Math.floor(s / 3600) > 0 ? `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}` : Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`)
         }
         tick()
         const id = setInterval(tick, 1000)
         return () => clearInterval(id)
-    }, [actStartedAt, list.showDate])
+    }, [actStartedAt, list.showDate, sceneNumber, firstScene])
 
     // Realtime: scena, potwierdzenia i zgłoszenia z innych urządzeń.
     useEffect(() => {
@@ -108,16 +121,38 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
         if (error) notify.error(t('switchFailed'))
     }, [canWrite, nextScene, act, actStartedAt, userId, list.id, t])
 
-    // „Następna scena” spacją (komputer inspicjenta), poza polami formularza.
+    // „Następna scena” spacją (komputer inspicjenta), poza polami formularza i oknami dialogowymi.
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             const el = e.target as HTMLElement
-            if (e.code !== 'Space' || reporting || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(el.tagName)) return
+            if (e.code !== 'Space' || reporting || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(el.tagName) || document.querySelector('[role="dialog"]')) return
             if (window.matchMedia('(min-width: 768px)').matches) { e.preventDefault(); void goNext() }
         }
         document.addEventListener('keydown', onKey)
         return () => document.removeEventListener('keydown', onKey)
     }, [goNext, reporting])
+
+    const liveStart = useLiveStart(list.id, at => setActStartedAt(at), () => {
+        setActStartedAt(null)
+        // Start sprzed godziny z kalendarza: bez niego to nie jest jeszcze „na żywo”, wracamy do listy.
+        if (Date.now() < theatreNaiveToInstant(list.showDate)) router.push(`/lists/${list.id}`)
+    })
+    const startButton = canWrite && canRestart && (
+        <LiveStartButton onStart={liveStart.start} starting={liveStart.starting} pending={!!liveStart.pending} />
+    )
+
+    // „Zakończ spektakl”: zawsze cichy (ghost), a na ostatniej scenie główny, w miejscu „Następna scena”.
+    // Po zapisie wracamy na listę zadań; „Cofnij” w komunikacie wraca do trybu na żywo.
+    // Po zakończeniu idziemy na ?view=list: zwykły adres listy bywa w pamięci routera (staleTimes 30 s) jako przekierowanie
+    // na tryb na żywo sprzed zakończenia, więc widok wracałby do trybu na żywo.
+    const liveEnd = useLiveEnd(list.id, userId, () => router.push(`/lists/${list.id}?view=list`), () => router.push(`/lists/${list.id}/live`))
+    const endButton = canWrite && (
+        <div className="flex">
+            <Button variant={nextScene ? 'ghost' : 'primary'} size={nextScene ? 'sm' : 'lg'} onClick={liveEnd.end} isLoading={liveEnd.ending} loadingLabel={t('endShow')} title={t('endHint')}>
+                {t('endShow')}
+            </Button>
+        </div>
+    )
 
     const strip = (wide: boolean) => (
         <div className={`rk-live-strip ${wide ? 'rk-live-strip--wide' : ''}`} role="status">
@@ -145,6 +180,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                     <div className="flex flex-col gap-1">
                         <span className="rk-tally">{t('nowFollowing')}</span>
                         {scene && <h1 className="rk-live-scene"><span>{scene.code}</span>{scene.name}</h1>}
+                        <TermActions term={term} canEdit={canWrite} />
                     </div>
 
                     <section className="pl-sect" aria-labelledby="lv-give">
@@ -178,6 +214,8 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                             <small>{[plural(sceneProps(nextScene).length, ['rekwizyt', 'rekwizyty', 'rekwizytów']), sceneProps(nextScene)[0]?.area].filter(Boolean).join(' · ')}</small>
                         </div>
                     )}
+                    {startButton}
+                    {endButton}
                 </div>
                 {canWrite && (
                     <div className="rk-live-bottom sticky bottom-0" style={{ paddingBottom: 'calc(var(--space-6) + env(safe-area-inset-bottom))' }}>
@@ -199,11 +237,18 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                             {[t('eyebrow'), t('liveLower'), list.cast && t('cast', { cast: castLabel(list.cast) ?? '' })].filter(Boolean).join(' · ')}
                         </span>
                         <ShowTitle title={performance.title} />
+                        <TermActions term={term} canEdit={canWrite} />
                     </div>
-                    {canWrite && nextScene && (
+                    {canWrite && (
                         <div className="flex items-center gap-4">
-                            <span className="pl-meta">{t('orSpace')}</span>
-                            <Button size="lg" rightIcon={<ChevronRight />} onClick={goNext}>{t('nextScene', { code: nextScene.code })}</Button>
+                            {nextScene && (
+                                <>
+                                    <span className="pl-meta">{t('orSpace')}</span>
+                                    <Button size="lg" rightIcon={<ChevronRight />} onClick={goNext}>{t('nextScene', { code: nextScene.code })}</Button>
+                                </>
+                            )}
+                            {endButton}
+                            {startButton}
                         </div>
                     )}
                 </div>

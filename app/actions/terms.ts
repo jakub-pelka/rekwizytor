@@ -141,10 +141,13 @@ export async function updateTerm(input: UpdateTermInput): Promise<{ ok: true; id
         .update(row)
         .eq('id', input.id)
         .select('id')
-        .single()
 
-    if (error || !data) {
-        return { ok: false, error: handleDbError(error ?? {}) }
+    if (error) {
+        return { ok: false, error: handleDbError(error) }
+    }
+    // RLS nie zgłasza błędu, tylko pomija wiersz: 0 zmienionych wierszy to brak uprawnień, nie sukces.
+    if (!data || data.length === 0) {
+        return { ok: false, error: 'Nie masz uprawnień do zmiany tego terminu.' }
     }
 
     revalidatePath('/[locale]/calendar', 'page')
@@ -152,7 +155,7 @@ export async function updateTerm(input: UpdateTermInput): Promise<{ ok: true; id
     if (previous && previous.performance_id !== input.performanceId.trim()) {
         revalidatePath(`/[locale]/performances/${previous.performance_id}`, 'page')
     }
-    return { ok: true, id: data.id }
+    return { ok: true, id: data[0].id }
 }
 
 export async function deleteTerm(id: string, performanceId?: string): Promise<{ ok: boolean; error?: string }> {
@@ -167,9 +170,13 @@ export async function deleteTerm(id: string, performanceId?: string): Promise<{ 
         .eq('id', id)
         .maybeSingle()
 
-    const { error } = await supabase.from('show_lists').delete().eq('id', id)
+    const { data: deleted, error } = await supabase.from('show_lists').delete().eq('id', id).select('id')
     if (error) {
         return { ok: false, error: 'Nie udało się usunąć terminu. Spróbuj jeszcze raz.' }
+    }
+    // RLS nie zgłasza błędu, tylko pomija wiersz: 0 usuniętych wierszy to brak uprawnień, nie sukces.
+    if (!deleted || deleted.length === 0) {
+        return { ok: false, error: 'Nie masz uprawnień do usunięcia tego terminu.' }
     }
 
     if (term) {

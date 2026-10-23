@@ -17,6 +17,8 @@ export type Database = {
       ai_usage_logs: {
         Row: {
           context: string | null
+          cost_source: string
+          cost_usd: number
           created_at: string | null
           details: Json | null
           id: string
@@ -29,6 +31,8 @@ export type Database = {
         }
         Insert: {
           context?: string | null
+          cost_source?: string
+          cost_usd?: number
           created_at?: string | null
           details?: Json | null
           id?: string
@@ -41,6 +45,8 @@ export type Database = {
         }
         Update: {
           context?: string | null
+          cost_source?: string
+          cost_usd?: number
           created_at?: string | null
           details?: Json | null
           id?: string
@@ -264,6 +270,24 @@ export type Database = {
           physical_weight?: number
           source?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      invite_lookup_hits: {
+        Row: {
+          at: string
+          id: number
+          ip_hash: string
+        }
+        Insert: {
+          at?: string
+          id?: never
+          ip_hash: string
+        }
+        Update: {
+          at?: string
+          id?: never
+          ip_hash?: string
         }
         Relationships: []
       }
@@ -1010,6 +1034,7 @@ export type Database = {
           id: string
           kind: string
           live_act_started_at: string | null
+          live_ended_at: string | null
           live_scene_number: number | null
           live_updated_by: string | null
           note: string | null
@@ -1026,6 +1051,7 @@ export type Database = {
           id?: string
           kind?: string
           live_act_started_at?: string | null
+          live_ended_at?: string | null
           live_scene_number?: number | null
           live_updated_by?: string | null
           note?: string | null
@@ -1042,6 +1068,7 @@ export type Database = {
           id?: string
           kind?: string
           live_act_started_at?: string | null
+          live_ended_at?: string | null
           live_scene_number?: number | null
           live_updated_by?: string | null
           note?: string | null
@@ -1099,6 +1126,50 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "theatres"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      theatre_invites: {
+        Row: {
+          attempts: number
+          code_enc: string
+          code_mac: string
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          locked_at: string | null
+          theatre_id: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_enc: string
+          code_mac: string
+          created_at?: string
+          created_by?: string | null
+          expires_at: string
+          locked_at?: string | null
+          theatre_id: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_enc?: string
+          code_mac?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          locked_at?: string | null
+          theatre_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theatre_invites_theatre_id_user_id_fkey"
+            columns: ["theatre_id", "user_id"]
+            isOneToOne: true
+            referencedRelation: "theatre_members"
+            referencedColumns: ["theatre_id", "user_id"]
           },
         ]
       }
@@ -1160,6 +1231,7 @@ export type Database = {
           created_at: string
           invited_at: string | null
           invited_by: string | null
+          joined_at: string | null
           role: string
           theatre_id: string
           user_id: string
@@ -1168,6 +1240,7 @@ export type Database = {
           created_at?: string
           invited_at?: string | null
           invited_by?: string | null
+          joined_at?: string | null
           role?: string
           theatre_id: string
           user_id: string
@@ -1176,6 +1249,7 @@ export type Database = {
           created_at?: string
           invited_at?: string | null
           invited_by?: string | null
+          joined_at?: string | null
           role?: string
           theatre_id?: string
           user_id?: string
@@ -1206,6 +1280,7 @@ export type Database = {
       }
       theatres: {
         Row: {
+          ai_budget_usd: number
           created_at: string
           created_by: string | null
           id: string
@@ -1213,6 +1288,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          ai_budget_usd?: number
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1220,6 +1296,7 @@ export type Database = {
           name: string
         }
         Update: {
+          ai_budget_usd?: number
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1250,6 +1327,13 @@ export type Database = {
     }
     Functions: {
       active_theatre_id: { Args: never; Returns: string }
+      ai_budget_status: {
+        Args: never
+        Returns: {
+          budget_usd: number
+          spent_usd: number
+        }[]
+      }
       calculate_test_metrics: {
         Args: { test_run_id: string }
         Returns: {
@@ -1262,6 +1346,7 @@ export type Database = {
           total_queries: number
         }[]
       }
+      complete_invite: { Args: { p_full_name: string }; Returns: undefined }
       can_write_active_theatre: { Args: never; Returns: boolean }
       get_intent_classification_stats: {
         Args: { days?: number }
@@ -1387,6 +1472,19 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       soft_delete_item: { Args: { item_uuid: string }; Returns: undefined }
+      theatre_team: {
+        Args: { t: string }
+        Returns: {
+          email: string
+          full_name: string
+          invited_at: string
+          invited_by_name: string
+          joined_at: string
+          last_sign_in_at: string
+          role: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       item_performance_status_enum:

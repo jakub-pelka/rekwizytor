@@ -1,7 +1,8 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
-import { generateAI, logAIUsage, parseAIJson, AIImage } from '@/utils/ai/client'
+import { generateAI, parseAIJson, AIImage } from '@/utils/ai/client'
+import { aiErrorMessage } from '@/utils/ai/budget'
 import { Database } from '@/types/supabase'
 import { sanitizeAIInput, validateAIResponse, AIDescriptionSchema, sanitizeAIOutput } from '@/utils/ai-security'
 
@@ -93,6 +94,8 @@ export async function analyzeItemWithAI(
 
     const result = await generateAI({
         task: images.length ? 'vision' : 'text',
+        operation: 'generate_description',
+        details: { itemName: safeName, source },
         prompt,
         images,
         json: true
@@ -119,9 +122,7 @@ export async function generateItemDescriptions(itemId: string, currentName: stri
     const supabase = await createClient()
 
     try {
-        const { analysis, result, source } = await analyzeItemWithAI(currentName, currentNotes, imageUrl)
-
-        await logAIUsage(supabase, result, 'generate_description', { itemId, itemName: currentName, source })
+        const { analysis, source } = await analyzeItemWithAI(currentName, currentNotes, imageUrl)
 
         // Prepare update object (simplified since performance_props has fewer columns)
         const updateData: any = {
@@ -140,6 +141,6 @@ export async function generateItemDescriptions(itemId: string, currentName: stri
 
     } catch (error) {
         console.error('Error generating descriptions:', error)
-        return { error: 'Failed to generate descriptions' }
+        return { error: aiErrorMessage(error, 'Failed to generate descriptions') }
     }
 }

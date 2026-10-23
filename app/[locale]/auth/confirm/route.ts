@@ -23,6 +23,11 @@ export async function GET(request: Request) {
         const supabase = await createClient()
         const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash })
         if (!error) return NextResponse.redirect(`${base}${next}`)
+        // Link z zaproszenia, który wygasł albo był już użyty: ekran z wyjaśnieniem, w języku ze ścieżki (/pl/auth/confirm).
+        if (type === 'invite') {
+            const locale = /^\/(en|pl)(?:\/|$)/.exec(new URL(request.url).pathname)?.[1] ?? 'pl'
+            return NextResponse.redirect(`${base}/${locale}/witaj?stan=wygasl`)
+        }
     }
 
     // Link wygasł albo był już użyty: logowanie z informacją, co zrobić dalej.

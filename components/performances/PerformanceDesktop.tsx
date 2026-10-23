@@ -37,7 +37,7 @@ type Props = {
         castExceptions: number
         groups: number
         /** Najpoważniejszy stan grup spektaklu, gdy któraś nie jest na miejscu. */
-        groupAlert: { label: string } | null
+        groupAlert: { label: string; tone: 'warning' | 'danger' } | null
         notes: number
         newMentions: number
     }
@@ -332,7 +332,7 @@ export function PerformanceDesktop({ performance, structure, nextTerm, laterTerm
                                         <b>{t('fromStorage')}</b>
                                         <small>
                                             {related.groups > 0 ? plural(related.groups, ['grupa', 'grupy', 'grup']) : t('noGroups')}
-                                            {related.groupAlert && <> · <span style={{ color: 'var(--warning)' }}>{related.groupAlert.label}</span></>}
+                                            {related.groupAlert && <> · <span style={{ color: `var(--${related.groupAlert.tone})` }}>{related.groupAlert.label}</span></>}
                                         </small>
                                         {ROW_ARROW}
                                     </Link>

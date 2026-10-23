@@ -73,35 +73,67 @@ Nigdy nie uruchamiaj testu na produkcji.
 ## Otwarte (po migracji)
 
 - **Zatwierdzanie kont** (`/admin/users`, lista w Ustawieniach) nie dodaje do teatru. Ludzi do teatru dodaje się w Ustawieniach → Teatry, co też zatwierdza konto.
-- **Ekran zespołu dla kierownika pracowni**: reguły w bazie są gotowe (kierownik zarządza członkami swojego teatru), brakuje ekranu. Część scenariusza „pierwsze uruchomienie”.
+- **Ekran zespołu dla kierownika pracowni** (18.10: zrobione w migracji `20261018_team_managers.sql` i na ekranie `/settings/team`): reguły w bazie są gotowe (kierownik zarządza członkami swojego teatru). Część scenariusza „pierwsze uruchomienie”.
 - **Inspicjent przełącza sceny w trybie na żywo**, a to zapis: potrzebuje roli rekwizytora, nie podglądu.
 - **Skaner w demo** (`/scan`) wymaga teraz logowania, tak jak etykiety.
 - **Stare skrypty w `scripts/`** (poza dwoma skryptami demo) zapisują kluczem serwisowym bez teatru i po migracji nie zadziałają, dopóki nie podadzą `theatre_id`. `app/actions/fast-mode.ts` nie jest używany i nie zna standardu ścieżek.
 
 ## Maile (ustawienia w panelu Supabase)
 
-Mail z zaproszeniem i z resetem hasła musi prowadzić na `/pl/auth/confirm` (trasa w `app/[locale]/auth/confirm/route.ts`), która zamienia token na sesję. Domyślny szablon prowadzi na adres z tokenem w hashu, którego serwer nie widzi, więc zaproszenie nie zadziałałoby do końca. Ustawienia robi się raz, ręcznie:
+Mail z resetem hasła prowadzi na `/pl/auth/confirm` (trasa w `app/[locale]/auth/confirm/route.ts`), która zamienia token na sesję. Domyślny szablon resetu prowadzi na adres z tokenem w hashu, którego serwer nie widzi, więc reset nie zadziałałby do końca. Zaproszenie tej trasy nie używa: przycisk w mailu otwiera zwykły adres `/pl/witaj?email=…` bez tokenu. Ustawienia robi się raz, ręcznie:
 
-1. **Authentication → URL Configuration:** „Site URL” to adres produkcyjnej aplikacji (bez ukośnika na końcu). Na dev dopisz `http://localhost:3000` w „Redirect URLs”.
+1. **Authentication → URL Configuration:** „Site URL” bez zmian (adres produkcyjnej aplikacji, bez ukośnika na końcu). W „Redirect URLs” dopisz adresy dla resetu hasła:
+   - produkcja: `<adres aplikacji>/pl/auth/confirm**`,
+   - dev: `http://localhost:3000/pl/auth/confirm**` i `http://localhost:3100/pl/auth/confirm**` (dev działa też na porcie 3100).
+
+   Gwiazdki są potrzebne: aplikacja dopisuje do adresu, dokąd przejść po zalogowaniu (`?next=/pl/update-password` przy resecie hasła). Zaproszenia ten wpis nie dotyczy.
+
+   Bez wpisu link resetu wraca na Site URL zamiast do `/pl/auth/confirm`.
 2. **Authentication → Sign In / Providers:** wyłącz „Allow new users to sign up” (konta tylko z zaproszenia).
-3. **Authentication → Email Templates → Invite user** (temat: `Zaproszenie do Rekwizytora`):
+3. **Authentication → Email Templates → Invite user.**
+   - Temat: `{{ .Data.inviter_name }} zaprasza cię do {{ .Data.theatre_name }} w Rekwizytorze`.
+   - Treść HTML poniżej. Szablon nie zawiera tokenu ani kodu. Przycisk to `{{ .Data.witaj_url }}`: gotowy, zakodowany adres, który liczy serwer. Nie składaj go w szablonie z `{{ .SiteURL }}/witaj?email={{ .Email }}`, bo `+` w adresie zamieniłby się w spację.
+   - Zmienne z `data`: `inviter_name`, `theatre_name`, `role_label` (Kierownik pracowni, Rekwizytor, Podgląd), `witaj_url`. Szablon nie używa form z rodzajem.
 
-   ```html
-   <h2>Zaproszenie do Rekwizytora</h2>
-   <p>Cześć! Kierownik pracowni dodał Cię do zespołu w aplikacji Rekwizytor.</p>
-   <p><a href="{{ .SiteURL }}/pl/auth/confirm?token_hash={{ .TokenHash }}&type=invite&next=/pl/update-password">Ustaw hasło i wejdź</a></p>
-   <p>Link działa jeden raz i wygasa po kilku godzinach. Jeśli nie spodziewałeś się tej wiadomości, zignoruj ją: bez kliknięcia nic się nie stanie.</p>
-   ```
+```html
+<div style="font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.5; color: #222222; max-width: 560px;">
+  <h2 style="font-size: 20px;">{{ .Data.inviter_name }} zaprasza cię do {{ .Data.theatre_name }}</h2>
+  <p>Zaproszenie jest do aplikacji Rekwizytor: rekwizyty, spektakle i listy przed spektaklem.</p>
+  <p>Twoja rola: {{ .Data.role_label }}.</p>
+  <p>Kod do wejścia dostaniesz od zapraszającego, {{ .Data.inviter_name }}, ustnie albo SMS-em. W tym mailu go nie ma, a bez niego nikt nie wejdzie, nawet z tym mailem.</p>
+  <p><a href="{{ .Data.witaj_url }}" style="display: inline-block; padding: 12px 20px; background: #222222; color: #ffffff; text-decoration: none; border-radius: 6px;">Wejdź do teatru</a></p>
+  <p>Przycisk niczego nie zużywa: możesz kliknąć go teraz albo później, kiedy będziesz mieć kod.</p>
+  <p style="font-size: 14px;">Przycisk nie działa? Skopiuj ten adres do przeglądarki:<br>{{ .Data.witaj_url }}</p>
+  <p style="font-size: 13px; color: #666666;">Dostajesz tę wiadomość, bo twój adres podano w zaproszeniu: {{ .Email }}. Jeśli to pomyłka, zignoruj mail: bez kodu nic się nie stanie.</p>
+</div>
+```
 
 4. **Authentication → Email Templates → Reset password** (temat: `Ustaw nowe hasło w Rekwizytorze`):
 
-   ```html
-   <h2>Nowe hasło</h2>
-   <p>Poprosiłeś o zmianę hasła w Rekwizytorze.</p>
-   <p><a href="{{ .SiteURL }}/pl/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/pl/update-password">Ustaw nowe hasło</a></p>
-   <p>Jeśli to nie Ty, zignoruj tę wiadomość.</p>
-   ```
+```html
+<h2>Nowe hasło</h2>
+<p>Ktoś poprosił o nowe hasło do twojego konta w Rekwizytorze.</p>
+<p><a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery">Ustaw nowe hasło</a></p>
+<p>Jeśli to nie ty, zignoruj tę wiadomość: bez kliknięcia w link nic się nie zmieni.</p>
+```
 
-Pozostałe szablony (potwierdzenie rejestracji, zmiana e-maila) nie są używane, dopóki rejestracja jest wyłączona.
+   Pozostałe szablony (potwierdzenie rejestracji, zmiana e-maila) nie są używane, dopóki rejestracja jest wyłączona.
 
-Do dopracowania w ekranach pierwszego wejścia: po kliknięciu w zaproszenie osoba trafia na ustawianie hasła (`/update-password`, dziś w starym wyglądzie i bez kroku „imię”), a link wygasły kończy na logowaniu z `?link=expired` (komunikat jeszcze nie jest tam wyświetlany).
+5. **Nadawca (SMTP):** domyślna poczta Supabase ma niskie limity i słabą dostarczalność. Do pilotażu własny SMTP z adresem na domenie Rekwizytora (na planszy: `zaproszenia@rekwizytor.app`).
+
+**Wejście kodem** (zaproszenie dla osoby bez konta):
+
+- Kod ma 6 cyfr. Kierownik widzi go w oknie po wysłaniu zaproszenia i w zakładce „Oczekujące” w Ustawieniach → Zespół (superadmin widzi go przy dodawaniu w Ustawieniach → Teatry). Osoba dostaje kod od kierownika osobno, ustnie albo SMS-em, nie w mailu.
+- Kod jest ważny 7 dni. Po 5 złych próbach wejście jest zablokowane, aż kierownik zrobi „Nowy kod”. Nowy kod unieważnia stary: ma nowe 7 dni, zerowy licznik i zdjętą blokadę.
+- Dwie drogi wejścia: przycisk z maila (`/pl/witaj?email=…`) albo „Mam zaproszenie” pod przyciskiem logowania. Obie idą tym samym przebiegiem: adres, kod, imię i hasło.
+- Limit: więcej niż 20 wywołań w ciągu godziny z jednego IP (sprawdzenie adresu i sprawdzenie kodu liczą się razem) daje komunikat „Za dużo prób z tego urządzenia”. Tabela `invite_lookup_hits` trzyma hash IP, nie sam IP, i czyści wpisy starsze niż 24 h.
+- Kod w bazie jest zaszyfrowany (AES-256-GCM) i ma kod MAC. Tabela `theatre_invites` nie ma żadnych reguł dla klienta: czyta i pisze ją tylko serwer.
+- Zmienna środowiskowa `INVITE_CODE_SECRET` (base64, 32 bajty): wygeneruj `openssl rand -base64 32`, wpisz do `.env.local` i do Vercela. Bez niej zaproszenie się nie wyśle, a serwer zwróci „Brak INVITE_CODE_SECRET”. Nie zmieniaj klucza bez potrzeby: zapisane kody przestaną się zgadzać.
+
+**Nowa ścieżka pierwszego wejścia:**
+
+- `/pl/witaj`: krok 1 to adres (z `?email=…` od razu krok 2). Krok 2 to kod: 6 pól, a wklejony cały kod też działa. Dobry kod zakłada sesję w ciasteczkach. Krok 3 to imię i nazwisko oraz hasło (miernik siły jak w aplikacji). Zapis ustawia hasło i imię, zapisuje dołączenie do teatru (`complete_invite`, który kasuje też wiersz zaproszenia) i przenosi na `/`.
+- Jeśli sesja już jest i ma oczekujące członkostwo, od razu krok 2.
+- Stany zamiast kroku: kod wygasł, kod zablokowany, zaproszenie cofnięte, „Masz już konto” (adres ma konto z członkostwem albo konto bez zaproszeń, więc zwykłe logowanie).
+- Logowanie: pod przyciskiem „Nie masz jeszcze konta? Mam zaproszenie” ten sam przebieg w układzie logowania. Tryb rejestracji (signUp) usunięty. Przy „Masz już konto” pole hasła z zablokowanym adresem i przycisk „Zmień”.
+- `/pl/settings/team`: ekran zespołu dla kierownika pracowni (dodawanie, „Pokaż kod”, „Nowy kod”, ponowne wysłanie maila, zmiana roli, usuwanie, historia zespołu).
