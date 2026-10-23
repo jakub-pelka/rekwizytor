@@ -1242,7 +1242,9 @@
         "detail_all": "Wszystko",
         "detail_where": "Nazwa i miejsce",
         "detail_names": "Tylko nazwy",
-        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
+        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy.",
+        "resumeLive": "Wznów tryb na żywo",
+        "resumeLiveHint": "Wraca do trybu na żywo dla tego spektaklu. Można cofnąć."
     },
     "Lists": {
         "title": "Listy zadań",
@@ -1393,7 +1395,18 @@
         "send": "Wyślij zgłoszenie",
         "sending": "Wysyłanie",
         "actTitle": "Akt {act}",
-        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
+        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy.",
+        "endShow": "Zakończ spektakl",
+        "endHint": "Zamyka tryb na żywo i wraca na listę zadań. Można cofnąć.",
+        "ended": "Spektakl zakończony.",
+        "endUndo": "Cofnij",
+        "endUndone": "Spektakl znów trwa.",
+        "endFailed": "Nie udało się zakończyć spektaklu. Spróbuj jeszcze raz.",
+        "endOffline": "Brak sieci, więc spektakl nie jest zakończony. Spróbuj jeszcze raz, gdy wróci połączenie.",
+        "endUndoFailed": "Nie udało się cofnąć zakończenia. Spróbuj jeszcze raz.",
+        "resumeFailed": "Nie udało się wznowić trybu na żywo. Spróbuj jeszcze raz.",
+        "resumeOffline": "Brak sieci, więc tryb na żywo nie został wznowiony. Spróbuj jeszcze raz, gdy wróci połączenie.",
+        "resumeUndoFailed": "Nie udało się cofnąć wznowienia. Spróbuj jeszcze raz."
     },
     "LiveStart": {
         "button": "Zaczynamy",

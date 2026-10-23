@@ -18,6 +18,7 @@ import { SyncBanner } from './SyncBanner'
 import { EARLY_START_MS } from '@/lib/performance-structure'
 import { LiveStartButton } from './LiveStartButton'
 import { useLiveStart } from './useLiveStart'
+import { useLiveEnd } from './useLiveEnd'
 
 export type LiveCheck = { propId: string; at: string; by: { id: string; name: string } | null }
 export type LiveReport = {
@@ -138,6 +139,17 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
         <LiveStartButton onStart={liveStart.start} starting={liveStart.starting} pending={!!liveStart.pending} />
     )
 
+    // „Zakończ spektakl”: zawsze cichy (ghost), a na ostatniej scenie główny, w miejscu „Następna scena”.
+    // Po zapisie wracamy na listę zadań; „Cofnij” w komunikacie wraca do trybu na żywo.
+    const liveEnd = useLiveEnd(list.id, userId, () => router.push(`/lists/${list.id}`), () => router.push(`/lists/${list.id}/live`))
+    const endButton = canWrite && (
+        <div className="flex">
+            <Button variant={nextScene ? 'ghost' : 'primary'} size={nextScene ? 'sm' : 'lg'} onClick={liveEnd.end} isLoading={liveEnd.ending} loadingLabel={t('endShow')} title={t('endHint')}>
+                {t('endShow')}
+            </Button>
+        </div>
+    )
+
     const strip = (wide: boolean) => (
         <div className={`rk-live-strip ${wide ? 'rk-live-strip--wide' : ''}`} role="status">
             <span className="rk-live-dot" />
@@ -198,6 +210,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                         </div>
                     )}
                     {startButton}
+                    {endButton}
                 </div>
                 {canWrite && (
                     <div className="rk-live-bottom sticky bottom-0" style={{ paddingBottom: 'calc(var(--space-6) + env(safe-area-inset-bottom))' }}>
@@ -220,7 +233,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                         </span>
                         <ShowTitle title={performance.title} />
                     </div>
-                    {canWrite && (nextScene || startButton) && (
+                    {canWrite && (
                         <div className="flex items-center gap-4">
                             {nextScene && (
                                 <>
@@ -228,6 +241,7 @@ export function LiveView({ list, performance, structure, initialChecks, initialR
                                     <Button size="lg" rightIcon={<ChevronRight />} onClick={goNext}>{t('nextScene', { code: nextScene.code })}</Button>
                                 </>
                             )}
+                            {endButton}
                             {startButton}
                         </div>
                     )}
