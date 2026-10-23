@@ -13,21 +13,18 @@
         "browse": "Przeglądaj",
         "adminZone": "Strefa Administratora",
         "UserApproval": {
-            "confirmApproveTitle": "Zatwierdź Użytkownika",
-            "confirmRejectTitle": "Odrzuć Użytkownika",
-            "confirmApproveDesc": "Czy na pewno chcesz zatwierdzić użytkownika {name}? Będzie on miał pełny dostęp do aplikacji.",
-            "confirmRejectDesc": "Czy na pewno chcesz odrzucić użytkownika {name}? Jego konto zostanie trwale usunięte.",
-            "securityWarningTitle": "Ostrzeżenie Bezpieczeństwa",
+            "confirmApproveTitle": "Zatwierdź użytkownika",
+            "confirmRejectTitle": "Odrzuć użytkownika",
+            "confirmApproveDesc": "Czy na pewno chcesz zatwierdzić użytkownika {name}? Dostanie dostęp do teatru z rolą wybraną poniżej.",
+            "confirmRejectDesc": "Odrzucić {name}? Ta osoba nie dostanie dostępu do teatru.",
+            "securityWarningTitle": "Ostrzeżenie bezpieczeństwa",
             "securityWarningDesc": "Jeśli nie masz 100% pewności kto to jest, ABSOLUTNIE NIE ZATWIERDZAJ tego użytkownika.",
-            "accessGrant": "Użytkownik otrzyma dostęp do",
-            "accessInventory": "Przeglądania i edycji magazynu",
-            "accessPerformances": "Zarządzania spektaklami",
-            "accessChecklists": "List kontrolnych",
-            "rejectWarning": "Ta operacja jest nieodwracalna. Konto użytkownika zostanie usunięte.",
-            "confirm": "Potwierdź",
+            "joinsTheatre": "Dołączy do teatru {theatre}.",
+            "roleField": "Rola w zespole",
+            "rejectWarning": "Konto zostaje w bazie, ale bez dostępu. Zmienić to może tylko administrator Rekwizytora.",
             "cancel": "Anuluj",
             "title": "Oczekujący Użytkownicy",
-            "unknownUser": "Nieznany Użytkownik",
+            "unknownUser": "Bez nazwy",
             "approve": "Zatwierdź",
             "reject": "Odrzuć",
             "errorUpdating": "Wystąpił błąd podczas aktualizacji statusu."
@@ -1242,7 +1239,9 @@
         "detail_all": "Wszystko",
         "detail_where": "Nazwa i miejsce",
         "detail_names": "Tylko nazwy",
-        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
+        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy.",
+        "resumeLive": "Wznów tryb na żywo",
+        "resumeLiveHint": "Wraca do trybu na żywo dla tego spektaklu. Można cofnąć."
     },
     "Lists": {
         "title": "Listy zadań",
@@ -1393,7 +1392,18 @@
         "send": "Wyślij zgłoszenie",
         "sending": "Wysyłanie",
         "actTitle": "Akt {act}",
-        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy."
+        "previewOnly": "Podgląd: możesz odhaczać, ale zmiany zostają tylko na tym ekranie i nikt ich nie zobaczy.",
+        "endShow": "Zakończ spektakl",
+        "endHint": "Zamyka tryb na żywo i wraca na listę zadań. Można cofnąć.",
+        "ended": "Spektakl zakończony.",
+        "endUndo": "Cofnij",
+        "endUndone": "Spektakl znów trwa.",
+        "endFailed": "Nie udało się zakończyć spektaklu. Spróbuj jeszcze raz.",
+        "endOffline": "Brak sieci, więc spektakl nie jest zakończony. Spróbuj jeszcze raz, gdy wróci połączenie.",
+        "endUndoFailed": "Nie udało się cofnąć zakończenia. Spróbuj jeszcze raz.",
+        "resumeFailed": "Nie udało się wznowić trybu na żywo. Spróbuj jeszcze raz.",
+        "resumeOffline": "Brak sieci, więc tryb na żywo nie został wznowiony. Spróbuj jeszcze raz, gdy wróci połączenie.",
+        "resumeUndoFailed": "Nie udało się cofnąć wznowienia. Spróbuj jeszcze raz."
     },
     "LiveStart": {
         "button": "Zaczynamy",
@@ -1768,6 +1778,17 @@
         "deleteDesc": "Termin zniknie z kalendarza. Powiązana lista zadań zostanie usunięta.",
         "deleteFailed": "Nie udało się usunąć terminu."
     },
+    "TermActions": {
+        "edit": "Edytuj termin",
+        "remove": "Usuń termin",
+        "confirmTitle": "Usunąć termin {label}?",
+        "confirmDesc": "Znikną też odhaczenia i zgłoszenia z tego terminu.",
+        "cancel": "Anuluj",
+        "delete": "Usuń",
+        "deleting": "Usuwanie",
+        "deleted": "Termin usunięty.",
+        "deleteFailed": "Nie udało się usunąć terminu."
+    },
     "SettingsPage": {
         "title": "Ustawienia",
         "back": "Pulpit",
@@ -2041,7 +2062,7 @@
         "roleAdmin": "Kierownik pracowni",
         "roleMember": "Rekwizytor",
         "roleViewer": "Podgląd",
-        "haveAccount": "Masz już konto? Zaloguj się",
+        "haveAccount": "Masz już konto?",
         "signIn": "Zaloguj się",
         "backToLogin": "Wróć do logowania",
         "inviteLine": "Zaprasza cię <b>{name}</b> · <b>{theatre}</b>",

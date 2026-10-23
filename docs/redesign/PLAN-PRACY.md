@@ -61,14 +61,17 @@ Agent pokazuje wynik, a nie pisze „gotowe”.
 | `REVIEW.md`: lista „co tu jest porażką” z końca tego pliku | niski | przeczytać, 2 min |
 | Limit AI: 3 $ na teatr, informacja na Pulpicie przy 70% | wysoki | migracja, test przekroczenia na teatrze próbnym |
 
-### Fala 2 · agenci · po commicie scenariusza 7
+### Fala 2 · agy (Sonnet 5.5) pisze, Argon sprawdza, Kuba przeklikuje
 
-| Zadanie | Ryzyko | Co sprawdza Kuba |
+Zadania to tickety z `TICKETY.md`. Podział na trzy tury, po trzy zadania bez wspólnych plików (23.10).
+
+| Tura | Zadania | Ryzyko |
 |---|---|---|
-| `/witaj`: układ jak logowanie, kurtyna i logo po lewej (kod i przepływ już są z 19.10) | niski | zrzuty komputer i telefon |
-| Rola Inspicjent: tylko podgląd | wysoki | migracja, wejście jako inspicjent, brak przycisków edycji |
-| Sceny teatru: lista w bazie, do 6 | wysoki | migracja, filtr scen na liście spektakli |
-| Kolizje: ostrzeżenie o tej samej rzeczy w dwóch terminach (trzy przypadki z `PYTANIA.md` pkt 8) | średni | trzy przypadki na danych testowych |
+| 2.1 | RK-01 zatwierdzenie dodaje do teatru · RK-02 „Zakończ spektakl” · RK-08 `/witaj` jak logowanie | wysokie, średnie, niskie |
+| 2.2 | RK-14 usuwanie terminu · RK-15 edycja daty terminu · RK-07 kolizje na ekranie rozpiski | wysokie, średnie, średnie |
+| 2.3 | RK-09 rola Inspicjent · RK-10 sceny teatru do 6 · RK-11 wygląd generatora etykiet | wysokie, wysokie, średnie |
+
+RK-16 (zegar jako opóźnienie) czeka na decyzję Kuby. Telefon (RK-17) po wszystkich falach.
 
 ### Fala 3 · Kuba z sesją główną
 - **Scenariusz 7 ręcznie:** całe pierwsze wejście na koncie testowym.

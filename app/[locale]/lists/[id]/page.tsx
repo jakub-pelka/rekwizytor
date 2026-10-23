@@ -21,14 +21,14 @@ export default async function ShowListPage({ params, searchParams }: Props) {
 
     const { data: list } = await supabase
         .from('show_lists')
-        .select('id, performance_id, show_date, kind, cast, live_act_started_at, performance:performances(id, title, venue)')
+        .select('id, performance_id, show_date, kind, cast, title, venue, note, with_props, live_act_started_at, live_ended_at, performance:performances(id, title, venue)')
         .eq('id', id)
         .single()
 
     if (!list || !list.performance) notFound()
 
     // O godzinie spektaklu lista sama przechodzi w stan „na żywo”; ?view=list pokazuje całą listę.
-    if (view !== 'list' && isLiveNow(list.kind, list.show_date, theatreNowNaive(), list.live_act_started_at)) redirect(`/${await getLocale()}/lists/${id}/live`)
+    if (view !== 'list' && isLiveNow(list.kind, list.show_date, theatreNowNaive(), list.live_act_started_at, list.live_ended_at)) redirect(`/${await getLocale()}/lists/${id}/live`)
 
     const [structure, checksResult, nextListResult] = await Promise.all([
         loadPerformanceStructure(supabase, list.performance_id),
@@ -68,8 +68,9 @@ export default async function ShowListPage({ params, searchParams }: Props) {
 
     return (
         <ShowListView
-            list={{ id: list.id, showDate: list.show_date, kind: list.kind, cast: list.cast, startedAt: list.live_act_started_at }}
+            list={{ id: list.id, showDate: list.show_date, kind: list.kind, cast: list.cast, startedAt: list.live_act_started_at, endedAt: list.live_ended_at }}
             performance={list.performance}
+            term={{ id: list.id, performanceId: list.performance_id, performanceTitle: list.performance.title, showDate: list.show_date, kind: list.kind, cast: list.cast, title: list.title, venue: list.venue, note: list.note, withProps: list.with_props }}
             structure={structure}
             initialChecks={checkRows.map(c => ({ performance_prop_id: c.performance_prop_id, stage: c.stage }))}
             crew={crew}

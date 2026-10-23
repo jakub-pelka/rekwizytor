@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl'
 import { ChevronDown, ChevronLeft, Eye, KeyRound, Mail, RotateCw, Trash2, UserCog, UserPlus, Undo2 } from 'lucide-react'
 import { Link, useRouter } from '@/i18n/routing'
@@ -47,6 +47,21 @@ export function TeamView({ data }: { data: TeamData }) {
     const alone = canManage && people.length === 1 && people[0].isMe
 
     const refresh = () => startTransition(() => router.refresh())
+
+    // Zaproszona osoba dołącza w innej karcie albo na innym urządzeniu, więc lista sama się odświeża: gdy wracasz na kartę
+    // i co 15 s, dopóki ktoś czeka na przyjęcie zaproszenia (bez tego kierownik musiał odświeżać stronę ręcznie).
+    const hasPending = pendingList.length > 0
+    useEffect(() => {
+        const refreshIfVisible = () => { if (document.visibilityState === 'visible') startTransition(() => router.refresh()) }
+        document.addEventListener('visibilitychange', refreshIfVisible)
+        window.addEventListener('focus', refreshIfVisible)
+        const timer = hasPending ? setInterval(refreshIfVisible, 15000) : null
+        return () => {
+            document.removeEventListener('visibilitychange', refreshIfVisible)
+            window.removeEventListener('focus', refreshIfVisible)
+            if (timer) clearInterval(timer)
+        }
+    }, [hasPending, router])
     const roleName = (r: TheatreRole) => t(ROLE_KEY[r])
     const isLastManager = (p: TeamPerson) => p.role === 'admin' && adminCount <= 1
 
@@ -61,7 +76,7 @@ export function TeamView({ data }: { data: TeamData }) {
         if (isLastManager(p) && role !== 'admin') { setDialog({ kind: 'last', why: 'role' }); return }
         const res = await setMemberRole(p.userId, role)
         setDialog(null)
-        if (!res.ok) { if (!guard(res.error, 'role')) notify.error(res.error); return }
+        if (!res.ok) { if (!guard(res.error, 'role')) notify.error(res.error); refresh(); return }
         const previous = res.data?.previous ?? p.role
         notify.undo(t('roleChanged', { name: displayName(p), role: roleName(role) }), t('undo'), async () => {
             const back = await setMemberRole(p.userId, previous)
@@ -85,14 +100,14 @@ export function TeamView({ data }: { data: TeamData }) {
 
     const resend = async (p: TeamPerson) => {
         const res = await resendInvite(p.userId)
-        if (!res.ok) { notify.error(res.error); return }
+        if (!res.ok) { notify.error(res.error); refresh(); return }
         notify.info(t('resent', { email: p.email }))
         refresh()
     }
 
     const revoke = async (p: TeamPerson) => {
         const res = await revokeInvite(p.userId)
-        if (!res.ok) { notify.error(res.error); return }
+        if (!res.ok) { notify.error(res.error); refresh(); return }
         notify.success(t('revokedCode', { email: p.email }))
         refresh()
     }
@@ -100,14 +115,14 @@ export function TeamView({ data }: { data: TeamData }) {
     // --- kody zaproszeń ---
     const showCode = async (p: TeamPerson) => {
         const res = await showInviteCode(p.userId)
-        if (!res.ok || !res.data) { notify.error(res.ok ? t('failed') : res.error); return }
+        if (!res.ok || !res.data) { notify.error(res.ok ? t('failed') : res.error); refresh(); return }
         setDialog({ kind: 'code', mode: 'show', person: p, who: displayName(p), roleLabel: roleName(p.role), ...res.data })
     }
 
     const newCode = async (p: TeamPerson) => {
         const res = await regenerateInviteCode(p.userId)
         setDialog(null)
-        if (!res.ok || !res.data) { notify.error(res.ok ? t('failed') : res.error); return }
+        if (!res.ok || !res.data) { notify.error(res.ok ? t('failed') : res.error); refresh(); return }
         const { code } = res.data
         // Nowy kod w toaście z „Kopiuj”: kierownik zwykle klika go od razu przy osobie. Gdyby toast zniknął, kod wróci w „Pokaż kod”.
         notify.undo(t('newCodeToast', { email: p.email, code }), t('newCodeCopy'), async () => {
@@ -119,7 +134,7 @@ export function TeamView({ data }: { data: TeamData }) {
 
     const reset = async (p: TeamPerson) => {
         const res = await sendPasswordReset(p.userId)
-        if (!res.ok) { notify.error(res.error); return }
+        if (!res.ok) { notify.error(res.error); refresh(); return }
         notify.success(t('resetSent', { email: p.email }))
     }
 
@@ -374,7 +389,7 @@ export function TeamView({ data }: { data: TeamData }) {
                     {canManage && <Button className="max-md:hidden" leftIcon={<UserPlus />} onClick={invite}>{t('invite')}</Button>}
                 </header>
 
-                <div className="zp-grid max-md:!block">
+                <div>
                     <div className="zp-list">
                         {canManage && (
                             <div className="rk-tabs zp-tabs" role="tablist" aria-label={t('tabs')} style={{ alignSelf: 'flex-start' }}>
@@ -387,19 +402,6 @@ export function TeamView({ data }: { data: TeamData }) {
                         )}
                         {list()}
                     </div>
-
-                    <aside className="zp-side max-md:hidden">
-                        <section>
-                            <h3>{t('sideRoles')}</h3>
-                            <dl>
-                                <div><dt>{t('roleAdmin')}</dt><dd>{t('sideRoleAdmin')}</dd></div>
-                                <div><dt>{t('roleMember')}</dt><dd>{t('sideRoleMember')}</dd></div>
-                                <div><dt>{t('roleViewer')}</dt><dd>{t('sideRoleViewer')}</dd></div>
-                            </dl>
-                        </section>
-                        <section><h3>{t('sideRules')}</h3><p>{t('sideRulesText')}</p></section>
-                        {canManage && <section><h3>{t('sideInvites')}</h3><p>{t('sideInvitesText')}</p></section>}
-                    </aside>
                 </div>
             </div>
 
