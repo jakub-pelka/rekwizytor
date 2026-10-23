@@ -13,7 +13,7 @@ Ryzyko i zasady przeglądu: `docs/redesign/PLAN-PRACY.md`, `REVIEW.md`.
 | RK-05 | Limit AI 3 $ na teatr: migracja uruchomiona 23.10, kod w integracji (`a9c12d2`) | wysokie | Gotowe | przeklikane przez Kubę 23.10 | Ostrzeżenie od 70% na Pulpicie i odrzucenie skanu po przekroczeniu działają. Znane zachowanie: ostatni skan mieszczący się w limicie może go przekroczyć o koszt jednego wywołania. |
 | RK-06 | Etykiety: marginesy wyliczone, niesprawdzone na papierze | średnie | Czeka na Kubę | Kuba, wydruk z produkcji na Avery | Z localhosta QR prowadzi na localhost. |
 | RK-07 | Kolizje: logika gotowa, ale bez dat bez strefy i bez ekranu | średnie | W agy | gałęzie `claude/kolizje-*-test` | Wersja Sonnet 5.5 + poprawki z przeglądu Argona (daty bez strefy przez `theatreNaiveToInstant`), potem podpięcie pod rozpiskę. |
-| RK-08 | `/witaj` ma wyglądać jak logowanie (kurtyna i logo po lewej) | niskie | Do przeklikania | integracja, `claude/fala2-rk08` | Kod zaproszeń i przepływ z 19.10 zostają. |
+| RK-08 | `/witaj` ma wyglądać jak logowanie (kurtyna i logo po lewej) | niskie | Gotowe | integracja, `claude/fala2-rk08` | Kod zaproszeń i przepływ z 19.10 zostają. |
 | RK-09 | Rola Inspicjent: tylko podgląd | wysokie | Do zrobienia | fala 2 | Migracja i RLS, przegląd Opus 5.5, Kuba czyta. |
 | RK-10 | Lista scen teatru, do 6 | wysokie | Do zrobienia | fala 2 | Migracja, filtr scen na liście spektakli. |
 | RK-11 | Generator etykiet: wygląd w nowym design systemie | średnie | Do zrobienia | osobne zadanie | Formaty arkuszy już są, chodzi o ekran edytora. |
