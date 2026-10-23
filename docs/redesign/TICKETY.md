@@ -6,14 +6,14 @@ Ryzyko i zasady przeglądu: `docs/redesign/PLAN-PRACY.md`, `REVIEW.md`.
 
 | Nr | Problem | Ryzyko | Status | Gdzie / kto | Uwagi |
 |---|---|---|---|---|---|
-| RK-01 | Zatwierdzenie konta nie dodaje do teatru: osoba widzi „nie dodano do żadnego teatru” | wysokie | Do zrobienia | `app/actions/admin/approve-user.ts`, Sonnet 5.5 przez agy, przegląd Opus 5.5 | Przy zatwierdzeniu wybór roli i dodanie do bieżącego teatru. Dziś każdy zatwierdzony może zatwierdzić kogokolwiek, z każdego teatru. Komunikaty po angielsku. |
-| RK-02 | Tryb na żywo: nie da się go zatrzymać, gdy zniknie komunikat ani po ostatniej scenie | średnie | Do zrobienia | `components/lists/useLiveStart.ts`, `LiveView.tsx` | Stałe „Cofnij start” i „Zakończ spektakl” na ostatniej scenie. Sprawdzić, czy wystarczy bez migracji. |
+| RK-01 | Zatwierdzenie konta nie dodaje do teatru: osoba widzi „nie dodano do żadnego teatru” | wysokie | Do przeklikania | integracja, `claude/fala2-rk01` | Przy zatwierdzeniu wybór roli i dodanie do bieżącego teatru. Dziś każdy zatwierdzony może zatwierdzić kogokolwiek, z każdego teatru. Komunikaty po angielsku. |
+| RK-02 | Tryb na żywo: nie da się go zatrzymać, gdy zniknie komunikat ani po ostatniej scenie | średnie | Do przeklikania | integracja, `claude/fala2-rk02` | Stałe „Cofnij start” i „Zakończ spektakl” na ostatniej scenie. Sprawdzić, czy wystarczy bez migracji. |
 | RK-03 | Zaproszenia kodem nie działają bez tabeli i sekretu | wysokie | Czeka na Kubę | Kuba: SQL Editor, `.env.local`, Vercel | Uruchomić `20261019_invite_codes.sql`, dopisać `INVITE_CODE_SECRET`. Blokuje falę 2. |
 | RK-04 | Integracja fali 1 scalona do main (`3792113`), bez pusha | — | Gotowe | main | Push tylko na prośbę Kuby. RK-02 przeszło do fali 2. |
 | RK-05 | Limit AI 3 $ na teatr: migracja uruchomiona 23.10, kod w integracji (`a9c12d2`) | wysokie | Gotowe | przeklikane przez Kubę 23.10 | Ostrzeżenie od 70% na Pulpicie i odrzucenie skanu po przekroczeniu działają. Znane zachowanie: ostatni skan mieszczący się w limicie może go przekroczyć o koszt jednego wywołania. |
 | RK-06 | Etykiety: marginesy wyliczone, niesprawdzone na papierze | średnie | Czeka na Kubę | Kuba, wydruk z produkcji na Avery | Z localhosta QR prowadzi na localhost. |
 | RK-07 | Kolizje: logika gotowa, ale bez dat bez strefy i bez ekranu | średnie | W agy | gałęzie `claude/kolizje-*-test` | Wersja Sonnet 5.5 + poprawki z przeglądu Argona (daty bez strefy przez `theatreNaiveToInstant`), potem podpięcie pod rozpiskę. |
-| RK-08 | `/witaj` ma wyglądać jak logowanie (kurtyna i logo po lewej) | niskie | Do zrobienia | fala 2 | Kod zaproszeń i przepływ z 19.10 zostają. |
+| RK-08 | `/witaj` ma wyglądać jak logowanie (kurtyna i logo po lewej) | niskie | Do przeklikania | integracja, `claude/fala2-rk08` | Kod zaproszeń i przepływ z 19.10 zostają. |
 | RK-09 | Rola Inspicjent: tylko podgląd | wysokie | Do zrobienia | fala 2 | Migracja i RLS, przegląd Opus 5.5, Kuba czyta. |
 | RK-10 | Lista scen teatru, do 6 | wysokie | Do zrobienia | fala 2 | Migracja, filtr scen na liście spektakli. |
 | RK-11 | Generator etykiet: wygląd w nowym design systemie | średnie | Do zrobienia | osobne zadanie | Formaty arkuszy już są, chodzi o ekran edytora. |
