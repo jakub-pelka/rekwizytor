@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 import { InviteHeader } from './InviteHeader'
 import { InviteEmailStep } from './InviteEmailStep'
 import { InviteCodeStep } from './InviteCodeStep'
@@ -30,6 +32,7 @@ const whoOf = (l: InviteLookup): InviteWho | null =>
  * Po poprawnym kodzie serwer zakłada sesję w ciasteczkach, a krok z hasłem pokazujemy po stronie klienta.
  */
 export function InviteFlow({ start, onFinished }: { start: InviteFlowStart; onFinished?: () => void }) {
+    const t = useTranslations('Welcome')
     const router = useRouter()
     const [cur, setCur] = useState<Current>(() => {
         switch (start.step) {
@@ -78,6 +81,9 @@ export function InviteFlow({ start, onFinished }: { start: InviteFlowStart; onFi
             )}
             {cur.step === 'details' && <InviteDetailsStep initialName={cur.initialName} onDone={onFinished} />}
             {cur.step === 'state' && <InviteStateMessage lookup={cur.lookup} />}
+            {(cur.step === 'email' || cur.step === 'code') && (
+                <p className="lz-back">{t('haveAccount')} <Link href="/login">{t('signIn')}</Link></p>
+            )}
         </>
     )
 }

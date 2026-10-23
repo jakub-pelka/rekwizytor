@@ -1,6 +1,6 @@
 'use client'
 
-import { LegalFooter } from '@/components/rk/LegalFooter'
+import { AuthShell } from '@/components/auth/AuthShell'
 import { useRef, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -229,23 +229,8 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="lg">
-            <section className="ld-stage" aria-hidden="true" ref={stageRef}>
-                <video ref={videoRef} autoPlay muted loop playsInline preload="auto" poster="/media/logowanie/kurtyna-tlo-poster.jpg">
-                    <source src="/media/logowanie/kurtyna-tlo.webm" type="video/webm" />
-                    <source src="/media/logowanie/kurtyna-tlo.mp4" type="video/mp4" />
-                </video>
-                <div className="ld-words">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/brand/rekwizytor-logo-mono-bialy.svg" alt="Rekwizytor" />
-                    <p className="lg-tag">{t('showcaseLead')}</p>
-                </div>
-            </section>
-
-            <div className="lg-form-wrap">
-                {right}
-                <LegalFooter />
-            </div>
-        </div>
+        <AuthShell stageRef={stageRef} videoRef={videoRef}>
+            {right}
+        </AuthShell>
     )
 }
