@@ -1,6 +1,6 @@
 # Rekwizytor: tickety
 
-Kopia dla agentów. Źródło stanu: Claude Doc „Tickety Rekwizytora” (https://claude.ai/artifact/Gvn7HaXnbGV5wjtEX7VhV7). To jedyna lista poprawek i zadań: inne pliki mogą wskazać numer RK-, ale zgłoszenie żyje tylko tutaj. Stan na 23.10.2026.
+To jedyna lista poprawek i zadań (jedno miejsce, bez kopii w Claude Docs). Co Kuba zgłasza w czacie, dostaje numer RK- i trafia tutaj. Inne pliki i dokumenty mogą wskazać numer, ale zgłoszenie żyje tylko w tym pliku. Stan na 23.10.2026.
 
 Ryzyko i zasady przeglądu: `docs/redesign/PLAN-PRACY.md`, `REVIEW.md`.
 
